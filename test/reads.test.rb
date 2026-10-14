@@ -258,3 +258,10 @@ end
 test "select email from aux.users, without a catalog" do
 	assert_equal Plume.reads("select email from aux.users").columns.keys, ["aux.users"]
 end
+
+test "select \"ä\", b from t, \"é\" - names differing in the case of a non-ASCII letter are different names" do
+	catalog = Plume::Catalog.from_sql(%(CREATE TABLE "É" (a); CREATE TABLE "é" (b); CREATE TABLE t ("Ä", "ä")))
+
+	assert_equal catalog.tables.map(&:name), ["É", "é", "t"]
+	assert_equal columns_of(Plume.reads(%(select "ä", b from t, "é"), catalog:).columns), { "t" => ["ä"], "é" => ["b"] }
+end

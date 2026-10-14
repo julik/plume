@@ -53,3 +53,8 @@ test "numeric literals have the value SQLite gives them" do
 	assert_equal parse_stmt("create table t (a default - /* minus */ 0x10)").columns[0].constraints[0].value, -16
 	assert_equal parse_stmt("pragma cache_size = - 2000").to_sql, "PRAGMA cache_size = -2000"
 end
+
+test "collation names only have their ASCII letters upcased" do
+	assert_equal parse_stmt("select a from t order by a collate nöcase").to_sql, %(SELECT a FROM t ORDER BY a COLLATE "NöCASE")
+	assert_equal parse_stmt("create index i on t (a collate no\xFFcase)").to_sql, %(CREATE INDEX i ON t (a COLLATE "NO\xFFCASE"))
+end

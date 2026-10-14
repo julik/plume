@@ -23,6 +23,13 @@ module Plume
 			end
 		end
 
+		# SQLite compares collation names case-insensitively, but only folds ASCII: NÖCASE and nöcase
+		# are two different collations. A name that is not valid UTF-8 makes no Symbol and stays a String
+		def collation_name(name)
+			name &&= name.upcase(:ascii)
+			name&.valid_encoding? ? name.to_sym : name
+		end
+
 		def inspectable_props
 			all_inspectable_props = self.class.all_inspectable_props
 			all_inspectable_props.map do |prop|
