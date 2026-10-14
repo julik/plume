@@ -203,6 +203,7 @@ WEIRD_STRINGS = [
 	["1.0E-", [:ILLEGAL, :MINUS]],
 	["1.0E-/", [:ILLEGAL, :MINUS, :SLASH]],
 	["1.0E.10", [:ILLEGAL, :FLOAT]],
+	[".1.1", [:FLOAT, :FLOAT]],
 	["1.0F+5", [:ILLEGAL, :PLUS, :INTEGER]],
 	["1.0d-10", [:ILLEGAL, :MINUS, :INTEGER]],
 	["1.0e+", [:ILLEGAL, :PLUS]],
@@ -330,4 +331,8 @@ end
 test "select 2 /* is a syntax error, select 2 /* x is not" do
 	assert_raises(Plume::SyntaxError) { Plume.parse("select 2 /*") }
 	assert_equal parse_stmt("select 2 /* x").to_sql, "SELECT 2"
+end
+
+test "select .1.1 is two numbers, and so a syntax error" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select .1.1") }
 end
