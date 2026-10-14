@@ -39,3 +39,9 @@ test "a parsed tree changed after the fact prints the change" do
 
 	assert_equal node.to_sql, "SELECT a FROM t WHERE (b = 1) AND (tenant_id = ?)"
 end
+
+test "identifiers that are not valid UTF-8 get quoted rather than raising" do
+	sql = "select \xFFa from t"
+
+	assert_equal parse_stmt(sql).to_sql, "SELECT \"\xFFa\" FROM t"
+end

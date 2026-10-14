@@ -38,7 +38,7 @@ module Plume
 
 		def identifier(name)
 			name = name.to_s
-			return name if name.match?(BARE_IDENTIFIER) && bare_keyword_ok?(name.upcase.to_sym)
+			return name if name.ascii_only? && name.match?(BARE_IDENTIFIER) && bare_keyword_ok?(name.upcase.to_sym)
 
 			%("#{name.gsub('"', '""')}")
 		end
