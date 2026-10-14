@@ -29,6 +29,40 @@ module FixtureCorpus
 		:UNLEXABLE
 	end
 
+	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input/
+
+	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
+	# test suite, which feeds it plenty of deliberately broken SQL. Statements are prepared one
+	# at a time, since a "no such table" in one would otherwise stop us from checking the next
+	def sqlite_rejects?(path)
+		statements(read(path)).any? do |sql|
+			sqlite.prepare(sql).close
+			false
+		rescue SQLite3::Exception => e
+			e.message.match?(SQLITE_SYNTAX_ERROR)
+		end
+	end
+
+	# sqlite3_complete knows that semicolons inside a trigger body do not end the statement
+	def statements(sql)
+		chunks = []
+		buffer = +""
+		sql.split(/(?<=;)/).each do |piece|
+			buffer << piece
+			next unless sqlite.complete?(buffer)
+
+			chunks << buffer
+			buffer = +""
+		end
+		chunks << buffer unless buffer.strip.empty?
+		chunks.reject { |c| c.gsub(/--[^\n]*/, "").strip.delete(";").empty? }
+	end
+
+	def sqlite
+		require "sqlite3"
+		@sqlite ||= SQLite3::Database.new(":memory:")
+	end
+
 	def baseline
 		File.exist?(BASELINE_PATH) ? File.readlines(BASELINE_PATH, chomp: true) : []
 	end

@@ -850,22 +850,29 @@ module Plume
 					end
 				elsif (between_kw = maybe :BETWEEN)
 					middle = expression(next_precedence)
-					require :AND
+					and_kw = require :AND
 					right = expression(next_precedence)
-					left = TernaryExpression.new(
-						operator: (negated ? :NOT_BETWEEN : :BETWEEN),
+					left = TernaryExpression.concrete(
+						full_source: @lexer.sql,
+						operator_tk: Token::Keyword(token_span_from(negated, between_kw)),
 						left: left,
 						middle: middle,
-						right: right
+						and_kw: Token::Keyword(and_kw),
+						right: right,
 					)
 				elsif (like_kw = maybe :LIKE)
 					expression_node = negated ? NotLikeExpression : LikeExpression
 					right = expression(next_precedence)
-					escape = maybe(:ESCAPE) ? expression : nil
-					left = expression_node.new(
-						left:,
-						right:,
-						escape:,
+					if (escape_kw = maybe :ESCAPE)
+						escape = expression(next_precedence)
+					end
+					left = expression_node.concrete(
+						full_source: @lexer.sql,
+						operator_tk: Token::Keyword(token_span_from(negated, like_kw)),
+						left: left,
+						right: right,
+						escape_kw: Token::Keyword(escape_kw),
+						escape: escape,
 					)
 				elsif (match_tk = maybe_one_of :GLOB, :REGEXP, :MATCH)
 					operator_tk = token_span_from(negated, match_tk)
@@ -884,7 +891,16 @@ module Plume
 				next if in_tk || between_kw || like_kw || match_tk
 
 
-				expected!(:IN, :BETWEEN, :LIKE, :GLOB, :REGEXP, :MATCH) if negated
+				if negated && (null_kw = maybe :NULL)
+					left = UnaryExpression.concrete(
+						full_source: @lexer.sql,
+						operator_tk: Token::Punctuation(token_span_from(negated, null_kw)),
+						operand: left,
+					)
+					next
+				end
+
+				expected!(:IN, :BETWEEN, :LIKE, :GLOB, :REGEXP, :MATCH, :NULL) if negated
 
 				if (operator_tk = maybe :ISNULL)
 					operand_attr = Node === left ? { operand: left } : { operand_tk: left }
@@ -1721,21 +1737,30 @@ module Plume
 					predicate = expression
 					conditions = require_some(leading_sep: :WHEN) do |when_kw|
 						case_predicate = expression
-						require :THEN
+						then_kw = require :THEN
 						case_consequence = expression
 
-						CaseCondition.new(
+						CaseCondition.concrete(
+							full_source: @lexer.sql,
+							when_kw: Token::Keyword(when_kw),
 							predicate: case_predicate,
+							then_kw: Token::Keyword(then_kw),
 							consequence: case_consequence,
 						)
 					end
-					else_clause = maybe(:ELSE) ? expression : nil
-					require :END
+					if (else_kw = maybe :ELSE)
+						else_clause = expression
+					end
+					end_kw = require :END
 
-					CaseExpression.new(
-						predicate:,
-						conditions:,
-						else_clause:,
+					CaseExpression.concrete(
+						full_source: @lexer.sql,
+						case_kw: Token::Keyword(case_kw),
+						predicate: predicate,
+						conditions: conditions,
+						else_kw: Token::Keyword(else_kw),
+						else_clause: else_clause,
+						end_kw: Token::Keyword(end_kw),
 					)
 				end
 			elsif (exists_kw = maybe :EXISTS)
@@ -1750,7 +1775,8 @@ module Plume
 					select: select,
 					select_rp: Token::Punctuation(select_rp),
 				)
-			elsif (literal_tk = maybe { literal_value })
+			# A string followed by a dot is a quoted table name, as in `'t'.col`
+			elsif !(current_token == :STRING && peek == :DOT) && (literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
 					value_tk: literal_tk,
@@ -1766,6 +1792,14 @@ module Plume
 					arguments_lp = require :LP
 					arguments = function_arguments
 					arguments_rp = require :RP
+					# WITHIN is too new to be in our keyword list, so it arrives as an identifier
+					if current_token == :ID && peek == :GROUP && current_value.casecmp?("within")
+						within_group_kw = require_all_of :ID, :GROUP
+						within_lp = require :LP
+						require_all_of :ORDER, :BY
+						within_group = expression
+						within_rp = require :RP
+					end
 					filter = maybe { filter_clause }
 					over = maybe { over_clause }
 
@@ -1775,6 +1809,10 @@ module Plume
 						arguments_lp: Token::Punctuation(arguments_lp),
 						arguments: arguments,
 						arguments_rp: Token::Punctuation(arguments_rp),
+						within_group_kw: Token::Keyword(within_group_kw),
+						within_lp: Token::Punctuation(within_lp),
+						within_group: within_group,
+						within_rp: Token::Punctuation(within_rp),
 						filter_clause: filter,
 						over_clause: over,
 					)
@@ -1928,25 +1966,32 @@ module Plume
 				#
 				# [description]
 			#
-			if maybe :DISTINCT
-				distinct = true
+			if (distinct_kw = maybe_one_of :DISTINCT, :ALL)
 				expressions = require_some(trailing_sep: :COMMA) { expression }
-				order_by = maybe_all_of(:ORDER, :BY) ? require_some(trailing_sep: :COMMA) { ordering_term } : nil
+				if (order_by_kw = maybe_all_of :ORDER, :BY)
+					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
+				end
 
-				FunctionArguments.new(
-					distinct:,
-					expressions:,
-					order_by:,
+				FunctionArguments.concrete(
+					full_source: @lexer.sql,
+					distinct_kw: Token::Keyword(distinct_kw),
+					expressions: expressions,
+					order_by_kw: Token::Keyword(order_by_kw),
+					order_by: order_by,
 				)
 			elsif maybe :STAR
 				StarFunctionArgument.new
 			elsif (e = maybe { expression })
 				expressions = require_some(given: e, trailing_sep: :COMMA) { expression }
-				order_by = maybe_all_of(:ORDER, :BY) ? require_some(trailing_sep: :COMMA) { ordering_term } : nil
+				if (order_by_kw = maybe_all_of :ORDER, :BY)
+					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
+				end
 
-				FunctionArguments.new(
-					expressions:,
-					order_by:,
+				FunctionArguments.concrete(
+					full_source: @lexer.sql,
+					expressions: expressions,
+					order_by_kw: Token::Keyword(order_by_kw),
+					order_by: order_by,
 				)
 			elsif :RP == current_token
 				EmptyFunctionArgument.new

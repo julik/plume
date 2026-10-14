@@ -7,10 +7,14 @@ module Plume
 		token :function_tk
 		token :arguments_lp
 		token :arguments_rp
+		token :within_group_kw
+		token :within_lp
+		token :within_rp
 
 		attr :schema, Stringy
 		attr :function, Stringy
 		node :arguments, _Union(FunctionArguments, StarFunctionArgument, EmptyFunctionArgument)
+		node :within_group, Expression # the ORDER BY expression of an ordered-set aggregate
 		node :filter_clause, Expression
 		node :over_clause, OverClause
 

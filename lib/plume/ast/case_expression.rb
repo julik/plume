@@ -16,7 +16,7 @@ module Plume
 		def self.new(*, conditions:, **) = super
 		def self.concrete(*, case_kw:, conditions:, end_kw:, **) = super
 
-		def predicate = @predicate || predicate_tk_val
-		def else_clause = @else_clause || else_clause_tk_val
+		def predicate = (@predicate == LiteralNil) ? predicate_tk_val : @predicate
+		def else_clause = (@else_clause == LiteralNil) ? else_clause_tk_val : @else_clause
 	end
 end

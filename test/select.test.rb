@@ -370,3 +370,18 @@ test "every table reference in a nested select is reachable by walking" do
 	tables = node.each_node.grep(Plume::TableName).map(&:table).sort
 	assert_equal tables, ["a", "cte_src", "exists_src", "in_src", "scalar_src", "sub_src", "union_src"]
 end
+
+test "select percentile(x, 50) within group (order by x) filter (where x > 0) from t" do
+	column = parse_stmt("select percentile(x, 50) within group (order by x) filter (where x > 0) from t").body.columns[0]
+
+	assert_equal column.result.within_group.column, "x"
+	assert_operator Plume::BinaryExpression, :===, column.result.filter_clause
+	assert_equal column.alias, nil
+end
+
+test "select '@abc'.'!pqr' from '@abc'" do
+	core = parse_stmt("select '@abc'.'!pqr' from '@abc'").body
+
+	assert_equal [core.columns[0].result.table, core.columns[0].result.column], ["@abc", "!pqr"]
+	assert_equal core.source.table, "@abc"
+end

@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 # Prints how much of the fixture corpus parses, bucketed by the leading keyword.
+# INVALID counts fixtures we fail on that SQLite rejects as malformed too.
 # With --write, also records the passing fixtures in fixtures/passing.txt (which
 # test/fixtures.test.rb holds us to) and the table in llm/fixture-report.txt
 
@@ -14,19 +15,20 @@ passing = []
 
 FixtureCorpus.paths.each do |path|
 	status = FixtureCorpus.classify(path)
+	status = :invalid if status == :fail && FixtureCorpus.sqlite_rejects?(path)
 	counts[FixtureCorpus.leading_keyword(path)][status] += 1
 	passing << path if status == :pass
 end
 
 rows = counts.sort_by { |kw, c| [-c.values.sum, kw.to_s] }.map do |kw, c|
-	format("%-12s %7d %7d %7d %7d", kw, c.values.sum, c[:pass], c[:fail], c[:not_implemented])
+	format("%-12s %7d %7d %7d %7d %7d", kw, c.values.sum, c[:pass], c[:fail], c[:invalid], c[:not_implemented])
 end
 totals = counts.values.each_with_object(Hash.new(0)) { |c, t| c.each { |k, v| t[k] += v } }
 
 report = [
-	format("%-12s %7s %7s %7s %7s", "KEYWORD", "TOTAL", "PASS", "FAIL", "NYI"),
+	format("%-12s %7s %7s %7s %7s %7s", "KEYWORD", "TOTAL", "PASS", "FAIL", "INVALID", "NYI"),
 	*rows,
-	format("%-12s %7d %7d %7d %7d", "ALL", totals.values.sum, totals[:pass], totals[:fail], totals[:not_implemented]),
+	format("%-12s %7d %7d %7d %7d %7d", "ALL", totals.values.sum, totals[:pass], totals[:fail], totals[:invalid], totals[:not_implemented]),
 ].join("\n") + "\n"
 
 puts report
