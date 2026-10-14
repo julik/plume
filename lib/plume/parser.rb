@@ -3738,7 +3738,7 @@ module Plume
 			#
 			if current_token in :ID | :INDEXED
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :INDEXED, 'fallback')
@@ -3752,7 +3752,7 @@ module Plume
 			#
 			if current_token in :ID | :STRING
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :STRING, 'fallback')
@@ -3766,7 +3766,7 @@ module Plume
 			#
 			if current_token in :ID | :INDEXED | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :INDEXED, :JOIN_KW, 'fallback')
@@ -3776,6 +3776,24 @@ module Plume
 		private
 
 		# ---------- Parsing Helpers ----------
+
+		def fallback_to_name? = TOKEN_FALLBACKS.include?(current_token) || window_keyword_as_name?
+
+		# FILTER, OVER and WINDOW are only keywords where SQLite's tokenizer sees a window function
+		# around them (analyzeWindowKeyword and friends in tokenize.c), and names anywhere else
+		def window_keyword_as_name?
+			case current_token
+			when :WINDOW then !name_like?(peek)
+			when :OVER then !(@previous_token == :RP && (peek == :LP || name_like?(peek)))
+			when :FILTER then !(@previous_token == :RP && peek == :LP)
+			else false
+			end
+		end
+
+		def name_like?(token)
+			(token in :ID | :STRING | :WINDOW | :OVER | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT) ||
+				TOKEN_FALLBACKS.include?(token)
+		end
 
 		def require(token)
 			if token == current_token
@@ -3790,6 +3808,7 @@ module Plume
 				start_buffer = @peek_buffer.dup
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
+				start_previous_token = @previous_token
 
 				result = catch(:ERROR) { yield }
 
@@ -3797,6 +3816,7 @@ module Plume
 					@peek_buffer = start_buffer
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
+					@previous_token = start_previous_token
 					nil
 				else
 					result
@@ -4047,6 +4067,7 @@ module Plume
 			ensure_buffer
 			token = @peek_buffer.shift
 			@last_consumed_fin = token[2]
+			@previous_token = token[0]
 			token
 		end
 

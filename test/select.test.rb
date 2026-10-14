@@ -390,3 +390,10 @@ test "select a from t order by a nulls middle" do
 	assert_raises(Plume::SyntaxError) { parse_stmt("select a from t order by a nulls middle") }
 	assert_equal parse_stmt("select a from t order by a nulls last").orderings[0].nulls, :LAST
 end
+
+test "filter, over and window are names unless a window function is around them" do
+	assert_equal parse_stmt("create table t (filter, over, window)").columns.map(&:name), ["filter", "over", "window"]
+	assert_equal parse_stmt("select max(a) over from t").to_sql, %(SELECT max(a) AS "over" FROM t)
+	assert_equal parse_stmt("select 1 window").to_sql, %(SELECT 1 AS "window")
+	assert_equal parse_stmt("select max(a) over w from t window w as ()").to_sql, "SELECT max(a) OVER w FROM t WINDOW w AS ()"
+end
