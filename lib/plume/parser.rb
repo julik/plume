@@ -992,6 +992,8 @@ module Plume
 					end
 				end
 				columns_rp      = require        :RP
+				# The option list may start with a comma, `CREATE TABLE t (a), STRICT` is fine with SQLite
+				options_comma   = maybe(:COMMA) if current_token == :COMMA && (peek in :STRICT | :WITHOUT)
 				# inlined `table_options`
 				options         = maybe_some(trailing_sep: :COMMA) do
 					#
@@ -1025,6 +1027,7 @@ module Plume
 						expected!(:STRICT, :WITHOUT)
 					end
 				end
+				options.first.leading = Token::Punctuation(options_comma) if options_comma
 
 				CreateTableStatement.concrete(
 					full_source:      @lexer.sql,

@@ -1306,3 +1306,8 @@ test "create table t (a default -x) - only a literal can take a sign there" do
 
 	assert_equal parse_stmt("create table t (a default -'x')").to_sql, "CREATE TABLE t (a DEFAULT (-'x'))"
 end
+
+test "create table t (a), strict - the table options may start with a comma" do
+	assert_equal parse_stmt("create table t (a), strict").to_sql, "CREATE TABLE t (a) STRICT"
+	assert_raises(Plume::SyntaxError) { Plume.parse("create table t (a),, strict") }
+end
