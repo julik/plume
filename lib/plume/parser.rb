@@ -3622,7 +3622,7 @@ module Plume
 				direction = require current_token
 			end
 			if (nulls_kw = maybe(:NULLS))
-				nulls = require current_token
+				nulls = require_one_of :FIRST, :LAST
 			end
 
 			OrderingTerm.concrete(

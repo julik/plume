@@ -385,3 +385,8 @@ test "select '@abc'.'!pqr' from '@abc'" do
 	assert_equal [core.columns[0].result.table, core.columns[0].result.column], ["@abc", "!pqr"]
 	assert_equal core.source.table, "@abc"
 end
+
+test "select a from t order by a nulls middle" do
+	assert_raises(Plume::SyntaxError) { parse_stmt("select a from t order by a nulls middle") }
+	assert_equal parse_stmt("select a from t order by a nulls last").orderings[0].nulls, :LAST
+end
