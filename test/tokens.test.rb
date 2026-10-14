@@ -276,3 +276,8 @@ test "lexing leaves the caller's string alone" do
 
 	refute sql.frozen?
 end
+
+test "a NUL right after a keyword-looking word ends the identifier" do
+	assert_equal [:ID, :ILLEGAL, :ID], lex("SE\0LECT")
+	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT j\0") }
+end
