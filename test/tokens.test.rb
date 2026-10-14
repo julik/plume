@@ -22,6 +22,9 @@ ILLEGAL_TOKENS = [
 	['"', :ILLEGAL],
 	["`", :ILLEGAL],
 	["[abc", :ILLEGAL],
+	["'a\0", :ILLEGAL],
+	["\"a\0", :ILLEGAL],
+	["[a\0", :ILLEGAL],
 	["[abc$", :ILLEGAL],
 	["x'abcdEF12$#'", :ILLEGAL],
 	["x'abcdEF123'", :ILLEGAL],
@@ -193,6 +196,7 @@ WEIRD_STRINGS = [
 	["/1", [:SLASH, :INTEGER]],
 	["0X123_456/", [:QNUMBER, :SLASH]],
 	["0x1Fg", [:ILLEGAL]],
+	["$a(b\0c)", [:ILLEGAL, :ILLEGAL, :ID, :RP]],
 	["0x1F_g", [:ILLEGAL]],
 	["1.0E+", [:ILLEGAL, :PLUS]],
 	["1.0E+:", [:ILLEGAL, :PLUS, :ILLEGAL]],
@@ -303,4 +307,9 @@ end
 
 test "a byte order mark is just space" do
 	assert_equal Plume.parse("\xEF\xBB\xBFselect 1").first.to_sql, "SELECT 1"
+end
+
+test "a NUL ends a quoted string or name before its closing quote" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 'a\0b'") }
+	assert_raises(Plume::SyntaxError) { Plume.parse("select [a\0b]") }
 end

@@ -401,14 +401,15 @@ module Plume
 				nil if current_byte == 39 # "'"
 				nil if current_byte == 34 # '"'
 
-				while (b = scan)
+				# SQLite reads no further than a NUL, so it leaves the quote unterminated
+				while (b = scan) && b != 0
 					next unless b == current_byte
 					# you can use the same quote to escape itself
 					(peek == current_byte) ? step : break
 				end
 
 				return :STRING if b == 39 # "'"
-				return :ILLEGAL if b.nil?
+				return :ILLEGAL if b.nil? || b == 0
 
 				:ID
 			when :DOT, :DIGIT
@@ -504,10 +505,8 @@ module Plume
 
 				token_type
 			when :QUOTE2
-				step until (b = peek).nil? || b == 93 # "]"
-
-				final = scan
-				return :ILLEGAL if final.nil?
+				step until (b = peek).nil? || b == 0 || b == 93 # "]"
+				return :ILLEGAL unless scan == 93
 
 				:ID
 			when :VARNUM
@@ -528,7 +527,7 @@ module Plume
 						n += 1
 					elsif n > 0 && b == 40 # "("
 						step
-						step until (b = peek).nil? || space?(b) || b == 41 # ")"
+						step until (b = peek).nil? || b == 0 || space?(b) || b == 41 # ")"
 
 						if peek == 41 # ")"
 							step
