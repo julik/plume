@@ -11,8 +11,9 @@ module Plume
 			end
 
 			def msg
-				line = @sql.byteslice(0, @beg).count("\n") + 1
-				where = @sql.strip.include?("\n") ? " line #{line}" : ""
+				src = @sql.b # SQLite takes any bytes, so the SQL may well not be valid UTF-8
+				line = src.byteslice(0, @beg).count("\n") + 1
+				where = src.strip.include?("\n") ? " line #{line}" : ""
 				what = @token ? "token #{@token}[#{@sql.byteslice(@beg, @fin - @beg).inspect}]" : "end of input"
 				"Unexpected #{what} at#{where}:\n#{Plume.excerpt(@sql, @beg, @fin)}\n  Expected one of: #{@expected.join(", ")}\n"
 			end
