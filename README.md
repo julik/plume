@@ -51,6 +51,8 @@ ast = Plume.parse(sql).first # one node per statement
 # => Plume::CreateTableStatement(...)
 ```
 
+SQL that SQLite would not parse raises `Plume::SyntaxError`. SQL nested more than 1000 levels deep (SQLite's own limit for expressions), or less but still too deep for the stack of the thread or fiber doing the work, raises `Plume::NestingTooDeep` - a kind of `SyntaxError` - from parsing, from `to_sql` and from `Plume.reads`, never a `SystemStackError`. With Ruby's default 1 MB thread stacks that is somewhere between 170 (subqueries) and 850 (parentheses) levels.
+
 <details>
   <summary>(click to see full AST)</summary>
 

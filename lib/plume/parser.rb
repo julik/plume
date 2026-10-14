@@ -144,7 +144,13 @@ module Plume
 			OR:        5,
 		}.freeze
 
+		# SQLite refuses expressions nested deeper than SQLITE_MAX_EXPR_DEPTH, 1000 by default, and so
+		# do we, well before the parser - or whatever walks the tree later - runs out of stack. Every
+		# operator in a chain like `a AND b AND c` counts as a level, since the tree it builds is as deep
+		MAX_DEPTH = 1000
+
 		def initialize(sql)
+			@depth = 0
 			@lexer = Lexer.new(sql, skip_spaces: true)
 			@peek_buffer = []
 		end
@@ -157,6 +163,8 @@ module Plume
 			else
 				result
 			end
+		rescue SystemStackError
+			Plume.too_deep!("The SQL")
 		end
 
 		def sql_stmt_list
@@ -1332,10 +1340,13 @@ module Plume
 				#
 				# The SELECT statement is used to query the database.
 			#
+			depth = @depth
+			deeper!
 			with ||= with_clause if current_token == :WITH
 			body = select_core
 
 			while (operator_tk = maybe_one_of [:UNION, :ALL].freeze, :UNION, :INTERSECT, :EXCEPT)
+				deeper!
 				body = CompoundSelect.concrete(
 					full_source: @lexer.sql,
 					operator_tk: Token::Keyword(operator_tk),
@@ -1350,6 +1361,8 @@ module Plume
 				body:        body,
 				**order_and_limit,
 			)
+		ensure
+			@depth = depth
 		end
 
 		def with_clause
@@ -1467,12 +1480,16 @@ module Plume
 				# [description]
 			#
 
+			depth = @depth
+			deeper!
 			left = basic_expression
 
 			while (operator = current_token)
 				break if operator == :BITNOT # only ever unary
 				operator_precedence = OPERATOR_PRECEDENCE[operator] || -1
 				break if operator_precedence < min_precedence
+
+				deeper!
 				next_precedence = operator_precedence + 1
 
 				negated = maybe :NOT
@@ -1704,6 +1721,8 @@ module Plume
 			end
 
 			left
+		ensure
+			@depth = depth
 		end
 
 		def column_def
@@ -3385,6 +3404,8 @@ module Plume
 				#
 				# One source of rows in a FROM clause.
 			#
+			depth = @depth
+			deeper!
 			if (source_lp = maybe :LP)
 				if current_token in :SELECT | :VALUES | :WITH
 					select = select_stmt
@@ -3457,6 +3478,8 @@ module Plume
 					)
 				end
 			end
+		ensure
+			@depth = depth
 		end
 
 		def literal_value
@@ -3795,6 +3818,15 @@ module Plume
 			throw :ERROR, ErrorMessage.new(@lexer.sql, tok, beg, fin, ["a digit on both sides of every _"])
 		end
 
+		# Raised rather than thrown, so that no `maybe` tries its alternatives at the same depth again
+		def deeper!(levels = 1)
+			@depth += levels
+			return if @depth <= MAX_DEPTH
+
+			_token, beg, fin = ensure_buffer[0]
+			raise NestingTooDeep, "Nested more than #{MAX_DEPTH} levels deep at:\n#{Plume.excerpt(@lexer.sql, beg, fin)}\n"
+		end
+
 		def fallback_to_name? = TOKEN_FALLBACKS.include?(current_token) || window_keyword_as_name?
 
 		# FILTER, OVER and WINDOW are only keywords where SQLite's tokenizer sees a window function
@@ -3827,6 +3859,7 @@ module Plume
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
 				start_previous_token = @previous_token
+				start_depth = @depth
 
 				result = catch(:ERROR) { yield }
 
@@ -3835,6 +3868,7 @@ module Plume
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
 					@previous_token = start_previous_token
+					@depth = start_depth
 					nil
 				else
 					result

@@ -118,6 +118,14 @@ module Plume
 	autoload :WithClause, "plume/ast/with_clause"
 
 	SyntaxError = Class.new(StandardError)
+	# SQL nested deeper than Parser::MAX_DEPTH, which SQLite would not take either - or nested less
+	# deep than that, but still too deep for the stack of the thread or fiber doing the work. Parsing,
+	# printing and analysis all raise it rather than SystemStackError
+	NestingTooDeep = Class.new(SyntaxError)
+
+	def self.too_deep!(what)
+		raise NestingTooDeep, "#{what} is nested too deeply for the stack this thread or fiber has"
+	end
 
 	def self.tokenize(str, with_values: false, skip_spaces: true)
 		lex = Lexer.new(str, skip_spaces: skip_spaces)

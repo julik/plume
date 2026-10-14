@@ -130,6 +130,8 @@ module Plume
 			raise Error.new(unresolved: access.unresolved) if strict && !access.resolved?
 
 			access
+		rescue SystemStackError
+			Plume.too_deep!("The statement")
 		end
 	end
 end

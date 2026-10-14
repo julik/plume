@@ -25,7 +25,11 @@ module Plume
 		# Operands of these need parentheses to keep their grouping when printed inside another expression
 		COMPOUND_EXPRESSIONS = [BinaryExpression, UnaryExpression, TernaryExpression, LikeExpression, CollationExpression].freeze
 
-		def self.print(node) = new.print(node)
+		def self.print(node)
+			new.print(node)
+		rescue SystemStackError
+			Plume.too_deep!("The tree")
+		end
 
 		def print(node)
 			case node
