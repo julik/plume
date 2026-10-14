@@ -424,7 +424,7 @@ module Plume
 		def print_check_column_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_collate_column_constraint(node) = join(constraint_name(node), "COLLATE #{identifier(node.collation)}")
 		def print_foreign_key_column_constraint(node) = join(constraint_name(node), print(node.foreign_key_clause))
-		def print_no_op_column_constraint(node) = constraint_name(node)
+		def print_no_op_column_constraint(node) = join(constraint_name(node), node.deferrable_span? && Array(node.deferrable_span_tok).join(" "))
 
 		def print_default_column_constraint(node)
 			return join(constraint_name(node), "DEFAULT #{node.value_tk_src}") if node.value_tk?

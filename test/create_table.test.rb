@@ -1311,3 +1311,8 @@ test "create table t (a), strict - the table options may start with a comma" do
 	assert_equal parse_stmt("create table t (a), strict").to_sql, "CREATE TABLE t (a) STRICT"
 	assert_raises(Plume::SyntaxError) { Plume.parse("create table t (a),, strict") }
 end
+
+test "create table t (a int deferrable initially deferred) - a DEFERRABLE clause can stand on its own" do
+	assert_equal parse_stmt("create table t (a int deferrable initially deferred, b not deferrable)").to_sql,
+		"CREATE TABLE t (a int DEFERRABLE INITIALLY DEFERRED, b NOT DEFERRABLE)"
+end

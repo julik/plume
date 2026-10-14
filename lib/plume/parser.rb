@@ -149,6 +149,15 @@ module Plume
 		# operator in a chain like `a AND b AND c` counts as a level, since the tree it builds is as deep
 		MAX_DEPTH = 1000
 
+		DEFERRABLE_SPANS = [
+			[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+			[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+			[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+			[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+			[:NOT, :DEFERRABLE].freeze,
+			:DEFERRABLE,
+		].freeze
+
 		def initialize(sql)
 			@depth = 0
 			@lexer = Lexer.new(sql, skip_spaces: true)
@@ -1981,6 +1990,14 @@ module Plume
 						as_rp:              Token::Punctuation(as_rp),
 						type_tk:            Token::Keyword(type_tk),
 					)
+				# A DEFERRABLE clause on its own, which SQLite applies to the column's last REFERENCES
+				elsif (deferrable_span = maybe_one_of(*DEFERRABLE_SPANS))
+					NoOpColumnConstraint.concrete(
+						full_source:     @lexer.sql,
+						constraint_kw:   Token::Keyword(constraint_kw),
+						name_tk:         Token::Identifier(constraint_name),
+						deferrable_span: Token::Keyword(deferrable_span),
+					)
 				else
 					if constraint_name
 						NoOpColumnConstraint.concrete(
@@ -2325,14 +2342,7 @@ module Plume
 				)
 			end
 
-			deferrable_span = maybe_one_of(
-				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:NOT, :DEFERRABLE].freeze,
-				:DEFERRABLE,
-			)
+			deferrable_span = maybe_one_of(*DEFERRABLE_SPANS)
 
 			ForeignKeyClause.concrete(
 				full_source: @lexer.sql,
