@@ -173,3 +173,12 @@ test "a syntax error in SQL that is not valid UTF-8 still gets its message" do
 
 	assert_equal error.message.lines.first, "Unexpected end of input at line 2:\n"
 end
+
+test "list items need their separators, and a separator needs an item after it" do
+	["select 99 1", "select * t1", "select f(a b)", "insert into t values (1 2)", "create table t (a,)",
+		"create table t (a, primary key (a),)", "select f(a,)", "select a from t group by a, b,", "create table t (a) strict,"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+
+	assert_equal parse_stmt("create table t (a, primary key (a) unique (a))").to_sql, "CREATE TABLE t (a, PRIMARY KEY (a), UNIQUE (a))"
+end

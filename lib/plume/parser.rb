@@ -873,8 +873,10 @@ module Plume
 				)
 			elsif (columns_lp = maybe          :LP)
 				columns         = require_some(trailing_sep: :COMMA) { column_def }
+				constraints_comma = maybe :COMMA
+				columns.last.trailing = Token::Punctuation(constraints_comma) if constraints_comma
 				# inlined `table_constraint`
-				constraints     = maybe_some(trailing_sep: [:COMMA, nil].freeze) do
+				constraints     = !constraints_comma ? [] : require_some(trailing_sep: [:COMMA, nil].freeze) do
 					#
 						# Relevant `parse.y` grammar rules:
 						#   conslist_opt ::= . | COMMA conslist.
@@ -3881,13 +3883,7 @@ module Plume
 				end
 			elsif trailing_sep
 				val = (given || yield)
-				sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-				insert = if Node === val
-				  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-					val
-				else
-					[val, sep_tk]
-				end
+				insert = Node === val ? val : [val, nil]
 			else
 				val = (given || yield)
 				insert = val
@@ -3919,13 +3915,7 @@ module Plume
 				val = maybe { yield }
 				return a if val.nil?
 
-				sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-				insert = if Node === val
-				  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-					val
-				else
-					[val, sep_tk]
-				end
+				insert = Node === val ? val : [val, nil]
 			else
 				insert = maybe { yield }
 			end
@@ -3944,10 +3934,7 @@ module Plume
 		end
 
 		def collect(into: [], trailing_sep: nil, leading_sep: nil, &block)
-			break_next = false
 			while true
-				break if break_next
-
 				if leading_sep
 					sep_tk = Array === leading_sep ? maybe_one_of(*leading_sep) : maybe(leading_sep)
 					break if sep_tk.nil?
@@ -3962,18 +3949,19 @@ module Plume
 					end
 
 				elsif trailing_sep
-					val = maybe { yield }
+					# A separator only belongs to the list when another item follows it
+					sep_tk, val = maybe { [separator(trailing_sep), yield] }
 					break if val.nil?
 
-					sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-					break_next = sep_tk.nil?
-
-					insert = if Node === val
-					  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-						val
-					else
-						[val, sep_tk]
+					if sep_tk
+						previous = into.last
+						if Node === previous
+							previous.trailing = Token::Punctuation(sep_tk)
+						else
+							into[-1] = [previous[0], sep_tk]
+						end
 					end
+					insert = Node === val ? val : [val, nil]
 
 				else
 					val = maybe { yield }
@@ -3986,6 +3974,13 @@ module Plume
 			end
 
 			into
+		end
+
+		# `false` comes back for an optional separator that is not there
+		def separator(sep)
+			return require(sep) unless Array === sep
+
+			maybe_one_of(*sep).tap { |tk| expected!(*sep.compact) if tk.nil? }
 		end
 
 		def token_span_from(*spans)
