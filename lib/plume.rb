@@ -76,6 +76,23 @@ module Plume
 	autoload :LiteralExpression, "plume/ast/literal_expression"
 	autoload :Variable, "plume/ast/variable"
 	autoload :WithoutRowidTableOption, "plume/ast/without_rowid_table_option"
+	autoload :AlterTableStatement, "plume/ast/alter_table_statement"
+	autoload :AnalyzeStatement, "plume/ast/analyze_statement"
+	autoload :AttachStatement, "plume/ast/attach_statement"
+	autoload :BeginStatement, "plume/ast/begin_statement"
+	autoload :CommitStatement, "plume/ast/commit_statement"
+	autoload :CreateIndexStatement, "plume/ast/create_index_statement"
+	autoload :CreateTriggerStatement, "plume/ast/create_trigger_statement"
+	autoload :CreateVirtualTableStatement, "plume/ast/create_virtual_table_statement"
+	autoload :DetachStatement, "plume/ast/detach_statement"
+	autoload :DropStatement, "plume/ast/drop_statement"
+	autoload :ExplainStatement, "plume/ast/explain_statement"
+	autoload :PragmaStatement, "plume/ast/pragma_statement"
+	autoload :ReindexStatement, "plume/ast/reindex_statement"
+	autoload :ReleaseStatement, "plume/ast/release_statement"
+	autoload :RollbackStatement, "plume/ast/rollback_statement"
+	autoload :SavepointStatement, "plume/ast/savepoint_statement"
+	autoload :VacuumStatement, "plume/ast/vacuum_statement"
 	autoload :Assignment, "plume/ast/assignment"
 	autoload :ConflictResolution, "plume/ast/conflict_resolution"
 	autoload :DeleteStatement, "plume/ast/delete_statement"
@@ -100,7 +117,6 @@ module Plume
 	autoload :WithClause, "plume/ast/with_clause"
 
 	SyntaxError = Class.new(StandardError)
-	NotImplementedError = Class.new(StandardError)
 
 	def self.tokenize(str, with_values: false, skip_spaces: true)
 		lex = Lexer.new(str, skip_spaces: skip_spaces)

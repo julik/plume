@@ -22,8 +22,8 @@ module Plume
 		def self.new(*, view:, select:, **) = super
 		def self.concrete(*, create_kw:, view_kw:, view:, select:, **) = super
 
-		inspectable def temporary = !!@temp_kw
-		inspectable def if_not_exists = !!@if_not_exists_kw
+		inspectable def temporary = temp_kw?
+		inspectable def if_not_exists = if_not_exists_kw?
 
 		def column_names = columns&.map(&:name)
 	end

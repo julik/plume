@@ -2648,3 +2648,8 @@ test "f(:a, ?2, @b, $c)" do
 
 	assert_equal actual.arguments.expressions.map(&:name), [":a", "?2", "@b", "$c"]
 end
+
+test "count(x) is not distinct" do
+	refute Plume::Parser.new("count(x)").expression.arguments.distinct
+	assert Plume::Parser.new("count(distinct x)").expression.arguments.distinct
+end

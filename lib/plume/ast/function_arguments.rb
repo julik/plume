@@ -12,6 +12,6 @@ module Plume
 		def self.new(*, expressions:, **) = super
 		def self.concrete(*, expressions:, **) = super
 
-		def distinct = (@distinct == LiteralNil) ? !!@distinct_kw : @distinct
+		def distinct = (@distinct == LiteralNil) ? distinct_kw? : @distinct
 	end
 end

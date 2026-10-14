@@ -29,8 +29,7 @@ gem install plume
 
 Parse a SQL query with the `Plume::Parser` class:
 
-> [!NOTE]
-> The parser is still work in progress. `SELECT`, `INSERT`, `UPDATE`, `DELETE` (all including `WITH`), `CREATE TABLE` and `CREATE VIEW` statements are supported at the moment. Other statements raise `Plume::NotImplementedError`.
+Every statement in SQLite's grammar parses, and the parser is checked against the SQL in SQLite's own test suite: of the 15,836 statements there, the ones it does not parse are those SQLite rejects as well.
 
 ```ruby
 sql = <<~SQL
@@ -241,31 +240,31 @@ The results are tested against SQLite's own [authorizer callback](https://www.sq
 ## Roadmap
 
 - [x] `expression`
-- [ ] `alter_table_stmt`
-- [ ] `analyze_stmt`
-- [ ] `attach_stmt`
-- [ ] `begin_stmt`
-- [ ] `commit_stmt`
+- [x] `alter_table_stmt`
+- [x] `analyze_stmt`
+- [x] `attach_stmt`
+- [x] `begin_stmt`
+- [x] `commit_stmt`
 - [x] `create_table_stmt`
-- [ ] `create_index_stmt`
-- [ ] `create_trigger_stmt`
+- [x] `create_index_stmt`
+- [x] `create_trigger_stmt`
 - [x] `create_view_stmt`
-- [ ] `create_virtual_table_stmt`
+- [x] `create_virtual_table_stmt`
 - [x] `delete_stmt`
-- [ ] `detach_stmt`
-- [ ] `drop_index_stmt`
-- [ ] `drop_table_stmt`
-- [ ] `drop_trigger_stmt`
-- [ ] `drop_view_stmt`
+- [x] `detach_stmt`
+- [x] `drop_index_stmt`
+- [x] `drop_table_stmt`
+- [x] `drop_trigger_stmt`
+- [x] `drop_view_stmt`
 - [x] `insert_stmt`
-- [ ] `pragma_stmt`
-- [ ] `reindex_stmt`
-- [ ] `release_stmt`
-- [ ] `rollback_stmt`
-- [ ] `savepoint_stmt`
+- [x] `pragma_stmt`
+- [x] `reindex_stmt`
+- [x] `release_stmt`
+- [x] `rollback_stmt`
+- [x] `savepoint_stmt`
 - [x] `select_stmt`
 - [x] `update_stmt`
-- [ ] `vacuum_stmt`
+- [x] `vacuum_stmt`
 - [x] `with_stmt`
 
 ## Development

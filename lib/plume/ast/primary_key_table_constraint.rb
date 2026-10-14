@@ -18,6 +18,6 @@ module Plume
 		def self.concrete(*, primary_key_kw:, columns:, **) = super
 
 		def name = (@name == LiteralNil) ? name_tk_val : @name
-		def autoincrement = (@autoincrement == LiteralNil) ? !!@autoincrement_kw : @autoincrement
+		def autoincrement = (@autoincrement == LiteralNil) ? autoincrement_kw? : @autoincrement
 	end
 end

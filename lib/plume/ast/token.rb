@@ -66,7 +66,7 @@ module Plume
 		end
 
 		def source(str, tup)
-			return unless str && tup
+			return unless str && present?(tup)
 
 			_, beg, fin, = tup
 
@@ -74,7 +74,7 @@ module Plume
 		end
 
 		def value(str, tup)
-			return unless str && tup
+			return unless str && present?(tup)
 
 			*, type = tup
 
@@ -94,7 +94,7 @@ module Plume
 		end
 
 		def location(tup)
-			return unless tup
+			return unless present?(tup)
 
 			_, beg, fin, = tup
 
@@ -102,7 +102,7 @@ module Plume
 		end
 
 		def token(tup)
-			return unless tup
+			return unless present?(tup)
 
 			tok, * = tup
 
@@ -114,6 +114,8 @@ module Plume
 		end
 
 		private
+
+		def present?(tup) = !(tup.nil? || LiteralNil.equal?(tup))
 
 		def numeric_literal(str, tup)
 			tok, * = tup

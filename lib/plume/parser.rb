@@ -223,8 +223,18 @@ module Plume
 				# This method doesn't consume tokens associated with the statements so that each
 				# statement method can independently consume the tokens it needs.
 			#
-			require :PLAN if (explain = maybe :EXPLAIN) && (query_plan = maybe :QUERY)
+			if (explain_kw = maybe_one_of [:EXPLAIN, :QUERY, :PLAN].freeze, :EXPLAIN)
+				return ExplainStatement.concrete(
+					full_source: @lexer.sql,
+					explain_kw:  Token::Keyword(explain_kw),
+					statement:   cmd,
+				)
+			end
 
+			cmd
+		end
+
+		def cmd
 			case current_token
 			when :ALTER							then alter_table_stmt
 			when :ANALYZE						then analyze_stmt
@@ -255,21 +265,7 @@ module Plume
 				end
 			when :DELETE						then delete_stmt
 			when :DETACH						then detach_stmt
-			when :DROP
-				case peek
-				when :INDEX		then drop_index_stmt
-				when :TABLE		then drop_table_stmt
-				when :TRIGGER	then drop_trigger_stmt
-				when :VIEW		then drop_view_stmt
-				else
-					# TODO: error!()
-					# unexpected_token = peek
-					# *context, unexpected = values(2)
-					# raise SyntaxError, <<~TXT
-					# 	Unexpected token after '#{context.join(" ")}': #{unexpected_token}[#{unexpected.inspect}]
-					# 	Expected one of: INDEX, TABLE, TRIGGER, VIEW
-					# TXT
-				end
+			when :DROP							then drop_stmt
 			when :INSERT, :REPLACE	then insert_stmt
 			when :PRAGMA						then pragma_stmt
 			when :REINDEX						then reindex_stmt
@@ -285,30 +281,534 @@ module Plume
 			end
 		end
 
-		def _not_implemented
-			raise NotImplementedError, "#{__callee__} is not supported yet"
-		end
-		alias_method :alter_table_stmt, :_not_implemented
-		alias_method :analyze_stmt, :_not_implemented
-		alias_method :attach_stmt, :_not_implemented
-		alias_method :begin_stmt, :_not_implemented
-		alias_method :commit_stmt, :_not_implemented
-		alias_method :create_index_stmt, :_not_implemented
-		alias_method :create_trigger_stmt, :_not_implemented
-		alias_method :create_virtual_table_stmt, :_not_implemented
-		alias_method :detach_stmt, :_not_implemented
-		alias_method :drop_index_stmt, :_not_implemented
-		alias_method :drop_table_stmt, :_not_implemented
-		alias_method :drop_trigger_stmt, :_not_implemented
-		alias_method :drop_view_stmt, :_not_implemented
-		alias_method :pragma_stmt, :_not_implemented
-		alias_method :reindex_stmt, :_not_implemented
-		alias_method :release_stmt, :_not_implemented
-		alias_method :rollback_stmt, :_not_implemented
-		alias_method :savepoint_stmt, :_not_implemented
-		alias_method :vacuum_stmt, :_not_implemented
-
 		# ---------- Statements ----------
+
+		def begin_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= BEGIN transtype trans_opt
+				#   transtype ::= . | DEFERRED | IMMEDIATE | EXCLUSIVE
+				#   trans_opt ::= . | TRANSACTION | TRANSACTION nm
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_transaction.html
+			#
+			begin_kw = require :BEGIN
+			type_kw = maybe_one_of :DEFERRED, :IMMEDIATE, :EXCLUSIVE
+			transaction_kw, name_tk = transaction_name
+
+			BeginStatement.concrete(
+				full_source:    @lexer.sql,
+				begin_kw:       Token::Keyword(begin_kw),
+				type_kw:        Token::Keyword(type_kw),
+				transaction_kw: Token::Keyword(transaction_kw),
+				name_tk:        Token::Identifier(name_tk),
+			)
+		end
+
+		def commit_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= COMMIT|END trans_opt
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_transaction.html
+			#
+			commit_kw = require_one_of :COMMIT, :END
+			transaction_kw, name_tk = transaction_name
+
+			CommitStatement.concrete(
+				full_source:    @lexer.sql,
+				commit_kw:      Token::Keyword(commit_kw),
+				transaction_kw: Token::Keyword(transaction_kw),
+				name_tk:        Token::Identifier(name_tk),
+			)
+		end
+
+		def rollback_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= ROLLBACK trans_opt
+				#   cmd ::= ROLLBACK trans_opt TO savepoint_opt nm
+				#   savepoint_opt ::= SAVEPOINT | .
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_transaction.html
+				#   - https://www.sqlite.org/lang_savepoint.html
+			#
+			rollback_kw = require :ROLLBACK
+			transaction_kw, name_tk = transaction_name
+			if (to_kw = maybe_one_of [:TO, :SAVEPOINT].freeze, :TO)
+				savepoint_tk = name
+			end
+
+			RollbackStatement.concrete(
+				full_source:    @lexer.sql,
+				rollback_kw:    Token::Keyword(rollback_kw),
+				transaction_kw: Token::Keyword(transaction_kw),
+				name_tk:        Token::Identifier(name_tk),
+				to_kw:          Token::Keyword(to_kw),
+				savepoint_tk:   Token::Identifier(savepoint_tk),
+			)
+		end
+
+		# `trans_opt ::= . | TRANSACTION | TRANSACTION nm` - the name is accepted and ignored by SQLite
+		def transaction_name
+			return [] unless (transaction_kw = maybe :TRANSACTION)
+
+			name_tk = maybe { name(except: [:TO]) } unless current_token.nil? || current_token == :SEMI
+			[transaction_kw, name_tk]
+		end
+
+		def savepoint_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= SAVEPOINT nm
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_savepoint.html
+			#
+			savepoint_kw = require :SAVEPOINT
+
+			SavepointStatement.concrete(
+				full_source:  @lexer.sql,
+				savepoint_kw: Token::Keyword(savepoint_kw),
+				name_tk:      Token::Identifier(name),
+			)
+		end
+
+		def release_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= RELEASE savepoint_opt nm
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_savepoint.html
+			#
+			release_kw = require_one_of [:RELEASE, :SAVEPOINT].freeze, :RELEASE
+
+			ReleaseStatement.concrete(
+				full_source: @lexer.sql,
+				release_kw:  Token::Keyword(release_kw),
+				name_tk:     Token::Identifier(name),
+			)
+		end
+
+		def drop_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= DROP TABLE ifexists fullname
+				#   cmd ::= DROP VIEW ifexists fullname
+				#   cmd ::= DROP INDEX ifexists fullname
+				#   cmd ::= DROP TRIGGER ifexists fullname
+				#   ifexists ::= IF EXISTS | .
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_droptable.html
+				#   - https://www.sqlite.org/lang_dropview.html
+				#   - https://www.sqlite.org/lang_dropindex.html
+				#   - https://www.sqlite.org/lang_droptrigger.html
+			#
+			drop_kw = require :DROP
+			type_kw = require_one_of :TABLE, :VIEW, :INDEX, :TRIGGER
+			if_exists_kw = maybe_all_of :IF, :EXISTS
+
+			DropStatement.concrete(
+				full_source:  @lexer.sql,
+				drop_kw:      Token::Keyword(drop_kw),
+				type_kw:      Token::Keyword(type_kw),
+				if_exists_kw: Token::Keyword(if_exists_kw),
+				target:       table_name,
+			)
+		end
+
+		def pragma_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= PRAGMA nm dbnm
+				#   cmd ::= PRAGMA nm dbnm EQ nmnum
+				#   cmd ::= PRAGMA nm dbnm LP nmnum RP
+				#   cmd ::= PRAGMA nm dbnm EQ minus_num
+				#   cmd ::= PRAGMA nm dbnm LP minus_num RP
+				#   nmnum ::= plus_num | nm | ON | DELETE | DEFAULT
+				#
+				# Syntax diagram:
+				#   ◯─▶{ PRAGMA }┬▶{ schema-name }─▶{ . }┬▶{ pragma-name }┬─────────────────────────────┬─▶◯
+				#                └───────────▶───────────┘                ├▶{ = }─▶[ pragma-value ]─────┤
+				#                                                         └▶{ ( }─▶[ pragma-value ]─▶{ ) }┘
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/pragma.html
+			#
+			pragma_kw = require :PRAGMA
+			name_tk = name
+			if (dot_tk = maybe :DOT)
+				schema_tk = name_tk
+				name_tk = name
+			end
+			if (eq_tk = maybe :EQ)
+				value_tk = pragma_value
+			elsif (eq_tk = maybe :LP)
+				value_tk = pragma_value
+				value_rp = require :RP
+			end
+
+			PragmaStatement.concrete(
+				full_source: @lexer.sql,
+				pragma_kw:   Token::Keyword(pragma_kw),
+				schema_tk:   Token::Identifier(schema_tk),
+				dot_tk:      Token::Punctuation(dot_tk),
+				name_tk:     Token::Identifier(name_tk),
+				eq_tk:       Token::Punctuation(eq_tk),
+				value_tk:    value_tk,
+				value_rp:    Token::Punctuation(value_rp),
+			)
+		end
+
+		def pragma_value
+			if current_token in :PLUS | :MINUS | :INTEGER | :FLOAT | :QNUMBER
+				Token::Numeric(signed_number)
+			elsif (keyword_tk = maybe_one_of :ON, :DELETE, :DEFAULT, :TRUE, :FALSE)
+				Token::Keyword(keyword_tk)
+			else
+				Token::Identifier(name)
+			end
+		end
+
+		def attach_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= ATTACH database_kw_opt expr AS expr key_opt
+				#   key_opt ::= . | KEY expr
+				#   database_kw_opt ::= DATABASE | .
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_attach.html
+			#
+			attach_kw = require_one_of [:ATTACH, :DATABASE].freeze, :ATTACH
+			file = expression
+			as_kw = require :AS
+			schema = expression
+			if (key_kw = maybe :KEY)
+				key = expression
+			end
+
+			AttachStatement.concrete(
+				full_source: @lexer.sql,
+				attach_kw:   Token::Keyword(attach_kw),
+				file:        file,
+				as_kw:       Token::Keyword(as_kw),
+				schema:      schema,
+				key_kw:      Token::Keyword(key_kw),
+				key:         key,
+			)
+		end
+
+		def detach_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= DETACH database_kw_opt expr
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_detach.html
+			#
+			detach_kw = require_one_of [:DETACH, :DATABASE].freeze, :DETACH
+
+			DetachStatement.concrete(
+				full_source: @lexer.sql,
+				detach_kw:   Token::Keyword(detach_kw),
+				schema:      expression,
+			)
+		end
+
+		def analyze_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= ANALYZE | ANALYZE nm dbnm
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_analyze.html
+			#
+			analyze_kw = require :ANALYZE
+			target = table_name unless current_token.nil? || current_token == :SEMI
+
+			AnalyzeStatement.concrete(
+				full_source: @lexer.sql,
+				analyze_kw:  Token::Keyword(analyze_kw),
+				target:      target,
+			)
+		end
+
+		def reindex_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= REINDEX | REINDEX nm dbnm
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_reindex.html
+			#
+			reindex_kw = require :REINDEX
+			target = table_name unless current_token.nil? || current_token == :SEMI
+
+			ReindexStatement.concrete(
+				full_source: @lexer.sql,
+				reindex_kw:  Token::Keyword(reindex_kw),
+				target:      target,
+			)
+		end
+
+		def vacuum_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= VACUUM vinto | VACUUM nm vinto
+				#   vinto ::= INTO expr | .
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_vacuum.html
+			#
+			vacuum_kw = require :VACUUM
+			schema_tk = maybe { name } unless current_token.nil? || current_token in :SEMI | :INTO
+			if (into_kw = maybe :INTO)
+				into = expression
+			end
+
+			VacuumStatement.concrete(
+				full_source: @lexer.sql,
+				vacuum_kw:   Token::Keyword(vacuum_kw),
+				schema_tk:   Token::Identifier(schema_tk),
+				into_kw:     Token::Keyword(into_kw),
+				into:        into,
+			)
+		end
+
+		def create_index_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt
+				#   uniqueflag ::= UNIQUE | .
+				#
+				# Syntax diagram:
+				#   ◯─▶{ CREATE }┬▶{ UNIQUE }┬▶{ INDEX }┬▶{ IF }─▶{ NOT }─▶{ EXISTS }┬┐
+				#                └─────▶─────┘          └───────────────▶────────────┘│
+				#   ┌──────────────────────────────────◀──────────────────────────────┘
+				#   └┬▶{ schema-name }─▶{ . }┬▶{ index-name }─▶{ ON }─▶{ table-name }─▶{ ( }┐
+				#    └──────────▶────────────┘                                              │
+				#   ┌───────────────────────────────────◀───────────────────────────────────┘
+				#   └┬▶[ indexed-column ]┬▶{ ) }┬────────────────────────┬─▶◯
+				#    └──────{ , }◀───────┘      └▶{ WHERE }─▶[ expr ]────┘
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_createindex.html
+				#   - https://www.sqlite.org/partialindex.html
+				#   - https://www.sqlite.org/expridx.html
+			#
+			create_kw = require :CREATE
+			unique_kw = maybe :UNIQUE
+			index_kw = require :INDEX
+			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			index = table_name
+			on_kw = require :ON
+			table_tk = name
+			columns_lp = require :LP
+			columns = require_some(trailing_sep: :COMMA) { ordering_term }
+			columns_rp = require :RP
+			if (where_kw = maybe :WHERE)
+				condition = expression
+			end
+
+			CreateIndexStatement.concrete(
+				full_source:      @lexer.sql,
+				create_kw:        Token::Keyword(create_kw),
+				unique_kw:        Token::Keyword(unique_kw),
+				index_kw:         Token::Keyword(index_kw),
+				if_not_exists_kw: Token::Keyword(if_not_exists_kw),
+				index:            index,
+				on_kw:            Token::Keyword(on_kw),
+				table_tk:         Token::Identifier(table_tk),
+				columns_lp:       Token::Punctuation(columns_lp),
+				columns:          columns,
+				columns_rp:       Token::Punctuation(columns_rp),
+				where_kw:         Token::Keyword(where_kw),
+				condition:        condition,
+			)
+		end
+
+		def alter_table_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= ALTER TABLE fullname RENAME TO nm
+				#   cmd ::= ALTER TABLE add_column_fullname ADD kwcolumn_opt columnname carglist
+				#   cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm
+				#   cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm
+				#   kwcolumn_opt ::= . | COLUMNKW
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_altertable.html
+			#
+			alter_table_kw = require_all_of :ALTER, :TABLE
+			table = table_name
+
+			if current_token == :RENAME && peek == :TO
+				action = :RENAME_TABLE
+				action_kw = require :RENAME
+				to_kw = require :TO
+				new_name_tk = name
+			elsif (action_kw = maybe_one_of [:RENAME, :COLUMN].freeze, :RENAME)
+				action = :RENAME_COLUMN
+				column_tk = name
+				to_kw = require :TO
+				new_name_tk = name
+			elsif (action_kw = maybe_one_of [:ADD, :COLUMN].freeze, :ADD)
+				action = :ADD_COLUMN
+				column_definition = column_def
+			elsif (action_kw = maybe_one_of [:DROP, :COLUMN].freeze, :DROP)
+				action = :DROP_COLUMN
+				column_tk = name
+			else
+				expected!(:RENAME, :ADD, :DROP)
+			end
+
+			AlterTableStatement.concrete(
+				full_source:       @lexer.sql,
+				alter_table_kw:    Token::Keyword(alter_table_kw),
+				table:             table,
+				action:            action,
+				action_kw:         Token::Keyword(action_kw),
+				column_tk:         Token::Identifier(column_tk),
+				to_kw:             Token::Keyword(to_kw),
+				new_name_tk:       Token::Identifier(new_name_tk),
+				column_definition: column_definition,
+			)
+		end
+
+		def create_virtual_table_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm
+				#   cmd ::= create_vtab | create_vtab LP vtabarglist RP
+				#   vtabarglist ::= vtabarg | vtabarglist COMMA vtabarg
+				#   vtabarg ::= . | vtabarg vtabargtoken
+				#   vtabargtoken ::= ANY | lp anylist RP
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_createvtab.html
+			#
+			create_virtual_table_kw = require_all_of :CREATE, :VIRTUAL, :TABLE
+			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			table = table_name
+			using_kw = require :USING
+			module_tk = name
+			if (arguments_lp = maybe :LP)
+				arguments, arguments_rp = module_arguments
+			end
+
+			CreateVirtualTableStatement.concrete(
+				full_source:             @lexer.sql,
+				create_virtual_table_kw: Token::Keyword(create_virtual_table_kw),
+				if_not_exists_kw:        Token::Keyword(if_not_exists_kw),
+				table:                   table,
+				using_kw:                Token::Keyword(using_kw),
+				module_tk:               Token::Identifier(module_tk),
+				arguments_lp:            Token::Punctuation(arguments_lp),
+				arguments:               arguments,
+				arguments_rp:            Token::Punctuation(arguments_rp),
+			)
+		end
+
+		# Collects the text of each comma-separated argument up to the closing parenthesis,
+		# whatever tokens it is made of
+		def module_arguments
+			arguments = []
+			depth = 0
+			first = last = nil
+
+			loop do
+				expected!(:RP) if current_token.nil?
+
+				if depth.zero? && current_token in :COMMA | :RP
+					arguments << (first ? @lexer.sql.byteslice(first, last - first) : "")
+					first = last = nil
+					return [arguments, advance] if current_token == :RP
+
+					advance
+					next
+				end
+
+				depth += 1 if current_token == :LP
+				depth -= 1 if current_token == :RP
+				_tok, beg, fin = advance
+				first ||= beg
+				last = fin
+			end
+		end
+
+		def create_trigger_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
+				#   trigger_decl ::= temp TRIGGER ifnotexists nm dbnm trigger_time trigger_event ON fullname foreach_clause when_clause
+				#   trigger_time ::= BEFORE | AFTER | INSTEAD OF | .
+				#   trigger_event ::= DELETE | INSERT | UPDATE | UPDATE OF idlist
+				#   foreach_clause ::= . | FOR EACH ROW
+				#   when_clause ::= . | WHEN expr
+				#   trigger_cmd_list ::= trigger_cmd_list trigger_cmd SEMI | trigger_cmd SEMI
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_createtrigger.html
+			#
+			create_kw = require :CREATE
+			temp_kw = maybe_one_of :TEMP, :TEMPORARY
+			trigger_kw = require :TRIGGER
+			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			trigger = table_name
+			time_kw = maybe_one_of :BEFORE, :AFTER, [:INSTEAD, :OF].freeze
+			if (event_kw = maybe_all_of :UPDATE, :OF)
+				columns = require_some(trailing_sep: :COMMA) { column_reference }
+			else
+				event_kw = require_one_of :DELETE, :INSERT, :UPDATE
+			end
+			on_kw = require :ON
+			table = table_name
+			for_each_row_kw = maybe_all_of :FOR, :EACH, :ROW
+			if (when_kw = maybe :WHEN)
+				condition = expression
+			end
+			begin_kw = require :BEGIN
+			statements = require_some do
+				statement =
+					case current_token
+					when :UPDATE then update_stmt
+					when :INSERT, :REPLACE then insert_stmt
+					when :DELETE then delete_stmt
+					when :WITH then with_stmt
+					else select_stmt
+					end
+				require :SEMI
+				statement
+			end
+			end_kw = require :END
+
+			CreateTriggerStatement.concrete(
+				full_source:      @lexer.sql,
+				create_kw:        Token::Keyword(create_kw),
+				temp_kw:          Token::Keyword(temp_kw),
+				trigger_kw:       Token::Keyword(trigger_kw),
+				if_not_exists_kw: Token::Keyword(if_not_exists_kw),
+				trigger:          trigger,
+				time_kw:          Token::Keyword(time_kw),
+				event_kw:         Token::Keyword(event_kw),
+				columns:          columns,
+				on_kw:            Token::Keyword(on_kw),
+				table:            table,
+				for_each_row_kw:  Token::Keyword(for_each_row_kw),
+				when_kw:          Token::Keyword(when_kw),
+				condition:        condition,
+				begin_kw:         Token::Keyword(begin_kw),
+				statements:       statements,
+				end_kw:           Token::Keyword(end_kw),
+			)
+		end
+
 
 		def create_table_stmt
 			#
@@ -1382,6 +1882,15 @@ module Plume
 							name_tk:       Token::Identifier(constraint_name),
 							default_kw:    Token::Keyword(default_kw),
 							value_tk:      value,
+						)
+					# A sign on something that is not a number, like `DEFAULT -'hello'`
+					elsif (current_token in :PLUS | :MINUS) && (value = maybe { basic_expression })
+						DefaultColumnConstraint.concrete(
+							full_source:   @lexer.sql,
+							constraint_kw: Token::Keyword(constraint_kw),
+							name_tk:       Token::Identifier(constraint_name),
+							default_kw:    Token::Keyword(default_kw),
+							value:         value,
 						)
 					elsif (id           = maybe      { identifier })
 						DefaultColumnConstraint.concrete(

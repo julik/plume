@@ -17,8 +17,6 @@ module FixtureCorpus
 	def classify(path)
 		statements = Plume::Parser.new(read(path)).parse
 		statements.all?(Plume::Node) ? :pass : :fail
-	rescue Plume::NotImplementedError
-		:not_implemented
 	rescue StandardError, SystemStackError
 		:fail
 	end

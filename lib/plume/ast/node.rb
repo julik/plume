@@ -35,7 +35,7 @@ module Plume
 
 		alias_method :full_inspect, :inspect
 		def inspect
-			return super if inspectable_props.nil? || inspectable_props.empty?
+			return "#<#{self.class.name}:#{object_id}>" if inspectable_props.empty?
 
 			prop_values = inspectable_props.map do |prop, val|
 				"#{prop}=#{val.inspect}"
@@ -164,6 +164,10 @@ module Plume
 
 				def #{name}_spn
 					@#{name}
+				end
+
+				def #{name}?
+					!(@#{name}.nil? || LiteralNil.equal?(@#{name}))
 				end
 			RUBY
 		end

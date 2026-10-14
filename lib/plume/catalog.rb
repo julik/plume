@@ -52,16 +52,13 @@ module Plume
 		def views = @views.values
 
 		# Statements other than CREATE TABLE and CREATE VIEW (indexes, triggers, inserts…) do not
-		# change what can be read, and get skipped - even the ones we cannot parse yet
+		# change what can be read, and are skipped without being parsed
 		def load_sql(sql)
 			Catalog.split_statements(sql).each do |statement_sql|
-				statement = begin
-					Parser.new(statement_sql).parse.first
-				rescue NotImplementedError
-					next
-				end
+				leading = Plume.tokenize(statement_sql).first(3) - [:TEMP, :TEMPORARY]
+				next unless leading[0] == :CREATE && (leading[1] in :TABLE | :VIEW)
 
-				case statement
+				case (statement = Parser.new(statement_sql).parse.first)
 				when CreateTableStatement then add_create_table(statement)
 				when CreateViewStatement then add_create_view(statement)
 				end

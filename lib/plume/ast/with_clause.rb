@@ -10,6 +10,6 @@ module Plume
 		def self.new(*, ctes:, **) = super
 		def self.concrete(*, with_kw:, ctes:, **) = super
 
-		inspectable def recursive = !!@recursive_kw
+		inspectable def recursive = recursive_kw?
 	end
 end

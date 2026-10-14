@@ -28,7 +28,7 @@ module Plume
 		def self.concrete(*, insert_kw:, into_kw:, table:, **) = super
 
 		inspectable def or_action = TOKEN_TO_RESOLUTION[insert_kw_tok]
-		inspectable def default_values = !!@default_values_kw
+		inspectable def default_values = default_values_kw?
 
 		def column_names = columns&.map(&:column)
 	end
