@@ -302,14 +302,19 @@ module Plume
 		attr_accessor :cursor, :anchor
 
 		def initialize(sql, skip_spaces: false)
+			@skip_spaces = skip_spaces
+			@cursor, @anchor = 0
 			# Freezing the caller's string would leave them with a frozen string they did not ask for
 			@sql =
 				case sql.encoding
 				when Encoding::UTF_8, Encoding::ASCII_8BIT then sql.frozen? ? sql : sql.dup.freeze
-				else sql.encode(Encoding::UTF_8).freeze
+				# US-ASCII is a subset of UTF-8, and a stray high byte in it is better kept than replaced
+				when Encoding::US_ASCII then sql.dup.force_encoding(Encoding::UTF_8).freeze
+				# Bytes that do not fit the encoding become U+FFFD, as SQLite does with broken UTF-16
+				else sql.encode(Encoding::UTF_8, invalid: :replace, undef: :replace).freeze
 				end
-			@skip_spaces = skip_spaces
-			@cursor, @anchor = 0
+		rescue Encoding::ConverterNotFoundError => e
+			raise SyntaxError, "SQL in #{sql.encoding} cannot be read: #{e.message}"
 		end
 
 		def next_token

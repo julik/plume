@@ -313,3 +313,9 @@ test "a NUL ends a quoted string or name before its closing quote" do
 	assert_raises(Plume::SyntaxError) { Plume.parse("select 'a\0b'") }
 	assert_raises(Plume::SyntaxError) { Plume.parse("select [a\0b]") }
 end
+
+test "SQL whose bytes do not fit its encoding still lexes" do
+	assert_equal Plume.parse("select a\xE2 from t".b.force_encoding(Encoding::US_ASCII)).first.body.columns[0].result.column, "a\xE2"
+	assert_equal Plume.parse("select a\x8D from t".b.force_encoding(Encoding::Shift_JIS)).first.body.columns[0].result.column, "a�"
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 1".dup.force_encoding(Encoding::UTF_7)) }
+end
