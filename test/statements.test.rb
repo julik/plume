@@ -167,3 +167,36 @@ test "running out of SQL is an error too" do
 
 	assert_equal error.message.split("\n").first, "Unexpected end of input at:"
 end
+
+test "a syntax error in SQL that is not valid UTF-8 still gets its message" do
+	error = assert_raises(Plume::SyntaxError) { Plume.parse("select a\nfrom t where \xCE and") }
+
+	assert_equal error.message.lines.first, "Unexpected end of input at line 2:\n"
+end
+
+test "list items need their separators, and a separator needs an item after it" do
+	["select 99 1", "select * t1", "select f(a b)", "insert into t values (1 2)", "create table t (a,)",
+		"create table t (a, primary key (a),)", "select f(a,)", "select a from t group by a, b,", "create table t (a) strict,"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+
+	assert_equal parse_stmt("create table t (a, primary key (a) unique (a))").to_sql, "CREATE TABLE t (a, PRIMARY KEY (a), UNIQUE (a))"
+end
+
+test "statements need a semicolon between them, and empty ones are fine" do
+	assert_equal Plume.parse(";; select 1;;; select 2;;").map(&:to_sql), ["SELECT 1", "SELECT 2"]
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 1 select 2") }
+end
+
+test "IF after CREATE or DROP has to be IF [NOT] EXISTS, it does not name the table" do
+	["drop table if", "create table if (a)", "create index if on t (a)", "drop view if", "create virtual table if using fts5 (a)"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+
+	assert_equal parse_stmt(%(drop table "if")).to_sql, %(DROP TABLE "if")
+end
+
+test "create virtual table t using fts5(a #) - module arguments still have to be made of tokens" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("create virtual table t using fts5(a #)") }
+	assert_equal parse_stmt("create virtual table t using fts5(a; b, c)").arguments, ["a; b", "c"]
+end

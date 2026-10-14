@@ -11,8 +11,9 @@ module Plume
 			end
 
 			def msg
-				line = @sql.byteslice(0, @beg).count("\n") + 1
-				where = @sql.strip.include?("\n") ? " line #{line}" : ""
+				src = @sql.b # SQLite takes any bytes, so the SQL may well not be valid UTF-8
+				line = src.byteslice(0, @beg).count("\n") + 1
+				where = src.strip.include?("\n") ? " line #{line}" : ""
 				what = @token ? "token #{@token}[#{@sql.byteslice(@beg, @fin - @beg).inspect}]" : "end of input"
 				"Unexpected #{what} at#{where}:\n#{Plume.excerpt(@sql, @beg, @fin)}\n  Expected one of: #{@expected.join(", ")}\n"
 			end
@@ -97,7 +98,13 @@ module Plume
 			:MATERIALIZED,
 			:REINDEX,
 			:RENAME,
-			:CTIME_KW,
+			# CTIME_KW in parse.y, which our lexer spells out
+			:CURRENT_TIME,
+			:CURRENT_DATE,
+			:CURRENT_TIMESTAMP,
+			# Not keywords to SQLite at all, only names that mean 1 and 0 when no column is called that
+			:TRUE,
+			:FALSE,
 		].freeze
 
 		OPERATOR_PRECEDENCE = {
@@ -137,7 +144,22 @@ module Plume
 			OR:        5,
 		}.freeze
 
+		# SQLite refuses expressions nested deeper than SQLITE_MAX_EXPR_DEPTH, 1000 by default, and so
+		# do we, well before the parser - or whatever walks the tree later - runs out of stack. Every
+		# operator in a chain like `a AND b AND c` counts as a level, since the tree it builds is as deep
+		MAX_DEPTH = 1000
+
+		DEFERRABLE_SPANS = [
+			[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+			[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+			[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+			[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+			[:NOT, :DEFERRABLE].freeze,
+			:DEFERRABLE,
+		].freeze
+
 		def initialize(sql)
+			@depth = 0
 			@lexer = Lexer.new(sql, skip_spaces: true)
 			@peek_buffer = []
 		end
@@ -150,6 +172,8 @@ module Plume
 			else
 				result
 			end
+		rescue SystemStackError
+			Plume.too_deep!("The SQL")
 		end
 
 		def sql_stmt_list
@@ -175,9 +199,10 @@ module Plume
 			#
 			[].tap do |stmts|
 				until current_token.nil?
-					maybe :SEMI
-					stmts << sql_stmt if current_token
-					maybe :SEMI
+					next if maybe :SEMI
+
+					stmts << sql_stmt
+					require :SEMI if current_token
 				end
 			end
 		end
@@ -418,7 +443,7 @@ module Plume
 			#
 			drop_kw = require :DROP
 			type_kw = require_one_of :TABLE, :VIEW, :INDEX, :TRIGGER
-			if_exists_kw = maybe_all_of :IF, :EXISTS
+			if_exists_kw = if_exists :EXISTS
 
 			DropStatement.concrete(
 				full_source:  @lexer.sql,
@@ -612,7 +637,7 @@ module Plume
 			create_kw = require :CREATE
 			unique_kw = maybe :UNIQUE
 			index_kw = require :INDEX
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			index = table_name
 			on_kw = require :ON
 			table_tk = name
@@ -701,7 +726,7 @@ module Plume
 				#   - https://www.sqlite.org/lang_createvtab.html
 			#
 			create_virtual_table_kw = require_all_of :CREATE, :VIRTUAL, :TABLE
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			table = table_name
 			using_kw = require :USING
 			module_tk = name
@@ -730,7 +755,7 @@ module Plume
 			first = last = nil
 
 			loop do
-				expected!(:RP) if current_token.nil?
+				expected!(:RP) if current_token.nil? || current_token == :ILLEGAL
 
 				if depth.zero? && current_token in :COMMA | :RP
 					arguments << (first ? @lexer.sql.byteslice(first, last - first) : "")
@@ -766,7 +791,7 @@ module Plume
 			create_kw = require :CREATE
 			temp_kw = maybe_one_of :TEMP, :TEMPORARY
 			trigger_kw = require :TRIGGER
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			trigger = table_name
 			time_kw = maybe_one_of :BEFORE, :AFTER, [:INSTEAD, :OF].freeze
 			if (event_kw = maybe_all_of :UPDATE, :OF)
@@ -855,7 +880,7 @@ module Plume
 			create_kw         = require      :CREATE
 			temp_kw           = maybe_one_of :TEMP, :TEMPORARY
 			table_kw          = require      :TABLE
-			if_not_exists_kw  = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw  = if_exists :NOT, :EXISTS
 			table_name        =              table_name()
 
 			if maybe :AS
@@ -872,8 +897,10 @@ module Plume
 				)
 			elsif (columns_lp = maybe          :LP)
 				columns         = require_some(trailing_sep: :COMMA) { column_def }
+				constraints_comma = maybe :COMMA
+				columns.last.trailing = Token::Punctuation(constraints_comma) if constraints_comma
 				# inlined `table_constraint`
-				constraints     = maybe_some(trailing_sep: [:COMMA, nil].freeze) do
+				constraints     = !constraints_comma ? [] : require_some(trailing_sep: [:COMMA, nil].freeze) do
 					#
 						# Relevant `parse.y` grammar rules:
 						#   conslist_opt ::= . | COMMA conslist.
@@ -985,6 +1012,8 @@ module Plume
 					end
 				end
 				columns_rp      = require        :RP
+				# The option list may start with a comma, `CREATE TABLE t (a), STRICT` is fine with SQLite
+				options_comma   = maybe(:COMMA) if current_token == :COMMA && (peek in :STRICT | :WITHOUT)
 				# inlined `table_options`
 				options         = maybe_some(trailing_sep: :COMMA) do
 					#
@@ -1018,6 +1047,7 @@ module Plume
 						expected!(:STRICT, :WITHOUT)
 					end
 				end
+				options.first.leading = Token::Punctuation(options_comma) if options_comma
 
 				CreateTableStatement.concrete(
 					full_source:      @lexer.sql,
@@ -1062,7 +1092,7 @@ module Plume
 			create_kw        = require      :CREATE
 			temp_kw          = maybe_one_of :TEMP, :TEMPORARY
 			view_kw          = require      :VIEW
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			view             = table_name
 			if (columns_lp = maybe :LP)
 				columns    = require_some(trailing_sep: :COMMA) { indexed_column }
@@ -1319,10 +1349,13 @@ module Plume
 				#
 				# The SELECT statement is used to query the database.
 			#
+			depth = @depth
+			deeper!
 			with ||= with_clause if current_token == :WITH
 			body = select_core
 
 			while (operator_tk = maybe_one_of [:UNION, :ALL].freeze, :UNION, :INTERSECT, :EXCEPT)
+				deeper!
 				body = CompoundSelect.concrete(
 					full_source: @lexer.sql,
 					operator_tk: Token::Keyword(operator_tk),
@@ -1337,6 +1370,8 @@ module Plume
 				body:        body,
 				**order_and_limit,
 			)
+		ensure
+			@depth = depth
 		end
 
 		def with_clause
@@ -1454,11 +1489,16 @@ module Plume
 				# [description]
 			#
 
+			depth = @depth
+			deeper!
 			left = basic_expression
 
 			while (operator = current_token)
+				break if operator == :BITNOT # only ever unary
 				operator_precedence = OPERATOR_PRECEDENCE[operator] || -1
 				break if operator_precedence < min_precedence
+
+				deeper!
 				next_precedence = operator_precedence + 1
 
 				negated = maybe :NOT
@@ -1690,6 +1730,8 @@ module Plume
 			end
 
 			left
+		ensure
+			@depth = depth
 		end
 
 		def column_def
@@ -1890,8 +1932,11 @@ module Plume
 							default_kw:    Token::Keyword(default_kw),
 							value_tk:      value,
 						)
-					# A sign on something that is not a number, like `DEFAULT -'hello'`
-					elsif (current_token in :PLUS | :MINUS) && (value = maybe { basic_expression })
+					# A sign on something that is not a number, like `DEFAULT -'hello'`. It still has to be
+					# a literal, `DEFAULT -x` is a syntax error
+					elsif (current_token in :PLUS | :MINUS) &&
+							(peek in :STRING | :BLOB | :NULL | :CURRENT_TIME | :CURRENT_DATE | :CURRENT_TIMESTAMP) &&
+							(value = maybe { basic_expression })
 						DefaultColumnConstraint.concrete(
 							full_source:   @lexer.sql,
 							constraint_kw: Token::Keyword(constraint_kw),
@@ -1944,6 +1989,14 @@ module Plume
 						expression:         default,
 						as_rp:              Token::Punctuation(as_rp),
 						type_tk:            Token::Keyword(type_tk),
+					)
+				# A DEFERRABLE clause on its own, which SQLite applies to the column's last REFERENCES
+				elsif (deferrable_span = maybe_one_of(*DEFERRABLE_SPANS))
+					NoOpColumnConstraint.concrete(
+						full_source:     @lexer.sql,
+						constraint_kw:   Token::Keyword(constraint_kw),
+						name_tk:         Token::Identifier(constraint_name),
+						deferrable_span: Token::Keyword(deferrable_span),
 					)
 				else
 					if constraint_name
@@ -2289,14 +2342,7 @@ module Plume
 				)
 			end
 
-			deferrable_span = maybe_one_of(
-				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:NOT, :DEFERRABLE].freeze,
-				:DEFERRABLE,
-			)
+			deferrable_span = maybe_one_of(*DEFERRABLE_SPANS)
 
 			ForeignKeyClause.concrete(
 				full_source: @lexer.sql,
@@ -2426,7 +2472,7 @@ module Plume
 				expression_lp = require :LP
 				e = expression
 				as_kw = require :AS
-				t = type_name
+				t = type_name unless current_token == :RP # SQLite takes an empty type, `CAST(x AS )`
 				expression_rp = require :RP
 
 				CastExpression.concrete(
@@ -2514,7 +2560,7 @@ module Plume
 					select_rp: Token::Punctuation(select_rp),
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
-			elsif !(current_token == :STRING && peek == :DOT) && (literal_tk = maybe { literal_value })
+			elsif !((current_token in :STRING | :TRUE | :FALSE) && peek == :DOT) && (literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
 					value_tk: literal_tk,
@@ -3368,6 +3414,8 @@ module Plume
 				#
 				# One source of rows in a FROM clause.
 			#
+			depth = @depth
+			deeper!
 			if (source_lp = maybe :LP)
 				if current_token in :SELECT | :VALUES | :WITH
 					select = select_stmt
@@ -3440,6 +3488,8 @@ module Plume
 					)
 				end
 			end
+		ensure
+			@depth = depth
 		end
 
 		def literal_value
@@ -3486,7 +3536,7 @@ module Plume
 				tk = require :FALSE
 				Token::False(tk)
 			when :QNUMBER
-				tk = require :QNUMBER
+				tk = digit_separators!(require(:QNUMBER))
 				Token::Numeric(tk)
 			when :INTEGER
 				tk = require :INTEGER
@@ -3621,7 +3671,7 @@ module Plume
 				direction = require current_token
 			end
 			if (nulls_kw = maybe(:NULLS))
-				nulls = require current_token
+				nulls = require_one_of :FIRST, :LAST
 			end
 
 			OrderingTerm.concrete(
@@ -3695,7 +3745,7 @@ module Plume
 				# A signed number is a numeric literal with an optional sign.
 			#
 			sign_tk  = maybe_one_of   :PLUS, :MINUS
-			value_tk = require_one_of :INTEGER, :FLOAT, :QNUMBER
+			value_tk = digit_separators!(require_one_of(:INTEGER, :FLOAT, :QNUMBER))
 
 			return value_tk unless sign_tk
 
@@ -3730,7 +3780,7 @@ module Plume
 			#
 			if current_token in :ID | :INDEXED
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :INDEXED, 'fallback')
@@ -3744,7 +3794,7 @@ module Plume
 			#
 			if current_token in :ID | :STRING
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :STRING, 'fallback')
@@ -3758,7 +3808,7 @@ module Plume
 			#
 			if current_token in :ID | :INDEXED | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT
 				require current_token
-			elsif !except.include?(current_token) && TOKEN_FALLBACKS.include?(current_token)
+			elsif !except.include?(current_token) && fallback_to_name?
 				require current_token
 			else
 				expected!(:ID, :INDEXED, :JOIN_KW, 'fallback')
@@ -3768,6 +3818,42 @@ module Plume
 		private
 
 		# ---------- Parsing Helpers ----------
+
+		# Inside the arguments of a virtual table module a misplaced "_" is just part of another token,
+		# so it is only an error once the number is a value
+		def digit_separators!(span)
+			tok, beg, fin = span
+			return span unless tok == :QNUMBER && !Lexer.digit_separators_ok?(@lexer.sql.byteslice(beg, fin - beg))
+
+			throw :ERROR, ErrorMessage.new(@lexer.sql, tok, beg, fin, ["a digit on both sides of every _"])
+		end
+
+		# Raised rather than thrown, so that no `maybe` tries its alternatives at the same depth again
+		def deeper!(levels = 1)
+			@depth += levels
+			return if @depth <= MAX_DEPTH
+
+			_token, beg, fin = ensure_buffer[0]
+			raise NestingTooDeep, "Nested more than #{MAX_DEPTH} levels deep at:\n#{Plume.excerpt(@lexer.sql, beg, fin)}\n"
+		end
+
+		def fallback_to_name? = TOKEN_FALLBACKS.include?(current_token) || window_keyword_as_name?
+
+		# FILTER, OVER and WINDOW are only keywords where SQLite's tokenizer sees a window function
+		# around them (analyzeWindowKeyword and friends in tokenize.c), and names anywhere else
+		def window_keyword_as_name?
+			case current_token
+			when :WINDOW then peek(2).then { |name, as| !(name_like?(name) && as == :AS) }
+			when :OVER then !(@previous_token == :RP && (peek == :LP || name_like?(peek)))
+			when :FILTER then !(@previous_token == :RP && peek == :LP)
+			else false
+			end
+		end
+
+		def name_like?(token)
+			(token in :ID | :STRING | :WINDOW | :OVER | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT) ||
+				TOKEN_FALLBACKS.include?(token)
+		end
 
 		def require(token)
 			if token == current_token
@@ -3782,6 +3868,8 @@ module Plume
 				start_buffer = @peek_buffer.dup
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
+				start_previous_token = @previous_token
+				start_depth = @depth
 
 				result = catch(:ERROR) { yield }
 
@@ -3789,6 +3877,8 @@ module Plume
 					@peek_buffer = start_buffer
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
+					@previous_token = start_previous_token
+					@depth = start_depth
 					nil
 				else
 					result
@@ -3841,6 +3931,10 @@ module Plume
 			require_all_of(*tokens) if advancing
 		end
 
+		# IF could also be a name, but SQLite's parser commits to IF [NOT] EXISTS as soon as it
+		# sees an IF there - `DROP TABLE if` is a syntax error, not a table called "if"
+		def if_exists(*tokens) = (current_token == :IF) ? require_all_of(:IF, *tokens) : nil
+
 		def maybe_one_of(*tokens)
 			i, len = 0, tokens.length
 			has_nil = false
@@ -3879,13 +3973,7 @@ module Plume
 				end
 			elsif trailing_sep
 				val = (given || yield)
-				sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-				insert = if Node === val
-				  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-					val
-				else
-					[val, sep_tk]
-				end
+				insert = Node === val ? val : [val, nil]
 			else
 				val = (given || yield)
 				insert = val
@@ -3917,13 +4005,7 @@ module Plume
 				val = maybe { yield }
 				return a if val.nil?
 
-				sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-				insert = if Node === val
-				  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-					val
-				else
-					[val, sep_tk]
-				end
+				insert = Node === val ? val : [val, nil]
 			else
 				insert = maybe { yield }
 			end
@@ -3942,10 +4024,7 @@ module Plume
 		end
 
 		def collect(into: [], trailing_sep: nil, leading_sep: nil, &block)
-			break_next = false
 			while true
-				break if break_next
-
 				if leading_sep
 					sep_tk = Array === leading_sep ? maybe_one_of(*leading_sep) : maybe(leading_sep)
 					break if sep_tk.nil?
@@ -3960,18 +4039,19 @@ module Plume
 					end
 
 				elsif trailing_sep
-					val = maybe { yield }
+					# A separator only belongs to the list when another item follows it
+					sep_tk, val = maybe { [separator(trailing_sep), yield] }
 					break if val.nil?
 
-					sep_tk = Array === trailing_sep ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-					break_next = sep_tk.nil?
-
-					insert = if Node === val
-					  val.trailing = Token::Punctuation(sep_tk) if sep_tk
-						val
-					else
-						[val, sep_tk]
+					if sep_tk
+						previous = into.last
+						if Node === previous
+							previous.trailing = Token::Punctuation(sep_tk)
+						else
+							into[-1] = [previous[0], sep_tk]
+						end
 					end
+					insert = Node === val ? val : [val, nil]
 
 				else
 					val = maybe { yield }
@@ -3984,6 +4064,13 @@ module Plume
 			end
 
 			into
+		end
+
+		# `false` comes back for an optional separator that is not there
+		def separator(sep)
+			return require(sep) unless Array === sep
+
+			maybe_one_of(*sep).tap { |tk| expected!(*sep.compact) if tk.nil? }
 		end
 
 		def token_span_from(*spans)
@@ -4042,6 +4129,7 @@ module Plume
 			ensure_buffer
 			token = @peek_buffer.shift
 			@last_consumed_fin = token[2]
+			@previous_token = token[0]
 			token
 		end
 

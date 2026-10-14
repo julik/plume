@@ -258,3 +258,25 @@ end
 test "select email from aux.users, without a catalog" do
 	assert_equal Plume.reads("select email from aux.users").columns.keys, ["aux.users"]
 end
+
+test "select \"ä\", b from t, \"é\" - names differing in the case of a non-ASCII letter are different names" do
+	catalog = Plume::Catalog.from_sql(%(CREATE TABLE "É" (a); CREATE TABLE "é" (b); CREATE TABLE t ("Ä", "ä")))
+
+	assert_equal catalog.tables.map(&:name), ["É", "é", "t"]
+	assert_equal columns_of(Plume.reads(%(select "ä", b from t, "é"), catalog:).columns), { "t" => ["ä"], "é" => ["b"] }
+end
+
+test "a catalog read from SQLite knows a table is WITHOUT ROWID whatever follows that" do
+	require "sqlite3"
+	db = SQLite3::Database.new(":memory:")
+	db.execute_batch(<<~SQL)
+		CREATE TABLE t (a TEXT PRIMARY KEY) WITHOUT ROWID, STRICT;
+		CREATE TABLE u (a PRIMARY KEY) WITHOUT ROWID -- with a comment
+		;
+		CREATE TABLE v ("without rowid");
+	SQL
+
+	assert_equal Plume::Catalog.from_sqlite(db).tables.map(&:without_rowid), [true, true, false]
+ensure
+	db&.close
+end

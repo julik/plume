@@ -1,0 +1,94 @@
+From 610f619c64ed26e9576c7d564aa5f24c3f99bbc3 Mon Sep 17 00:00:00 2001
+From: Julik Tarkhanov <me@julik.nl>
+Date: Wed, 14 Oct 2026 12:09:52 +0100
+Subject: [PATCH] Print the seed, read it from SEED and expose it to tests
+
+The runner already shuffles files and tests with a seeded Random, but the seed is never
+printed, so a failure that depends on the order or on generated data cannot be replayed -
+you would have to have passed `--seed` up front. Tests that generate their own inputs
+(property-based or fuzz tests) also have no way to get at the seed, and `Kernel#rand`
+is not seeded at all, so whatever they generate differs on every run regardless of `--seed`.
+
+Print the seed in the summary line, accept it from the SEED env var as well as `--seed`
+(same as minitest), expose it as `Quickdraw.seed` and `Kernel.srand` it before test files
+get loaded. Test files load in the parent before forking, so data generated at load time
+is identical in every worker and replays exactly with the same seed. Which worker or
+thread runs which test stays nondeterministic - that part is #49 - but the order of the
+test list and anything derived from the seed now replays.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ lib/quickdraw.rb        | 5 +++++
+ lib/quickdraw/cli.rb    | 4 ++--
+ lib/quickdraw/runner.rb | 7 ++++++-
+ 3 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/lib/quickdraw.rb b/lib/quickdraw.rb
+index 564165d..b13d8ac 100644
+--- a/lib/quickdraw.rb
++++ b/lib/quickdraw.rb
+@@ -42,4 +42,9 @@ module Quickdraw
+ 		yield Config
+ 		Config.freeze
+ 	end
++
++	# The seed of the current run, for tests that generate their own random inputs
++	def self.seed
++		$quickdraw_runner&.seed
++	end
+ end
+diff --git a/lib/quickdraw/cli.rb b/lib/quickdraw/cli.rb
+index 6163a37..2d81af0 100644
+--- a/lib/quickdraw/cli.rb
++++ b/lib/quickdraw/cli.rb
+@@ -44,7 +44,7 @@ class Quickdraw::CLI
+ 				self.watch = true
+ 			end
+ 
+-			parser.on("-s N", "--seed N", Integer, "Seed for randomization") do |it|
++			parser.on("-s N", "--seed N", Integer, "Seed for randomization (also read from SEED)") do |it|
+ 				self.seed = it
+ 			end
+ 		end.parse!(@args)
+@@ -124,7 +124,7 @@ class Quickdraw::CLI
+ 			backtrace: @backtrace,
+ 			processes: @processes || Quickdraw::Config.processes,
+ 			files: Dir.glob(@files),
+-			seed: @seed || Random.new_seed,
++			seed: @seed || (ENV["SEED"] && Integer(ENV["SEED"])) || Random.new_seed,
+ 		)
+ 
+ 		$quickdraw_runner.call
+diff --git a/lib/quickdraw/runner.rb b/lib/quickdraw/runner.rb
+index d2900f3..83c99ea 100644
+--- a/lib/quickdraw/runner.rb
++++ b/lib/quickdraw/runner.rb
+@@ -11,11 +11,16 @@ class Quickdraw::Runner
+ 		Stopping = "\x04"
+ 	end
+ 
++	attr_reader :seed
++
+ 	def initialize(backtrace: false, processes:, files:, seed:)
+ 		@backtrace = backtrace
+ 		@processes = processes
+ 		@seed = seed
+ 		@random = Random.new(seed)
++		# Test files run in the parent before forking, so anything they generate with `rand`
++		# at load time is the same in every worker and replays with the same seed
++		Kernel.srand(seed)
+ 		@files = files.shuffle(random: @random)
+ 		@tests = []
+ 
+@@ -75,7 +80,7 @@ class Quickdraw::Runner
+ 
+ 		puts
+ 
+-		puts "Passed: #{@successes.value} | Failed: #{@failures.size} | Errors: #{@errors.size}"
++		puts "Passed: #{@successes.value} | Failed: #{@failures.size} | Errors: #{@errors.size} | Seed: #{@seed}"
+ 
+ 		exit(1) if @failures.any? || @errors.any?
+ 	end
+-- 
+2.50.1 (Apple Git-155)
+

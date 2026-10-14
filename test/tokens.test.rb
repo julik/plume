@@ -11,7 +11,7 @@ SPACE_TOKENS = [
 	["-- inline comment", :SPACE],
 	["/* single line comment */", :SPACE],
 	["/* multi-line\ncomment */", :SPACE],
-	["\xEF\xFE\xFF", :SPACE],
+	["\xEF\xBB\xBF", :SPACE],
 	["\x09", :SPACE],
 	["\x0A", :SPACE],
 	["\x0C", :SPACE],
@@ -22,6 +22,9 @@ ILLEGAL_TOKENS = [
 	['"', :ILLEGAL],
 	["`", :ILLEGAL],
 	["[abc", :ILLEGAL],
+	["'a\0", :ILLEGAL],
+	["\"a\0", :ILLEGAL],
+	["[a\0", :ILLEGAL],
 	["[abc$", :ILLEGAL],
 	["x'abcdEF12$#'", :ILLEGAL],
 	["x'abcdEF123'", :ILLEGAL],
@@ -63,6 +66,7 @@ BASIC_TOKENS = [
 	["'abc'", :STRING],
 	["'abc''def'", :STRING],
 	["\xEF\x81", :ID],
+	["\xEF\xFE\xFF", :ID],
 
 	# ASCII control codes
 	["\x00", :ILLEGAL],
@@ -191,11 +195,15 @@ WEIRD_STRINGS = [
 	[".a", [:DOT, :ID]],
 	["/1", [:SLASH, :INTEGER]],
 	["0X123_456/", [:QNUMBER, :SLASH]],
+	["0x1Fg", [:ILLEGAL]],
+	["$a(b\0c)", [:ILLEGAL, :ILLEGAL, :ID, :RP]],
+	["0x1F_g", [:ILLEGAL]],
 	["1.0E+", [:ILLEGAL, :PLUS]],
 	["1.0E+:", [:ILLEGAL, :PLUS, :ILLEGAL]],
 	["1.0E-", [:ILLEGAL, :MINUS]],
 	["1.0E-/", [:ILLEGAL, :MINUS, :SLASH]],
 	["1.0E.10", [:ILLEGAL, :FLOAT]],
+	[".1.1", [:FLOAT, :FLOAT]],
 	["1.0F+5", [:ILLEGAL, :PLUS, :INTEGER]],
 	["1.0d-10", [:ILLEGAL, :MINUS, :INTEGER]],
 	["1.0e+", [:ILLEGAL, :PLUS]],
@@ -207,8 +215,14 @@ WEIRD_STRINGS = [
 	["1_000/", [:QNUMBER, :SLASH]],
 	["1_000E+2/", [:QNUMBER, :SLASH]],
 	["2 /* ", [:INTEGER, :SPACE, :SPACE]],
-	["2 /*", [:INTEGER, :SPACE, :SPACE]],
+	["2 /*", [:INTEGER, :SPACE, :SLASH, :STAR]], # SQLite does not see a comment in a "/*" at the very end
+	["2 /*x", [:INTEGER, :SPACE, :SPACE]],
 ].freeze
+
+# From SQLite's test/literal.test - a "_" has to sit between two digits, but SQLite only checks
+# that once the number is used as a value, its tokenizer takes them all
+MISPLACED_DIGIT_SEPARATORS = %w[1_ 1234_ 12__34 1_.4 12._34 12.34_ 1.4_e4 1.4e4_ 1e_4 1_e5 1.0e1_______2 0x1_ 0xA__B].freeze
+DIGIT_SEPARATORS = %w[1_000 1_000.5 .5_5 1e5_0 1_0.0_1e1_0 0x1_F 0xA_B_C].freeze
 
 KEYWORDS = Plume::Lexer::KEYWORDS.to_a
 
@@ -255,6 +269,23 @@ WEIRD_STRINGS.each do |str, tks|
 	end
 end
 
+MISPLACED_DIGIT_SEPARATORS.each do |str|
+	test "select #{str} is a syntax error" do
+		assert_raises(Plume::SyntaxError) { Plume.parse("select #{str}") }
+	end
+end
+
+test "misplaced digit separators are fine in virtual table module arguments" do
+	assert_equal lex("1_"), [:QNUMBER]
+	assert_equal parse_stmt("create virtual table t using fts5(a 1_)").arguments, ["a 1_"]
+end
+
+DIGIT_SEPARATORS.each do |str|
+	test "tokenizes #{str.inspect} as QNUMBER" do
+		assert_equal [:QNUMBER], lex(str)
+	end
+end
+
 # - - -
 
 # tokens with values
@@ -275,4 +306,33 @@ test "lexing leaves the caller's string alone" do
 	Plume.parse(sql)
 
 	refute sql.frozen?
+end
+
+test "a NUL right after a keyword-looking word ends the identifier" do
+	assert_equal [:ID, :ILLEGAL, :ID], lex("SE\0LECT")
+	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT j\0") }
+end
+
+test "a byte order mark is just space" do
+	assert_equal Plume.parse("\xEF\xBB\xBFselect 1").first.to_sql, "SELECT 1"
+end
+
+test "a NUL ends a quoted string or name before its closing quote" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 'a\0b'") }
+	assert_raises(Plume::SyntaxError) { Plume.parse("select [a\0b]") }
+end
+
+test "SQL whose bytes do not fit its encoding still lexes" do
+	assert_equal Plume.parse("select a\xE2 from t".b.force_encoding(Encoding::US_ASCII)).first.body.columns[0].result.column, "a\xE2"
+	assert_equal Plume.parse("select a\x8D from t".b.force_encoding(Encoding::Shift_JIS)).first.body.columns[0].result.column, "a�"
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 1".dup.force_encoding(Encoding::UTF_7)) }
+end
+
+test "select 2 /* is a syntax error, select 2 /* x is not" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 2 /*") }
+	assert_equal parse_stmt("select 2 /* x").to_sql, "SELECT 2"
+end
+
+test "select .1.1 is two numbers, and so a syntax error" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select .1.1") }
 end

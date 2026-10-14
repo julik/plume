@@ -2663,3 +2663,24 @@ test "\"a \"\"b\"\"\".`c``d`" do
 
 	assert_equal [column.table, column.column], ["a \"b\"", "c`d"]
 end
+
+test "a ~ b is not an expression, ~ only goes in front" do
+	assert_raises(Plume::SyntaxError) { parse_stmt("select (a ~ b)") }
+	assert_equal parse_stmt("select a & ~b").to_sql, "SELECT a & (~b)"
+end
+
+test "CAST(x AS ) with no type at all" do
+	node = parse_stmt("select cast(x as )").body.columns[0].result
+
+	assert_equal node.as, nil
+	assert_equal node.to_sql, "CAST(x AS )"
+end
+
+test "building a deeply parenthesized expression hashes no nodes" do
+	# Hashing a node hashes its subtree, so one hash per level makes nesting quadratic
+	hashed = 0
+	counter = TracePoint.new(:call) { |tp| hashed += 1 if tp.method_id == :hash && Plume::Node === tp.self }
+	counter.enable { Plume.parse("select #{"(" * 200}1#{")" * 200}") }
+
+	assert_equal hashed, 0
+end

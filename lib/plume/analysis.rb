@@ -42,7 +42,7 @@ module Plume
 		# Tables in the main schema are keyed by their bare name, any other schema
 		# (temp, attached databases) is spelled out as "schema.table"
 		def self.table_key(schema, table)
-			(schema.nil? || schema.casecmp?("main")) ? table : "#{schema}.#{table}"
+			(schema.nil? || schema.casecmp("main")&.zero?) ? table : "#{schema}.#{table}"
 		end
 
 		class References
@@ -130,6 +130,8 @@ module Plume
 			raise Error.new(unresolved: access.unresolved) if strict && !access.resolved?
 
 			access
+		rescue SystemStackError
+			Plume.too_deep!("The statement")
 		end
 	end
 end

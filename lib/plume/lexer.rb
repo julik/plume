@@ -200,7 +200,7 @@ module Plume
 		# Maps ASCII characters to their respective character types
 		# Each element's index maps to the byte value of that character
 		CHARACTER_TYPES = %i[
-			NULL			ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL
+			NUL				ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL
 			ILLEGAL		SPACE			SPACE			ILLEGAL		SPACE			SPACE			ILLEGAL		ILLEGAL
 			ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL
 			ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL		ILLEGAL
@@ -298,18 +298,34 @@ module Plume
 			it[126]	=	:BITNOT		# ~
 		end
 
+		# SQLite's tokenizer lets a "_" go anywhere in a number. Only once the number is used as a value
+		# does sqlite3DequoteNumber want a digit on both sides of each "_", a hex digit for hex literals
+		def self.digit_separators_ok?(number)
+			digit = number.start_with?("0x", "0X") ? 0x08 : 0x04
+			(1...number.bytesize).all? do |i|
+				next true unless number.getbyte(i) == 95 # "_"
+
+				[number.getbyte(i - 1), number.getbyte(i + 1)].all? { |b| b && CHARACTER_FLAGS[b] & digit != 0 }
+			end
+		end
+
 		attr_reader :sql
 		attr_accessor :cursor, :anchor
 
 		def initialize(sql, skip_spaces: false)
+			@skip_spaces = skip_spaces
+			@cursor, @anchor = 0
 			# Freezing the caller's string would leave them with a frozen string they did not ask for
 			@sql =
 				case sql.encoding
 				when Encoding::UTF_8, Encoding::ASCII_8BIT then sql.frozen? ? sql : sql.dup.freeze
-				else sql.encode(Encoding::UTF_8).freeze
+				# US-ASCII is a subset of UTF-8, and a stray high byte in it is better kept than replaced
+				when Encoding::US_ASCII then sql.dup.force_encoding(Encoding::UTF_8).freeze
+				# Bytes that do not fit the encoding become U+FFFD, as SQLite does with broken UTF-16
+				else sql.encode(Encoding::UTF_8, invalid: :replace, undef: :replace).freeze
 				end
-			@skip_spaces = skip_spaces
-			@cursor, @anchor = 0
+		rescue Encoding::ConverterNotFoundError => e
+			raise SyntaxError, "SQL in #{sql.encoding} cannot be read: #{e.message}"
 		end
 
 		def next_token
@@ -367,6 +383,8 @@ module Plume
 			when :SLASH
 				return :SLASH if peek.nil? # EOF
 				return :SLASH if peek != 42 # "*"
+				# A "/*" with nothing after it is a slash and a star to SQLite, not a comment
+				return :SLASH if peek(1).nil? || peek(1) == 0
 
 				step # we know it's a `/*` comment so consume the "*"
 				step until (b = peek).nil? || (b == 42 && peek(1) == 47) # consume until EOF or "*/"
@@ -401,14 +419,15 @@ module Plume
 				nil if current_byte == 39 # "'"
 				nil if current_byte == 34 # '"'
 
-				while (b = scan)
+				# SQLite reads no further than a NUL, so it leaves the quote unterminated
+				while (b = scan) && b != 0
 					next unless b == current_byte
 					# you can use the same quote to escape itself
 					(peek == current_byte) ? step : break
 				end
 
 				return :STRING if b == 39 # "'"
-				return :ILLEGAL if b.nil?
+				return :ILLEGAL if b.nil? || b == 0
 
 				:ID
 			when :DOT, :DIGIT
@@ -432,7 +451,8 @@ module Plume
 				nil if current_byte == 57 # "9"
 
 				token_type = (character_type == :DOT) ? :FLOAT : :INTEGER
-				if current_byte == 48 && ((b = peek) == 120 || b == 88) && xdigit?(peek(1)) # "0" and "x" or "X"
+				hex = current_byte == 48 && ((b = peek) == 120 || b == 88) && xdigit?(peek(1)) # "0" and "x" or "X"
+				if hex
 					step(2) # consume the "x" or "X" and the first hex digit
 					while (b = peek)
 						if xdigit?(b)
@@ -444,25 +464,7 @@ module Plume
 							break
 						end
 					end
-
-					return token_type
-				end
-
-				while (b = peek)
-					if digit?(b)
-						step && next
-					elsif b == 95 # "_"
-						token_type = :QNUMBER
-						step && next
-					else
-						break
-					end
-				end
-
-				if peek == 46 # "."
-					step
-					token_type = :FLOAT if token_type == :INTEGER
-
+				else
 					while (b = peek)
 						if digit?(b)
 							step && next
@@ -473,24 +475,41 @@ module Plume
 							break
 						end
 					end
-				end
 
-				if (peek == 101 || peek == 69) && ( # "e" or "E"
-					digit?(peek(1)) || (
-						(peek(1) == 43 || peek(1) == 45) && digit?(peek(2)) # "+" or "-"
+					# A number that started with its point, like .5, has had it already
+					if character_type != :DOT && peek == 46 # "."
+						step
+						token_type = :FLOAT if token_type == :INTEGER
+
+						while (b = peek)
+							if digit?(b)
+								step && next
+							elsif b == 95 # "_"
+								token_type = :QNUMBER
+								step && next
+							else
+								break
+							end
+						end
+					end
+
+					if (peek == 101 || peek == 69) && ( # "e" or "E"
+						digit?(peek(1)) || (
+							(peek(1) == 43 || peek(1) == 45) && digit?(peek(2)) # "+" or "-"
+						)
 					)
-				)
-					step(2)
-					token_type = :FLOAT if token_type == :INTEGER
+						step(2)
+						token_type = :FLOAT if token_type == :INTEGER
 
-					while (b = peek)
-						if digit?(b)
-							step && next
-						elsif b == 95 # "_"
-							token_type = :QNUMBER
-							step && next
-						else
-							break
+						while (b = peek)
+							if digit?(b)
+								step && next
+							elsif b == 95 # "_"
+								token_type = :QNUMBER
+								step && next
+							else
+								break
+							end
 						end
 					end
 				end
@@ -502,10 +521,8 @@ module Plume
 
 				token_type
 			when :QUOTE2
-				step until (b = peek).nil? || b == 93 # "]"
-
-				final = scan
-				return :ILLEGAL if final.nil?
+				step until (b = peek).nil? || b == 0 || b == 93 # "]"
+				return :ILLEGAL unless scan == 93
 
 				:ID
 			when :VARNUM
@@ -526,7 +543,7 @@ module Plume
 						n += 1
 					elsif n > 0 && b == 40 # "("
 						step
-						step until (b = peek).nil? || space?(b) || b == 41 # ")"
+						step until (b = peek).nil? || b == 0 || space?(b) || b == 41 # ")"
 
 						if peek == 41 # ")"
 							step
@@ -603,7 +620,7 @@ module Plume
 
 				:ID
 			when :BOM
-				return step(2) && :SPACE if peek == 0xFE && peek(1) == 0xFF
+				return step(2) && :SPACE if peek == 0xBB && peek(1) == 0xBF # the rest of a UTF-8 BOM
 
 				step while id?(peek)
 				:ID
@@ -634,5 +651,6 @@ module Plume
 		# middle of identifiers.  But many SQL implementations do.
 		# SQLite will allow '$' in identifiers for compatibility.
 		# But the feature is undocumented.
+
 	end
 end

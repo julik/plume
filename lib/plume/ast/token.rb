@@ -120,15 +120,22 @@ module Plume
 		def numeric_literal(str, tup)
 			tok, * = tup
 			src = source(str, tup)
+			# A signed number spans the sign too, and whatever spaces or comments follow it
+			src = Plume.tokenize(src, with_values: true).last.last if Array === tok
+			value = number(src.delete("_"))
 
-			case tok
-			when :INTEGER, [:PLUS, :INTEGER], [:MINUS, :INTEGER]
-				src.to_i
-			when :FLOAT, [:PLUS, :FLOAT], [:MINUS, :FLOAT]
-				src.to_f
-			when :QNUMBER, [:PLUS, :QNUMBER], [:MINUS, :QNUMBER]
-				value = src.to_f
-				(value % 1 == 0) ? value.to_i : value
+			(Array === tok && tok.first == :MINUS) ? -value : value
+		end
+
+		# Hex literals are 64-bit two's complement in SQLite, so 0xFFFFFFFFFFFFFFFF is -1
+		def number(text)
+			if text.start_with?("0x", "0X")
+				value = text.byteslice(2..).to_i(16)
+				(value >= 2**63 && value < 2**64) ? value - 2**64 : value
+			elsif text.include?(".") || text.include?("e") || text.include?("E")
+				text.to_f
+			else
+				text.to_i
 			end
 		end
 

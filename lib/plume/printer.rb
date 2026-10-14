@@ -25,7 +25,11 @@ module Plume
 		# Operands of these need parentheses to keep their grouping when printed inside another expression
 		COMPOUND_EXPRESSIONS = [BinaryExpression, UnaryExpression, TernaryExpression, LikeExpression, CollationExpression].freeze
 
-		def self.print(node) = new.print(node)
+		def self.print(node)
+			new.print(node)
+		rescue SystemStackError
+			Plume.too_deep!("The tree")
+		end
 
 		def print(node)
 			case node
@@ -36,15 +40,15 @@ module Plume
 			end
 		end
 
+		# Even the keywords SQLite can take as names, like IF or RAISE, only work as names where
+		# the keyword itself cannot go - `DROP TABLE if` is a syntax error - so they get quoted too
 		def identifier(name)
 			name = name.to_s
-			return name if name.match?(BARE_IDENTIFIER) && bare_keyword_ok?(name.upcase.to_sym)
+			return name if name.ascii_only? && name.match?(BARE_IDENTIFIER) && !Lexer::KEYWORDS.include?(name.upcase.to_sym)
 
 			%("#{name.gsub('"', '""')}")
 		end
 
-		# Keywords SQLite falls back to treating as identifiers, like ROWID or KEY, need no quotes
-		def bare_keyword_ok?(word) = !Lexer::KEYWORDS.include?(word) || Parser::TOKEN_FALLBACKS.include?(word)
 
 		def string(value) = "'#{value.to_s.gsub("'", "''")}'"
 
@@ -259,10 +263,10 @@ module Plume
 		def print_parenthetical_source(node) = join("(#{print(node.source)})", alias_of(node))
 
 		def print_join_clause(node)
-			node.joins.reduce(print(node.left)) do |sql, each|
+			# Appended in place, building a new string per join copies the whole clause every time
+			node.joins.each_with_object(+print(node.left)) do |each, sql|
 				operator = print(each.operator)
-				right = join(print(each.source), print(each.constraint))
-				operator == "," ? "#{sql}, #{right}" : "#{sql} #{operator} #{right}"
+				sql << (operator == "," ? ", " : " #{operator} ") << join(print(each.source), print(each.constraint))
 			end
 		end
 
@@ -420,7 +424,7 @@ module Plume
 		def print_check_column_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_collate_column_constraint(node) = join(constraint_name(node), "COLLATE #{identifier(node.collation)}")
 		def print_foreign_key_column_constraint(node) = join(constraint_name(node), print(node.foreign_key_clause))
-		def print_no_op_column_constraint(node) = constraint_name(node)
+		def print_no_op_column_constraint(node) = join(constraint_name(node), node.deferrable_span? && Array(node.deferrable_span_tok).join(" "))
 
 		def print_default_column_constraint(node)
 			return join(constraint_name(node), "DEFAULT #{node.value_tk_src}") if node.value_tk?

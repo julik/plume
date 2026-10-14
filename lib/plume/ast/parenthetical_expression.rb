@@ -8,7 +8,7 @@ module Plume
 
 		# Hand-built trees may wrap plain Ruby values; a lambda keeps them out of the union's
 		# plain-value set, see Node.attr
-		attr :value, _Union(Expression, _Array(Expression), ->(v) { LiteralValue === v })
+		attr :value, _Union(Expression, _Array(Expression), ->(v) { !(Node === v) && LiteralValue === v })
 
 		def self.new(*, value:, **) = super
 		def self.concrete(*, **) = super

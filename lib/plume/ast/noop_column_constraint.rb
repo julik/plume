@@ -4,6 +4,7 @@ module Plume
 	class NoOpColumnConstraint < ColumnConstraint
 		token :constraint_kw
 		token :name_tk
+		token :deferrable_span
 
 		attr :name, Stringy
 

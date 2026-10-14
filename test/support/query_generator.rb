@@ -2,9 +2,12 @@
 
 # Produces random but valid SELECTs over a catalog, mixing the constructs whose
 # name resolution is easy to get wrong: aliases, joins, correlated subqueries,
-# CTEs, compounds, stars and result-column aliases used in ORDER BY
+# CTEs, compounds, stars and result-column aliases used in ORDER BY. `names` makes up the
+# aliases and CTE names, `quote` spells a name out in SQL
 class QueryGenerator
-	def initialize(catalog, seed:)
+	def initialize(catalog, seed:, names: nil, quote: nil)
+		@names = names
+		@quote = quote
 		@tables = catalog.tables.reject { |t| t.columns.empty? }
 		@random = Random.new(seed)
 	end
@@ -39,13 +42,16 @@ class QueryGenerator
 			"SELECT #{values.join(", ")} FROM #{table_ref(source)} WHERE #{condition([source], [source])}"
 	end
 
-	# The conflict target has to be a key, so stick to tables whose rowid is an "id" column
+	# The conflict target has to be a key, so stick to tables with a column that is their rowid
 	def upsert
-		table = @tables.select { |t| t.rowid_alias == "id" }.sample(random: @random)
+		table = @tables.select(&:rowid_alias).sample(random: @random)
+		return update unless table
+
 		name = quote(table.name)
-		set = (table.columns - ["id"]).sample(2, random: @random)
+		key = quote(table.rowid_alias)
+		set = (table.columns - [table.rowid_alias]).sample(2, random: @random)
 		filter = table.columns.sample(random: @random)
-		"INSERT INTO #{name} (id) VALUES (?) ON CONFLICT (id) DO UPDATE SET " \
+		"INSERT INTO #{name} (#{key}) VALUES (?) ON CONFLICT (#{key}) DO UPDATE SET " \
 			"#{set.map { |c| "#{quote(c)} = excluded.#{quote(c)}" }.join(", ")} " \
 			"WHERE #{name}.#{quote(filter)} IS NOT NULL RETURNING #{quote(table.columns.sample(random: @random))}"
 	end
@@ -100,7 +106,7 @@ class QueryGenerator
 		elsif @random.rand(8).zero?
 			["*"]
 		elsif @random.rand(6).zero?
-			["#{sources.first[:alias]}.*"]
+			["#{quote(sources.first[:alias])}.*"]
 		else
 			Array.new(1 + @random.rand(3)) { result_column(sources, visible, aliases) }
 		end
@@ -111,7 +117,7 @@ class QueryGenerator
 			sql << " GROUP BY #{column_ref(sources.first)}"
 		end
 		if order && @random.rand(3).zero?
-			sql << " ORDER BY #{aliases.first || column_ref(sources.first)}"
+			sql << " ORDER BY #{aliases.first ? quote(aliases.first) : column_ref(sources.first)}"
 		end
 		sql
 	end
@@ -119,9 +125,9 @@ class QueryGenerator
 	def cte_query
 		inner_source = new_source
 		names = inner_source[:table].columns.sample(2, random: @random)
-		cte = "c#{@random.rand(100)}"
+		cte = quote(@names ? "#{@names.call}c" : "c#{@random.rand(100)}")
 		used = @random.rand(4).nonzero?
-		body = "SELECT #{names.map { |n| "#{inner_source[:alias]}.#{quote(n)}" }.join(", ")} FROM #{table_ref(inner_source)}"
+		body = "SELECT #{names.map { |n| "#{quote(inner_source[:alias])}.#{quote(n)}" }.join(", ")} FROM #{table_ref(inner_source)}"
 		outer = used ? "SELECT #{cte}.#{quote(names.first)} FROM #{cte}" : "SELECT 1"
 		"WITH #{cte}(#{names.map { |n| quote(n) }.join(", ")}) AS (#{body}) #{outer}"
 	end
@@ -131,8 +137,8 @@ class QueryGenerator
 		when 0 then "count(*)"
 		when 1 then "(SELECT max(#{column_ref(inner = new_source)}) FROM #{table_ref(inner)} WHERE #{column_ref(inner)} = #{column_ref(visible.sample(random: @random))})"
 		when 2
-			aliases << "r#{aliases.size}"
-			"#{column_ref(sources.sample(random: @random))} AS #{aliases.last}"
+			aliases << "#{@names&.call}r#{aliases.size}"
+			"#{column_ref(sources.sample(random: @random))} AS #{quote(aliases.last)}"
 		else column_ref(sources.sample(random: @random))
 		end
 	end
@@ -152,15 +158,15 @@ class QueryGenerator
 
 	def new_source
 		@alias_counter += 1
-		{ table: @tables.sample(random: @random), alias: "t#{@alias_counter}" }
+		{ table: @tables.sample(random: @random), alias: "#{@names&.call}t#{@alias_counter}" }
 	end
 
-	def table_ref(source) = "#{quote(source[:table].name)} AS #{source[:alias]}"
+	def table_ref(source) = "#{quote(source[:table].name)} AS #{quote(source[:alias])}"
 
 	def column_ref(source)
 		column = source[:table].columns.sample(random: @random)
-		@random.rand(5).zero? && source[:table].rowid? ? "#{source[:alias]}.rowid" : "#{source[:alias]}.#{quote(column)}"
+		@random.rand(5).zero? && source[:table].rowid? ? "#{quote(source[:alias])}.rowid" : "#{quote(source[:alias])}.#{quote(column)}"
 	end
 
-	def quote(name) = %("#{name}")
+	def quote(name) = @quote ? @quote.(name) : %("#{name.gsub('"', '""')}")
 end

@@ -385,3 +385,23 @@ test "select '@abc'.'!pqr' from '@abc'" do
 	assert_equal [core.columns[0].result.table, core.columns[0].result.column], ["@abc", "!pqr"]
 	assert_equal core.source.table, "@abc"
 end
+
+test "select a from t order by a nulls middle" do
+	assert_raises(Plume::SyntaxError) { parse_stmt("select a from t order by a nulls middle") }
+	assert_equal parse_stmt("select a from t order by a nulls last").orderings[0].nulls, :LAST
+end
+
+test "filter, over and window are names unless a window function is around them" do
+	assert_equal parse_stmt("create table t (filter, over, window)").columns.map(&:name), ["filter", "over", "window"]
+	assert_equal parse_stmt("select max(a) over from t").to_sql, %(SELECT max(a) AS "over" FROM t)
+	assert_equal parse_stmt("select 1 window").to_sql, %(SELECT 1 AS "window")
+	assert_equal parse_stmt("select max(a) over w from t window w as ()").to_sql, "SELECT max(a) OVER w FROM t WINDOW w AS ()"
+end
+
+test "select t.window from t cross join u - window is only a keyword before a name and AS" do
+	assert_equal parse_stmt("select t.window from t cross join u").to_sql, %(SELECT t."window" FROM t CROSS JOIN u)
+end
+
+test "select false.x from true as false - TRUE and FALSE are names to SQLite" do
+	assert_equal parse_stmt("select false.x, true from true as false").to_sql, %(SELECT "false".x, TRUE FROM "true" AS "false")
+end

@@ -1,5 +1,5 @@
 KEYWORD        TOTAL    PASS    FAIL INVALID
-SELECT         11287   11278       0       9
+SELECT         11287   11273       0      14
 CREATE          1500    1495       0       5
 INSERT           772     772       0       0
 PRAGMA           707     707       0       0
@@ -21,4 +21,4 @@ REINDEX           10      10       0       0
 REPLACE            9       9       0       0
 END                5       5       0       0
 RELEASE            5       5       0       0
-ALL            15836   15817       0      19
+ALL            15836   15812       0      24

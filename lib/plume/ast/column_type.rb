@@ -13,12 +13,13 @@ module Plume
 
 		inspectable def affinity
 			# rules found at: https://www.sqlite.org/datatype3.html#determination_of_column_affinity
-			case text
-			when /INT/i							then	:INTEGER
-			when /CHAR|CLOB|TEXT/i	then	:TEXT
-			when /BLOB/i						then	:BLOB
-			when /REAL|FLOA|DOUB/i	then	:REAL
-			else													:ANY
+			# SQLite matches these case-insensitively, but only ever folds ASCII
+			type = text.to_s.upcase(:ascii)
+			if type.include?("INT") then :INTEGER
+			elsif type.include?("CHAR") || type.include?("CLOB") || type.include?("TEXT") then :TEXT
+			elsif type.include?("BLOB") then :BLOB
+			elsif type.include?("REAL") || type.include?("FLOA") || type.include?("DOUB") then :REAL
+			else :ANY
 			end
 		end
 	end
