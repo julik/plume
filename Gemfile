@@ -13,4 +13,5 @@ group :development do
 	gem "ruby-lsp", platform: :ruby
 	gem "simplecov", platform: :ruby
 	gem "sqlite3"
+	gem "debug", ">= 1.0.0"
 end
