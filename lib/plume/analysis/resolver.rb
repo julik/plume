@@ -13,7 +13,9 @@ module Plume
 			#        :function - table-valued function, nothing to record
 			#        :group   - an aliased `(a JOIN b) AS x`, columns live in `members`
 			# `columns` is nil when we cannot know them (no catalog, unknown function)
-			Source = Struct.new(:name, :kind, :schema, :table, :columns, :members, :merged, :node, keyword_init: true) do
+			# `qualified_only` sources answer to `name.column` but never to a bare column name -
+			# that is how the `excluded` row of an upsert behaves
+			Source = Struct.new(:name, :kind, :schema, :table, :columns, :members, :merged, :qualified_only, :node, keyword_init: true) do
 				def matches?(qualifier, schema_qualifier)
 					return false unless name&.casecmp?(qualifier)
 					return true unless schema_qualifier
@@ -51,29 +53,165 @@ module Plume
 				"generate_series" => %w[value start stop step],
 			}.freeze
 
+			STATEMENTS = [SelectStatement, InsertStatement, UpdateStatement, DeleteStatement].freeze
+
 			def initialize(catalog: nil)
 				@catalog = catalog
 			end
 
-			def reads(statement)
+			def analyze(statement)
 				@reads = Reads.new(statement)
-				select(statement, parent: nil, usage: :projected)
-				@reads
+				@writes = Writes.new(statement, @reads.unresolved)
+
+				case statement
+				when SelectStatement then select(statement, parent: nil, usage: :projected)
+				when InsertStatement then insert(statement)
+				when UpdateStatement then update(statement)
+				when DeleteStatement then delete(statement)
+				end
+
+				Access.new(reads: @reads, writes: @writes)
 			end
 
 			# Names of the columns a select produces, nil for the ones we cannot name
 			def output_columns(statement)
 				@reads = Reads.new(statement)
+				@writes = Writes.new(statement, @reads.unresolved)
 				select(statement, parent: nil, usage: :projected) || []
 			end
 
 			private
 
-			def select(statement, parent:, usage:)
+			def with_scope(with_clause, parent)
 				scope = Scope.new(sources: [], parent:, ctes: {})
-				statement.with_clause&.ctes&.each do |cte|
+				with_clause&.ctes&.each do |cte|
 					scope.ctes[cte.name.downcase] = Cte.new(node: cte, scope:, analyzed: Set.new)
 				end
+				scope
+			end
+
+			# -- INSERT, UPDATE, DELETE
+
+			def insert(statement)
+				outer = with_scope(statement.with_clause, nil)
+				# The rows being inserted cannot see the target table, upserts and RETURNING can
+				select(statement.select, parent: outer, usage: :projected) if statement.select
+
+				scope = Scope.new(sources: [], parent: outer, ctes: {}, aliases: {})
+				target = add_target(statement.table, scope)
+
+				if statement.default_values
+					write(target, nil, :insert, statement.table)
+				elsif statement.columns
+					statement.columns.each { |column| write(target, column.column, :insert, column) }
+				elsif target&.columns
+					target.columns.each { |column| write(target, column, :insert, statement.table) }
+				else
+					write(target, "*", :insert, statement.table)
+				end
+
+				statement.upserts&.each do |upsert|
+					excluded = Source.new(name: "excluded", kind: :derived, columns: target&.columns, qualified_only: true, node: upsert)
+					upsert_scope = Scope.new(sources: [target, excluded].compact, parent: outer, ctes: {}, aliases: {})
+
+					upsert.targets&.each { |term| expression(term.expression, upsert_scope, :referenced) }
+					expression(upsert.target_condition, upsert_scope, :referenced)
+					assign(upsert.assignments, target, upsert_scope)
+					expression(upsert.condition, upsert_scope, :referenced)
+				end
+
+				returning(statement.returning, scope, target)
+			end
+
+			def update(statement)
+				outer = with_scope(statement.with_clause, nil)
+				scope = Scope.new(sources: [], parent: outer, ctes: {}, aliases: {})
+				target = add_target(statement.table, scope)
+				add_source(statement.source, scope, :projected) if statement.source
+
+				assign(statement.assignments, target, scope)
+				expression(statement.condition, scope, :referenced)
+				returning(statement.returning, scope, target)
+				tail(statement, scope)
+			end
+
+			def delete(statement)
+				outer = with_scope(statement.with_clause, nil)
+				scope = Scope.new(sources: [], parent: outer, ctes: {}, aliases: {})
+				target = add_target(statement.table, scope)
+
+				write(target, nil, :delete, statement.table)
+				expression(statement.condition, scope, :referenced)
+				returning(statement.returning, scope, target)
+				tail(statement, scope)
+			end
+
+			# Assigned values end up in the table, so whatever they read counts as projected
+			def assign(assignments, target, scope)
+				assignments&.each do |assignment|
+					assignment.columns.each { |column| write(target, column.column, :update, column) }
+					expression(assignment.value, scope, :projected)
+				end
+			end
+
+			# A bare * in RETURNING means the target's columns only, not those of an UPDATE's FROM
+			def returning(clause, scope, target)
+				clause&.columns&.each do |column|
+					if StarResultColumn === column && column.table.nil?
+						star_source(target, :projected, column, skip_merged: false) if target
+					elsif StarResultColumn === column
+						star(column, scope, :projected)
+					else
+						expression(column.result, scope, :projected)
+					end
+				end
+			end
+
+			def tail(statement, scope)
+				statement.orderings&.each { |term| expression(term.expression, scope, :referenced) }
+				expression(statement.limit, scope, :referenced)
+				expression(statement.offset, scope, :referenced)
+			end
+
+			# The table an INSERT, UPDATE or DELETE writes to. CTEs never stand in for it, and
+			# writing to it is not a read, so it joins the scope without recording one
+			def add_target(node, scope)
+				name = node.alias || node.table
+				source =
+					if @catalog.nil?
+						Source.new(name:, kind: :table, schema: node.schema, node:)
+					elsif (table = @catalog.table(node.table, schema: node.schema))
+						Source.new(name:, kind: :table, schema: table.schema, table:, columns: table.columns, node:)
+					elsif (view = @catalog.view(node.table, schema: node.schema))
+						# Writable only through INSTEAD OF triggers, which we do not look into
+						@reads.views << Analysis.table_key(view.schema, view.name)
+						Source.new(name:, kind: :derived, schema: view.schema, columns: view.columns, node:)
+					else
+						unresolved(node.table, "no such table", node)
+						return
+					end
+				scope.sources << source
+				source
+			end
+
+			def write(target, column, action, node)
+				return unless target
+
+				if target.table
+					if column && column != "*"
+						canonical = target.column(column)
+						return unresolved(column, "no such column in #{target.table.name}", node) unless canonical
+
+						column = canonical
+					end
+					@writes.references << Reference.new(schema: target.table.schema, table: target.table.name, column:, usage: action, node:)
+				else
+					@writes.references << Reference.new(schema: target.schema, table: target.node.table, column:, usage: action, node:)
+				end
+			end
+
+			def select(statement, parent:, usage:)
+				scope = with_scope(statement.with_clause, parent)
 
 				names = nil
 				core_scope = nil
@@ -338,8 +476,9 @@ module Plume
 			end
 
 			def resolve_in(scope, name, usage, node)
-				known = scope.sources.select { |s| source_has?(s, name) }
-				unknown = scope.sources.select { |s| source_unknown?(s) }
+				candidates = scope.sources.reject(&:qualified_only)
+				known = candidates.select { |s| source_has?(s, name) }
+				unknown = candidates.select { |s| source_unknown?(s) }
 
 				if known.size == 1 && unknown.empty?
 					read_through(known.first, name, usage, node)

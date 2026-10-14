@@ -198,7 +198,7 @@ SQLite works with a grammar of _167_ token types, _136_ of which are keywords. T
 
 ### What does this query read?
 
-`Plume.reads` works out which tables and columns a `SELECT` would read, looking through aliases, joins, subqueries, CTEs and views:
+`Plume.reads` works out which tables and columns a statement would read, looking through aliases, joins, subqueries, CTEs and views:
 
 ```ruby
 catalog = Plume::Catalog.from_sql(<<~SQL)
@@ -217,6 +217,20 @@ reads.columns    # => {"posts" => #<Set: {"id", "user_id", "title"}>, "users" =>
 reads.projected  # columns whose values can end up in the result rows
 reads.referenced # columns only used to filter, join, sort or group
 ```
+
+`Plume.access` does the same for `INSERT`, `UPDATE` and `DELETE`, and also tells you what they write:
+
+```ruby
+access = Plume.access(<<~SQL, catalog: catalog)
+  UPDATE posts SET title = upper(u.name) FROM users u WHERE u.id = posts.user_id RETURNING posts.id
+SQL
+
+access.writes.updated   # => {"posts" => #<Set: {"title"}>}
+access.reads.projected  # => {"users" => #<Set: {"name"}>, "posts" => #<Set: {"id"}>}
+access.reads.referenced # => {"users" => #<Set: {"id"}>, "posts" => #<Set: {"user_id"}>}
+```
+
+A value copied into a column being written counts as projected, just like one returned in the result rows.
 
 The catalog can also come from a live database with `Plume::Catalog.from_sqlite(db)`, or be left out - then `SELECT *` is reported as a read of the column `"*"` and unqualified columns only resolve when there is a single table in scope.
 

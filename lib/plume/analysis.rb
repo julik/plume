@@ -6,9 +6,13 @@ module Plume
 	module Analysis
 		autoload :Resolver, "plume/analysis/resolver"
 
-		# A read of one column, or of a table as a whole when `column` is nil - which is what
-		# `SELECT count(*) FROM t` amounts to. `usage` is `:projected` when the value can flow
-		# into the result rows and `:referenced` when it is only used to filter, join, sort or group
+		# A read or write of one column, or of a table as a whole when `column` is nil - which is
+		# what `SELECT count(*) FROM t` or `DELETE FROM t` amount to.
+		#
+		# For reads, `usage` is `:projected` when the value itself can leave the statement - in the
+		# result rows, through RETURNING, or copied into a column being written - and `:referenced`
+		# when it is only used to filter, join, sort or group. For writes it is `:insert`,
+		# `:update` or `:delete`.
 		Reference = Data.define(:schema, :table, :column, :usage, :node) do
 			def table_key = Analysis.table_key(schema, table)
 		end
@@ -48,19 +52,17 @@ module Plume
 			(schema.nil? || schema.casecmp?("main")) ? table : "#{schema}.#{table}"
 		end
 
-		class Reads
-			attr_reader :statement, :references, :unresolved, :views, :functions
+		class References
+			attr_reader :statement, :references, :unresolved
 
-			def initialize(statement)
+			def initialize(statement, unresolved = [])
 				@statement = statement
 				@references = []
-				@unresolved = []
-				@views = Set.new
-				@functions = Set.new
+				@unresolved = unresolved
 			end
 
-			# Every base table the statement touches, including ones read only as a whole
-			def tables = @references.to_set(&:table_key)
+			# Every base table touched, including ones touched only as a whole
+			def tables(usage = nil) = @references.select { |r| usage.nil? || r.usage == usage }.to_set(&:table_key)
 
 			# `{ "table" => Set["column", …] }`, optionally narrowed to one usage
 			def columns(usage = nil)
@@ -71,38 +73,63 @@ module Plume
 				end
 			end
 
-			def projected = columns(:projected)
-			def referenced = columns(:referenced)
-
 			def resolved? = @unresolved.empty?
 
 			def inspect
 				"#<#{self.class.name} columns=#{columns.transform_values(&:to_a).inspect} unresolved=#{@unresolved.size}>"
 			end
 		end
+
+		class Reads < References
+			attr_reader :views, :functions
+
+			def initialize(...)
+				super
+				@views = Set.new
+				@functions = Set.new
+			end
+
+			def projected = columns(:projected)
+			def referenced = columns(:referenced)
+		end
+
+		class Writes < References
+			# INSERT without a column list writes every column; without a catalog that is "*"
+			def inserted = columns(:insert)
+			def updated = columns(:update)
+			def deleted = tables(:delete)
+		end
+
+		Access = Data.define(:reads, :writes) do
+			def unresolved = reads.unresolved
+			def resolved? = reads.resolved?
+		end
 	end
 
 	module Analysis
-		# Which tables and columns `sql` - a single SELECT - would read.
+		# Which tables and columns `sql` - a single SELECT, INSERT, UPDATE or DELETE - would read.
 		#
 		# Without a catalog, columns of tables cannot be enumerated: `SELECT *` comes back as a read
 		# of the column "*", and an unqualified column with more than one table in scope is ambiguous.
 		#
 		# With `strict: true` (the default) anything that cannot be attributed raises
 		# `Plume::Analysis::Error`; with `strict: false` it is listed in `Reads#unresolved` instead.
-		def self.reads(sql, catalog: nil, strict: true)
+		def self.reads(sql, catalog: nil, strict: true) = access(sql, catalog:, strict:).reads
+
+		# Like `reads`, but also reports what an INSERT, UPDATE or DELETE writes
+		def self.access(sql, catalog: nil, strict: true)
 			statements = Parser.new(sql).parse
 			raise Error, "expected exactly one statement, got #{statements.size}" unless statements.size == 1
 
 			statement = statements.first
-			unless SelectStatement === statement
-				raise Error, "only SELECT statements can be analyzed for reads, got #{statement.class.name}"
+			unless Resolver::STATEMENTS.any? { |klass| klass === statement }
+				raise Error, "only SELECT, INSERT, UPDATE and DELETE can be analyzed, got #{statement.class.name}"
 			end
 
-			reads = Resolver.new(catalog:).reads(statement)
-			raise Error.new(unresolved: reads.unresolved) if strict && !reads.resolved?
+			access = Resolver.new(catalog:).analyze(statement)
+			raise Error.new(unresolved: access.unresolved) if strict && !access.resolved?
 
-			reads
+			access
 		end
 	end
 end

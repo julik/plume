@@ -5,9 +5,12 @@ require "sqlite3"
 # Asks SQLite which columns a statement reads, by preparing it with an authorizer
 # callback installed. Used to check Plume.reads against the real thing.
 class AuthorizerOracle
+	SQLITE_DELETE = 9
+	SQLITE_INSERT = 18
 	SQLITE_READ = 20
+	SQLITE_UPDATE = 23
 
-	Result = Data.define(:tables, :columns)
+	Result = Data.define(:tables, :columns, :inserted, :updated, :deleted)
 
 	attr_reader :db, :catalog
 
@@ -17,7 +20,7 @@ class AuthorizerOracle
 		@catalog = Plume::Catalog.from_sqlite(@db)
 		@events = []
 		@db.authorizer = proc do |action, table, column, *|
-			@events << [table, column] if action == SQLITE_READ
+			@events << [action, table, column]
 			0
 		end
 	end
@@ -33,14 +36,22 @@ class AuthorizerOracle
 
 		tables = Set.new
 		columns = Hash.new { |h, k| h[k] = Set.new }
-		@events.each do |table, column|
-			next unless (name = known[table.downcase])
+		inserted = Set.new
+		updated = Hash.new { |h, k| h[k] = Set.new }
+		deleted = Set.new
+		# For INSERT and DELETE the table comes as the first argument, the second is the schema
+		@events.each do |action, table, column|
+			next unless table && (name = known[table.downcase])
 
-			tables << name
-			next if column.nil? || column.empty?
-
-			columns[name] << (column.casecmp?("rowid") ? "rowid" : column)
+			case action
+			when SQLITE_INSERT then inserted << name
+			when SQLITE_DELETE then deleted << name
+			when SQLITE_UPDATE then updated[name] << column
+			when SQLITE_READ
+				tables << name
+				columns[name] << (column.casecmp?("rowid") ? "rowid" : column) unless column.nil? || column.empty?
+			end
 		end
-		Result.new(tables:, columns: columns.to_h)
+		Result.new(tables:, columns: columns.to_h, inserted:, updated: updated.to_h, deleted:)
 	end
 end
