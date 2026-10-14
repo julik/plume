@@ -11,6 +11,7 @@
 - Fixed: `a IN (…) AND b` and friends stopped after the IN/BETWEEN/LIKE/GLOB; quotes doubled inside strings and identifiers were not unescaped; a column type following a REFERENCES clause came out empty
 - Building a tree is no longer quadratic in its size
 - `literal` is now declared as a runtime dependency
+- `Plume.eager_load!` makes Plume usable from Ractors: parsing, printing and analysis run in any Ractor, and catalogs and parsed trees can be made shareable
 
 ## [0.1.0] - 2024-03-22
 
