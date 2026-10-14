@@ -279,7 +279,7 @@ module Plume
 			when :SELECT, :VALUES		then select_stmt
 			when :UPDATE						then update_stmt
 			when :VACUUM						then vacuum_stmt
-			when :WITH							then select_stmt
+			when :WITH							then with_stmt
 			else
 				expected!(:ALTER, :ANALYZE, :ATTACH, :BEGIN, :COMMIT, :END, :CREATE, :DELETE, :DETACH, :DROP, :INSERT, :REPLACE, :PRAGMA, :REINDEX, :RELEASE, :ROLLBACK, :SAVEPOINT, :SELECT, :UPDATE, :VACUUM, :WITH)
 			end
@@ -296,19 +296,16 @@ module Plume
 		alias_method :create_index_stmt, :_not_implemented
 		alias_method :create_trigger_stmt, :_not_implemented
 		alias_method :create_virtual_table_stmt, :_not_implemented
-		alias_method :delete_stmt, :_not_implemented
 		alias_method :detach_stmt, :_not_implemented
 		alias_method :drop_index_stmt, :_not_implemented
 		alias_method :drop_table_stmt, :_not_implemented
 		alias_method :drop_trigger_stmt, :_not_implemented
 		alias_method :drop_view_stmt, :_not_implemented
-		alias_method :insert_stmt, :_not_implemented
 		alias_method :pragma_stmt, :_not_implemented
 		alias_method :reindex_stmt, :_not_implemented
 		alias_method :release_stmt, :_not_implemented
 		alias_method :rollback_stmt, :_not_implemented
 		alias_method :savepoint_stmt, :_not_implemented
-		alias_method :update_stmt, :_not_implemented
 		alias_method :vacuum_stmt, :_not_implemented
 
 		# ---------- Statements ----------
@@ -582,7 +579,204 @@ module Plume
 			)
 		end
 
-		def select_stmt
+		def insert_stmt(with = nil)
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
+				#   cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning
+				#   insert_cmd ::= INSERT orconf | REPLACE
+				#   orconf ::= . | OR resolvetype
+				#   resolvetype ::= raisetype | IGNORE | REPLACE
+				#   idlist_opt ::= . | LP idlist RP
+				#   upsert ::= . | RETURNING selcollist |
+				#              ON CONFLICT LP sortlist RP where_opt DO UPDATE SET setlist where_opt upsert |
+				#              ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert |
+				#              ON CONFLICT DO NOTHING returning |
+				#              ON CONFLICT DO UPDATE SET setlist where_opt returning
+				#
+				# Syntax diagram:
+				#   ◯─▶┬▶[ with-clause ]─┐
+				#      ├───────◀─────────┘
+				#      ├─▶{ REPLACE }─────────────────────────┐
+				#      └─▶{ INSERT }┬────────────────────────┬┴▶{ INTO }─▶[ qualified-table-name ]┐
+				#                   └▶{ OR }─▶{ resolution }─┘                                    │
+				#   ┌────────────────────────────────◀────────────────────────────────────────────┘
+				#   ├─▶{ ( }┬▶{ column-name }┬▶{ ) }┐
+				#   │       └──────{ , }◀────┘      │
+				#   ├───────────────◀───────────────┘
+				#   ├─▶[ select-stmt ]─┬───────────────────┬───────────┬─▶[ returning-clause ]─▶◯
+				#   │                  └▶[ upsert-clause ]─┘           │
+				#   └─▶{ DEFAULT }─▶{ VALUES }─────────────────────────┘
+				#
+				# Simplified grammar:
+				#   [with_clause] (INSERT [OR resolution] | REPLACE) INTO table [AS alias] [(column [, column]*)]
+				#   (select_stmt [upsert_clause]* | DEFAULT VALUES) [returning_clause]
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_insert.html
+				#   - https://www.sqlite.org/lang_upsert.html
+				#
+				# Adds rows to a table, from a VALUES list, a select, or the column defaults.
+			#
+			with ||= with_clause if current_token == :WITH
+			insert_kw = require_one_of(
+				[:INSERT, :OR, :ROLLBACK].freeze, [:INSERT, :OR, :ABORT].freeze, [:INSERT, :OR, :FAIL].freeze,
+				[:INSERT, :OR, :IGNORE].freeze, [:INSERT, :OR, :REPLACE].freeze, :INSERT, :REPLACE,
+			)
+			into_kw = require :INTO
+			table = qualified_table_name(indexed: false)
+			if (columns_lp = maybe :LP)
+				columns = require_some(trailing_sep: :COMMA) { column_reference }
+				columns_rp = require :RP
+			end
+
+			unless (default_values_kw = maybe_all_of :DEFAULT, :VALUES)
+				select = select_stmt
+				upserts = maybe_some { upsert_clause }
+			end
+			returning = returning_clause
+
+			InsertStatement.concrete(
+				full_source:       @lexer.sql,
+				with_clause:       with,
+				insert_kw:         Token::Keyword(insert_kw),
+				into_kw:           Token::Keyword(into_kw),
+				table:             table,
+				columns_lp:        Token::Punctuation(columns_lp),
+				columns:           columns,
+				columns_rp:        Token::Punctuation(columns_rp),
+				default_values_kw: Token::Keyword(default_values_kw),
+				select:            select,
+				upserts:           upserts,
+				returning:         returning,
+			)
+		end
+
+		def update_stmt(with = nil)
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret orderby_opt limit_opt
+				#   where_opt_ret ::= . | WHERE expr | RETURNING selcollist | WHERE expr RETURNING selcollist
+				#
+				# Syntax diagram:
+				#   ◯─▶┬▶[ with-clause ]─┐
+				#      ├───────◀─────────┘
+				#      └─▶{ UPDATE }┬────────────────────────┬▶[ qualified-table-name ]─▶{ SET }─┐
+				#                   └▶{ OR }─▶{ resolution }─┘                                   │
+				#   ┌─────────────────────────────────◀──────────────────────────────────────────┘
+				#   └┬▶{ column-name }──────────────────┬▶{ = }─▶[ expr ]┬┬───────────────────────────┬┐
+				#    ├▶{ ( }┬▶{ column-name }┬▶{ ) }────┘                │└▶{ FROM }─▶[ join-clause ]─┘│
+				#    │      └──────{ , }◀────┘                           │                             │
+				#    └───────────────────────{ , }◀──────────────────────┘                             │
+				#   ┌──────────────────────────────────────◀───────────────────────────────────────────┘
+				#   └┬▶{ WHERE }─▶[ expr ]┬┬─▶[ returning-clause ]┬─▶[ ORDER BY … ]─▶[ LIMIT … ]─▶◯
+				#    └──────────▶─────────┘└──────────▶───────────┘
+				#
+				# Simplified grammar:
+				#   [with_clause] UPDATE [OR resolution] table [AS alias] [INDEXED BY index | NOT INDEXED]
+				#   SET assignment [, assignment]* [FROM join_clause] [WHERE expr] [returning_clause]
+				#   [ORDER BY ordering_term [, ordering_term]*] [LIMIT expr [(OFFSET | COMMA) expr]]
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_update.html
+				#
+				# Changes columns of existing rows.
+			#
+			with ||= with_clause if current_token == :WITH
+			update_kw = require_one_of(
+				[:UPDATE, :OR, :ROLLBACK].freeze, [:UPDATE, :OR, :ABORT].freeze, [:UPDATE, :OR, :FAIL].freeze,
+				[:UPDATE, :OR, :IGNORE].freeze, [:UPDATE, :OR, :REPLACE].freeze, :UPDATE,
+			)
+			table = qualified_table_name(indexed: true)
+			set_kw = require :SET
+			assignments = set_list
+			if (from_kw = maybe :FROM)
+				source = join_clause
+			end
+			if (where_kw = maybe :WHERE)
+				condition = expression
+			end
+			returning = returning_clause
+			tail = order_and_limit
+
+			UpdateStatement.concrete(
+				full_source: @lexer.sql,
+				with_clause: with,
+				update_kw:   Token::Keyword(update_kw),
+				table:       table,
+				set_kw:      Token::Keyword(set_kw),
+				assignments: assignments,
+				from_kw:     Token::Keyword(from_kw),
+				source:      source,
+				where_kw:    Token::Keyword(where_kw),
+				condition:   condition,
+				returning:   returning,
+				**tail,
+			)
+		end
+
+		def delete_stmt(with = nil)
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret orderby_opt limit_opt
+				#
+				# Syntax diagram:
+				#   ◯─▶┬▶[ with-clause ]─┐
+				#      ├───────◀─────────┘
+				#      └─▶{ DELETE }─▶{ FROM }─▶[ qualified-table-name ]┬▶{ WHERE }─▶[ expr ]┬┐
+				#                                                       └──────────▶─────────┘│
+				#   ┌──────────────────────────────────────◀──────────────────────────────────┘
+				#   └┬─▶[ returning-clause ]┬─▶[ ORDER BY … ]─▶[ LIMIT … ]─▶◯
+				#    └──────────▶───────────┘
+				#
+				# Simplified grammar:
+				#   [with_clause] DELETE FROM table [AS alias] [INDEXED BY index | NOT INDEXED]
+				#   [WHERE expr] [returning_clause] [ORDER BY …] [LIMIT …]
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_delete.html
+				#
+				# Removes rows from a table.
+			#
+			with ||= with_clause if current_token == :WITH
+			delete_kw = require :DELETE
+			from_kw = require :FROM
+			table = qualified_table_name(indexed: true)
+			if (where_kw = maybe :WHERE)
+				condition = expression
+			end
+			returning = returning_clause
+			tail = order_and_limit
+
+			DeleteStatement.concrete(
+				full_source: @lexer.sql,
+				with_clause: with,
+				delete_kw:   Token::Keyword(delete_kw),
+				from_kw:     Token::Keyword(from_kw),
+				table:       table,
+				where_kw:    Token::Keyword(where_kw),
+				condition:   condition,
+				returning:   returning,
+				**tail,
+			)
+		end
+
+		# A WITH clause can lead a SELECT, INSERT, UPDATE or DELETE - which one is only
+		# known once the clause is behind us
+		def with_stmt
+			with = with_clause
+
+			case current_token
+			when :SELECT, :VALUES   then select_stmt(with)
+			when :INSERT, :REPLACE  then insert_stmt(with)
+			when :UPDATE            then update_stmt(with)
+			when :DELETE            then delete_stmt(with)
+			else
+				expected!(:SELECT, :VALUES, :INSERT, :REPLACE, :UPDATE, :DELETE)
+			end
+		end
+
+		def select_stmt(with = nil)
 			#
 				# Relevant `parse.y` grammar rules:
 				#   select ::= WITH wqlist selectnowith |
@@ -618,7 +812,7 @@ module Plume
 				#
 				# The SELECT statement is used to query the database.
 			#
-			with = maybe { with_clause } if current_token == :WITH
+			with ||= with_clause if current_token == :WITH
 			body = select_core
 
 			while (operator_tk = maybe_one_of [:UNION, :ALL].freeze, :UNION, :INTERSECT, :EXCEPT)
@@ -630,31 +824,11 @@ module Plume
 				)
 			end
 
-			if (order_by_kw = maybe_all_of :ORDER, :BY)
-				orderings = require_some(trailing_sep: :COMMA) { ordering_term }
-			end
-
-			if (limit_kw = maybe :LIMIT)
-				limit = expression
-				if (offset_tk = maybe :OFFSET)
-					offset = expression
-				elsif (offset_tk = maybe :COMMA)
-					# `LIMIT 5, 10` means skip 5 and take 10, the reverse of what it looks like
-					offset = limit
-					limit = expression
-				end
-			end
-
 			SelectStatement.concrete(
 				full_source: @lexer.sql,
 				with_clause: with,
 				body:        body,
-				order_by_kw: Token::Keyword(order_by_kw),
-				orderings:   orderings,
-				limit_kw:    Token::Keyword(limit_kw),
-				limit:       limit,
-				offset_tk:   Token::Keyword(offset_tk),
-				offset:      offset,
+				**order_and_limit,
 			)
 		end
 
@@ -2290,6 +2464,171 @@ module Plume
 					table_tk:    Token::Identifier(table_tk),
 				)
 			end
+		end
+
+		# `xfullname` plus the optional `indexed_opt` - the target table of INSERT, UPDATE and DELETE.
+		# Unlike in FROM, an alias here needs the AS
+		def qualified_table_name(indexed:)
+			#
+				# Relevant `parse.y` grammar rules:
+				#   xfullname ::= nm | nm DOT nm | nm DOT nm AS nm | nm AS nm
+				#   indexed_opt ::= . | indexed_by
+				#   indexed_by ::= INDEXED BY nm | NOT INDEXED
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/syntax/qualified-table-name.html
+			#
+			schema_tk = nil
+			table_tk = name
+			if (dot_tk = maybe :DOT)
+				schema_tk = table_tk
+				table_tk = name
+			end
+			if (as_kw = maybe :AS)
+				alias_tk = name
+			end
+			if indexed
+				if (indexed_kw = maybe_all_of :INDEXED, :BY)
+					index_tk = name
+				else
+					indexed_kw = maybe_all_of :NOT, :INDEXED
+				end
+			end
+
+			TableName.concrete(
+				full_source: @lexer.sql,
+				schema_tk:   Token::Identifier(schema_tk),
+				dot_tk:      Token::Punctuation(dot_tk),
+				table_tk:    Token::Identifier(table_tk),
+				as_kw:       Token::Keyword(as_kw),
+				alias_tk:    Token::Identifier(alias_tk),
+				indexed_kw:  Token::Keyword(indexed_kw),
+				index_tk:    Token::Identifier(index_tk),
+			)
+		end
+
+		def column_reference
+			ColumnName.concrete(
+				full_source: @lexer.sql,
+				column_tk:   Token::Identifier(name),
+			)
+		end
+
+		def set_list
+			#
+				# Relevant `parse.y` grammar rules:
+				#   setlist ::= setlist COMMA nm EQ expr | setlist COMMA LP idlist RP EQ expr |
+				#               nm EQ expr | LP idlist RP EQ expr
+			#
+			require_some(trailing_sep: :COMMA) do
+				if (columns_lp = maybe :LP)
+					columns = require_some(trailing_sep: :COMMA) { column_reference }
+					columns_rp = require :RP
+				else
+					columns = [column_reference]
+				end
+				eq_tk = require :EQ
+				value = expression
+
+				Assignment.concrete(
+					full_source: @lexer.sql,
+					columns_lp:  Token::Punctuation(columns_lp),
+					columns:     columns,
+					columns_rp:  Token::Punctuation(columns_rp),
+					eq_tk:       Token::Punctuation(eq_tk),
+					value:       value,
+				)
+			end
+		end
+
+		def upsert_clause
+			#
+				# Syntax diagram:
+				#   ◯─▶{ ON }─▶{ CONFLICT }┬───────────────────────────────────────────────────────────┬┐
+				#                          └▶{ ( }┬▶[ indexed-column ]┬▶{ ) }┬────────────────────────┤│
+				#                                 └───────{ , }◀──────┘      └▶{ WHERE }─▶[ expr ]─┘  ││
+				#   ┌───────────────────────────────────────────◀────────────────────────────────────┘│
+				#   └▶{ DO }┬▶{ NOTHING }─────────────────────────────────────────────────────────────┬─▶◯
+				#           └▶{ UPDATE }─▶{ SET }─▶[ assignment … ]┬───────────────────────┬──────────┘
+				#                                                  └▶{ WHERE }─▶[ expr ]──┘
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_upsert.html
+			#
+			on_conflict_kw = require_all_of :ON, :CONFLICT
+			if (target_lp = maybe :LP)
+				targets = require_some(trailing_sep: :COMMA) { ordering_term }
+				target_rp = require :RP
+				if (target_where_kw = maybe :WHERE)
+					target_condition = expression
+				end
+			end
+			do_kw = require :DO
+			action_kw = require_one_of :NOTHING, :UPDATE
+			if action_kw[0] == :UPDATE
+				set_kw = require :SET
+				assignments = set_list
+				if (where_kw = maybe :WHERE)
+					condition = expression
+				end
+			end
+
+			UpsertClause.concrete(
+				full_source:      @lexer.sql,
+				on_conflict_kw:   Token::Keyword(on_conflict_kw),
+				target_lp:        Token::Punctuation(target_lp),
+				targets:          targets,
+				target_rp:        Token::Punctuation(target_rp),
+				target_where_kw:  Token::Keyword(target_where_kw),
+				target_condition: target_condition,
+				do_kw:            Token::Keyword(do_kw),
+				action_kw:        Token::Keyword(action_kw),
+				set_kw:           Token::Keyword(set_kw),
+				assignments:      assignments,
+				where_kw:         Token::Keyword(where_kw),
+				condition:        condition,
+			)
+		end
+
+		def returning_clause
+			#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_returning.html
+			#
+			return unless (returning_kw = maybe :RETURNING)
+
+			ReturningClause.concrete(
+				full_source:  @lexer.sql,
+				returning_kw: Token::Keyword(returning_kw),
+				columns:      require_some(trailing_sep: :COMMA) { result_column },
+			)
+		end
+
+		# The statement-level tail of SELECT. UPDATE and DELETE take it too when SQLite is built
+		# with SQLITE_ENABLE_UPDATE_DELETE_LIMIT, so we accept it there as well
+		def order_and_limit
+			if (order_by_kw = maybe_all_of :ORDER, :BY)
+				orderings = require_some(trailing_sep: :COMMA) { ordering_term }
+			end
+			if (limit_kw = maybe :LIMIT)
+				limit = expression
+				if (offset_tk = maybe :OFFSET)
+					offset = expression
+				elsif (offset_tk = maybe :COMMA)
+					# `LIMIT 5, 10` means skip 5 and take 10, the reverse of what it looks like
+					offset = limit
+					limit = expression
+				end
+			end
+
+			{
+				order_by_kw: Token::Keyword(order_by_kw),
+				orderings:   orderings,
+				limit_kw:    Token::Keyword(limit_kw),
+				limit:       limit,
+				offset_tk:   Token::Keyword(offset_tk),
+				offset:      offset,
+			}
 		end
 
 		def result_column

@@ -30,7 +30,7 @@ gem install plume
 Parse a SQL query with the `Plume::Parser` class:
 
 > [!NOTE]
-> The parser is still work in progress. `SELECT` (including `WITH`), `CREATE TABLE` and `CREATE VIEW` statements are supported at the moment. Other statements raise `Plume::NotImplementedError`.
+> The parser is still work in progress. `SELECT`, `INSERT`, `UPDATE`, `DELETE` (all including `WITH`), `CREATE TABLE` and `CREATE VIEW` statements are supported at the moment. Other statements raise `Plume::NotImplementedError`.
 
 ```ruby
 sql = <<~SQL
@@ -237,20 +237,20 @@ The results are tested against SQLite's own [authorizer callback](https://www.sq
 - [ ] `create_trigger_stmt`
 - [x] `create_view_stmt`
 - [ ] `create_virtual_table_stmt`
-- [ ] `delete_stmt`
+- [x] `delete_stmt`
 - [ ] `detach_stmt`
 - [ ] `drop_index_stmt`
 - [ ] `drop_table_stmt`
 - [ ] `drop_trigger_stmt`
 - [ ] `drop_view_stmt`
-- [ ] `insert_stmt`
+- [x] `insert_stmt`
 - [ ] `pragma_stmt`
 - [ ] `reindex_stmt`
 - [ ] `release_stmt`
 - [ ] `rollback_stmt`
 - [ ] `savepoint_stmt`
 - [x] `select_stmt`
-- [ ] `update_stmt`
+- [x] `update_stmt`
 - [ ] `vacuum_stmt`
 - [x] `with_stmt`
 
