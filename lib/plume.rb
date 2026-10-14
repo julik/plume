@@ -132,6 +132,16 @@ module Plume
 		Parser.new(sql).parse
 	end
 
+	# The line of `sql` holding bytes `beg...fin`, with a caret underneath them
+	def self.excerpt(sql, beg, fin)
+		src = sql.b # positions are byte offsets
+		line_start = (beg.zero? ? nil : src.rindex("\n", beg - 1))&.+(1) || 0
+		line_end = src.index("\n", beg) || src.bytesize
+		line = src.byteslice(line_start, line_end - line_start).force_encoding(Encoding::UTF_8)
+		caret = (" " * (beg - line_start)) + ("^" * [fin - beg, 1].max)
+		"  #{line}\n  #{caret}"
+	end
+
 	def self.reads(...) = Analysis.reads(...)
 	def self.access(...) = Analysis.access(...)
 end

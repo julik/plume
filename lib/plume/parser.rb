@@ -3,11 +3,18 @@
 module Plume
 	class Parser
 		# https://www.sqlite.org/syntaxdiagrams.html
+		# Thrown on every dead end, most of which `maybe` backtracks out of, so the
+		# message is only put together when someone actually reads it
 		class ErrorMessage
-			attr_reader :msg
+			def initialize(sql, token, beg, fin, expected)
+				@sql, @token, @beg, @fin, @expected = sql, token, beg, fin, expected
+			end
 
-			def initialize(msg)
-				@msg = msg
+			def msg
+				line = @sql.byteslice(0, @beg).count("\n") + 1
+				where = @sql.strip.include?("\n") ? " line #{line}" : ""
+				what = @token ? "token #{@token}[#{@sql.byteslice(@beg, @fin - @beg).inspect}]" : "end of input"
+				"Unexpected #{what} at#{where}:\n#{Plume.excerpt(@sql, @beg, @fin)}\n  Expected one of: #{@expected.join(", ")}\n"
 			end
 		end
 
@@ -4050,15 +4057,9 @@ module Plume
 		end
 
 		def expected!(*expected)
-			error!(current_token, current_value, expected)
+			token, beg, fin = ensure_buffer[0]
+			throw :ERROR, ErrorMessage.new(@lexer.sql, token, beg, fin, expected)
 		end
 
-		def error!(token, value, expected)
-			# TODO: we should handle multi-line sql highlighting
-			highlight = (" " * @lexer.anchor) + ("^" * (@lexer.cursor - @lexer.anchor))
-			msg = "Unexpected token #{token}[#{value.inspect}] at:\n  #{@lexer.sql.strip}\n  #{highlight}\n  Expected one of: #{expected.join(", ")}\n"
-
-			throw :ERROR, ErrorMessage.new(msg)
-		end
 	end
 end

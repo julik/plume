@@ -148,3 +148,22 @@ end
 test "a statement with nothing to show inspects briefly" do
 	assert parse_stmt("commit").inspect.match?(/\A#<Plume::CommitStatement:\d+>\z/)
 end
+
+# -- syntax errors
+
+test "a syntax error points at the offending line" do
+	error = assert_raises(Plume::SyntaxError) { Plume.parse("select a,\n  b\nfrom t where and x") }
+
+	assert_equal error.message.split("\n"), [
+		'Unexpected token AND["and"] at line 3:',
+		"  from t where and x",
+		"               ^^^",
+		"  Expected one of: <basic expression>",
+	]
+end
+
+test "running out of SQL is an error too" do
+	error = assert_raises(Plume::SyntaxError) { Plume.parse("select * from") }
+
+	assert_equal error.message.split("\n").first, "Unexpected end of input at:"
+end

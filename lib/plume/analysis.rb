@@ -27,14 +27,7 @@ module Plume
 		# The source line `node` sits on with a caret under it, for error messages
 		def self.excerpt(node)
 			loc = node&.location
-			src = node&.full_source&.b # locations are byte offsets
-			return unless loc && src
-
-			line_start = src.rindex("\n", [loc[0] - 1, 0].max)&.+(1) || 0
-			line_end = src.index("\n", loc[0]) || src.bytesize
-			line = src.byteslice(line_start, line_end - line_start).force_encoding(Encoding::UTF_8)
-			caret = (" " * (loc[0] - line_start)) + ("^" * [loc[1] - loc[0], 1].max)
-			"  #{line}\n  #{caret}"
+			Plume.excerpt(node.full_source, *loc) if loc && node.full_source
 		end
 
 		class Error < StandardError

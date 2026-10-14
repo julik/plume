@@ -3,7 +3,6 @@
 [![Gem Version](https://badge.fury.io/rb/plume.svg)](https://rubygems.org/gems/plume)
 [![Gem Downloads](https://img.shields.io/gem/dt/plume)](https://rubygems.org/gems/plume)
 ![Tests](https://github.com/fractaledmind/plume/actions/workflows/main.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/code%20coverage-96%25-success)
 [![Sponsors](https://img.shields.io/github/sponsors/fractaledmind?color=eb4aaa&logo=GitHub%20Sponsors)](https://github.com/sponsors/fractaledmind)
 [![Twitter Follow](https://img.shields.io/twitter/url?label=%40fractaledmind&style=social&url=https%3A%2F%2Ftwitter.com%2Ffractaledmind)](https://twitter.com/fractaledmind)
 
@@ -280,9 +279,22 @@ The results are tested against SQLite's own [authorizer callback](https://www.sq
 - [x] `vacuum_stmt`
 - [x] `with_stmt`
 
+## Performance
+
+`bin/benchmark` runs the whole fixture corpus (15,817 statements, 4.2 MB of SQL). On an Apple M-series laptop with Ruby 3.4:
+
+| Step | Statements/s | MB/s |
+| --- | ---: | ---: |
+| `Plume.tokenize` | ~13,500 | 3.7 |
+| `Plume.parse` | ~1,400 | 0.38 |
+| `Node#to_sql` | ~6,000 | 1.7 |
+| `Plume.reads` (no catalog) | ~1,000 | 0.21 |
+
+The corpus leans on very large generated expressions; a typical application query parses in well under a millisecond. About half of the parse time goes to Literal's runtime type checks on every node property.
+
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. `bin/fixture-report` shows how much of SQLite's own test SQL parses (pass `--write` to record it as the new baseline the tests hold us to), and `bin/benchmark` times the whole pipeline. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 

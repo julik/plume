@@ -134,8 +134,11 @@ module Plume
 			object
 		end
 
+		# Literal checks a union's plain values (nil, true, symbols…) with a Set lookup, which hashes
+		# the value - and hashing a node hashes its whole subtree. Keeping nil out of the union
+		# (it goes through _Nilable) keeps building a tree linear rather than quadratic
 		def self.attr(name, type, **kw)
-			prop name, _Union(type, LiteralNil, nil), reader: kw.fetch(:reader, false), default: LiteralNil, **kw
+			prop name, _Nilable(_Union(type, LiteralNil)), reader: kw.fetch(:reader, false), default: LiteralNil, **kw
 			inspectable name
 		end
 
@@ -147,7 +150,7 @@ module Plume
 
 		def self.token(name, **kw)
 			(@token_names ||= Set.new) << name
-			prop name, _Union(Token, LiteralNil, nil), reader: false, default: LiteralNil, **kw
+			prop name, _Nilable(_Union(Token, LiteralNil)), reader: false, default: LiteralNil, **kw
 
 			# Define methods for accessing token properties, like the original source text, parsed value, and location.
 			# The token reader method is simply the parsed value of the token.
