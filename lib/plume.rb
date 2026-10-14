@@ -11,6 +11,8 @@ module Plume
 	autoload :Parser, "plume/parser"
 	autoload :Token, "plume/ast/token"
 	autoload :SQLiteGrammar, "plume/sqlite_grammar"
+	autoload :Catalog, "plume/catalog"
+	autoload :Analysis, "plume/analysis"
 
 	autoload :BinaryExpression, "plume/ast/binary_expression"
 	autoload :ParentheticalExpression, "plume/ast/parenthetical_expression"
@@ -27,6 +29,7 @@ module Plume
 	autoload :ColumnType, "plume/ast/column_type"
 	autoload :ConflictClause, "plume/ast/conflict_clause"
 	autoload :CreateTableStatement, "plume/ast/create_table_statement"
+	autoload :CreateViewStatement, "plume/ast/create_view_statement"
 	autoload :DefaultColumnConstraint, "plume/ast/default_column_constraint"
 	autoload :EmptyFunctionArgument, "plume/ast/empty_function_argument"
 	autoload :Expression, "plume/ast/expression"
@@ -104,4 +107,6 @@ module Plume
 	def self.parse(sql)
 		Parser.new(sql).parse
 	end
+
+	def self.reads(...) = Analysis.reads(...)
 end

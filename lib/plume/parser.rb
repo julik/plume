@@ -295,7 +295,6 @@ module Plume
 		alias_method :commit_stmt, :_not_implemented
 		alias_method :create_index_stmt, :_not_implemented
 		alias_method :create_trigger_stmt, :_not_implemented
-		alias_method :create_view_stmt, :_not_implemented
 		alias_method :create_virtual_table_stmt, :_not_implemented
 		alias_method :delete_stmt, :_not_implemented
 		alias_method :detach_stmt, :_not_implemented
@@ -532,6 +531,55 @@ module Plume
 			else
 				expected!(:AS, :LP)
 			end
+		end
+
+		def create_view_stmt
+			#
+				# Relevant `parse.y` grammar rules:
+				#   cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select
+				#
+				# Syntax diagram:
+				#   ◯─▶{ CREATE }┬───────▶──────┬▶{ VIEW }┬▶{ IF }─▶{ NOT }─▶{ EXISTS }─┐
+				#                ├▶{ TEMP }─────┤         │                             │
+				#                └▶{ TEMPORARY }┘         │                             │
+				#   ┌─────────────────────◀───────────────┴──────────────────◀──────────┘
+				#   ├─▶{ schema-name }─▶{ . }─┬▶{ view-name }┬─────────────────────────────────┬▶{ AS }─▶[ select-stmt ]─▶◯
+				#   └────────▶────────────────┘              └▶{ ( }┬▶{ column-name }┬▶{ ) }─┘
+				#                                                   └──────{ , }◀────┘
+				#
+				# Simplified grammar:
+				#   CREATE [TEMP] VIEW [IF NOT EXISTS] [schema .] name [(column [, column]*)] AS select_stmt
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_createview.html
+				#
+				# A view is a named select statement that can be queried like a table.
+			#
+			create_kw        = require      :CREATE
+			temp_kw          = maybe_one_of :TEMP, :TEMPORARY
+			view_kw          = require      :VIEW
+			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			view             = table_name
+			if (columns_lp = maybe :LP)
+				columns    = require_some(trailing_sep: :COMMA) { indexed_column }
+				columns_rp = require :RP
+			end
+			as_kw            = require      :AS
+			select           = select_stmt
+
+			CreateViewStatement.concrete(
+				full_source:      @lexer.sql,
+				create_kw:        Token::Keyword(create_kw),
+				temp_kw:          Token::Keyword(temp_kw),
+				view_kw:          Token::Keyword(view_kw),
+				if_not_exists_kw: Token::Keyword(if_not_exists_kw),
+				view:             view,
+				columns_lp:       Token::Punctuation(columns_lp),
+				columns:          columns,
+				columns_rp:       Token::Punctuation(columns_rp),
+				as_kw:            Token::Keyword(as_kw),
+				select:           select,
+			)
 		end
 
 		def select_stmt

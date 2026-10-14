@@ -79,6 +79,44 @@ module Plume
 			walk { |node, _parent| yield node }
 		end
 
+		# Byte range `[beg, fin]` of the source this node was parsed from, spanning every token
+		# in its subtree. Separators the node merely carries (`leading`/`trailing`) are left out.
+		# Nil for nodes built by hand with `.new`
+		def location
+			beg = fin = nil
+			each_token_span do |_tok, b, f|
+				beg = b if beg.nil? || b < beg
+				fin = f if fin.nil? || f > fin
+			end
+			[beg, fin].freeze if beg
+		end
+
+		def source_text
+			return unless @full_source && (loc = location)
+
+			@full_source.byteslice(loc[0], loc[1] - loc[0])
+		end
+
+		def each_token_span(&block)
+			instance_variables.each do |ivar|
+				next if ivar == :@leading || ivar == :@trailing
+
+				case (value = instance_variable_get(ivar))
+				when Node then value.each_token_span(&block)
+				when Array
+					if Token === value
+						yield value
+					else
+						value.each do |v|
+							if Node === v then v.each_token_span(&block)
+							elsif Token === v then yield v
+							end
+						end
+					end
+				end
+			end
+		end
+
 		# Uses the public readers, so token-backed values like `TableName#table` come out
 		# as their parsed values rather than raw token spans
 		def deconstruct_keys(keys)
@@ -131,11 +169,22 @@ module Plume
 		end
 
 		def self.node(name, type, **kw)
-			attr name, _Nilable(type), reader: :public, **kw
+			attr name, _Nilable(type), **kw
+			define_node_reader(name)
 		end
 
 		def self.nodes(name, type, **kw)
-			attr name, _Nilable(_Array(type)), reader: :public, **kw
+			attr name, _Nilable(_Array(type)), **kw
+			define_node_reader(name)
+		end
+
+		# Absent children read as nil rather than the LiteralNil default
+		def self.define_node_reader(name)
+			ivar = :"@#{name}"
+			define_method(name) do
+				value = instance_variable_get(ivar)
+				LiteralNil.equal?(value) ? nil : value
+			end
 		end
 	end
 end

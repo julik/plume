@@ -1,6 +1,6 @@
 KEYWORD        TOTAL    PASS    FAIL INVALID     NYI
 SELECT         11287   11245       0       9      33
-CREATE          1500     268      10       0    1222
+CREATE          1500     320      10       1    1169
 INSERT           772       0       0       0     772
 PRAGMA           707       0       0       0     707
 BEGIN            325       0       0       0     325
@@ -21,4 +21,4 @@ REINDEX           10       0       0       0      10
 REPLACE            9       0       0       0       9
 END                5       0       0       0       5
 RELEASE            5       0       0       0       5
-ALL            15836   11578      18       9    4231
+ALL            15836   11630      18      10    4178
