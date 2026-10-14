@@ -420,7 +420,7 @@ module Plume
 			#
 			drop_kw = require :DROP
 			type_kw = require_one_of :TABLE, :VIEW, :INDEX, :TRIGGER
-			if_exists_kw = maybe_all_of :IF, :EXISTS
+			if_exists_kw = if_exists :EXISTS
 
 			DropStatement.concrete(
 				full_source:  @lexer.sql,
@@ -614,7 +614,7 @@ module Plume
 			create_kw = require :CREATE
 			unique_kw = maybe :UNIQUE
 			index_kw = require :INDEX
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			index = table_name
 			on_kw = require :ON
 			table_tk = name
@@ -703,7 +703,7 @@ module Plume
 				#   - https://www.sqlite.org/lang_createvtab.html
 			#
 			create_virtual_table_kw = require_all_of :CREATE, :VIRTUAL, :TABLE
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			table = table_name
 			using_kw = require :USING
 			module_tk = name
@@ -768,7 +768,7 @@ module Plume
 			create_kw = require :CREATE
 			temp_kw = maybe_one_of :TEMP, :TEMPORARY
 			trigger_kw = require :TRIGGER
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			trigger = table_name
 			time_kw = maybe_one_of :BEFORE, :AFTER, [:INSTEAD, :OF].freeze
 			if (event_kw = maybe_all_of :UPDATE, :OF)
@@ -857,7 +857,7 @@ module Plume
 			create_kw         = require      :CREATE
 			temp_kw           = maybe_one_of :TEMP, :TEMPORARY
 			table_kw          = require      :TABLE
-			if_not_exists_kw  = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw  = if_exists :NOT, :EXISTS
 			table_name        =              table_name()
 
 			if maybe :AS
@@ -1066,7 +1066,7 @@ module Plume
 			create_kw        = require      :CREATE
 			temp_kw          = maybe_one_of :TEMP, :TEMPORARY
 			view_kw          = require      :VIEW
-			if_not_exists_kw = maybe_all_of :IF, :NOT, :EXISTS
+			if_not_exists_kw = if_exists :NOT, :EXISTS
 			view             = table_name
 			if (columns_lp = maybe :LP)
 				columns    = require_some(trailing_sep: :COMMA) { indexed_column }
@@ -3845,6 +3845,10 @@ module Plume
 
 			require_all_of(*tokens) if advancing
 		end
+
+		# IF could also be a name, but SQLite's parser commits to IF [NOT] EXISTS as soon as it
+		# sees an IF there - `DROP TABLE if` is a syntax error, not a table called "if"
+		def if_exists(*tokens) = (current_token == :IF) ? require_all_of(:IF, *tokens) : nil
 
 		def maybe_one_of(*tokens)
 			i, len = 0, tokens.length

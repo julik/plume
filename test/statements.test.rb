@@ -187,3 +187,11 @@ test "statements need a semicolon between them, and empty ones are fine" do
 	assert_equal Plume.parse(";; select 1;;; select 2;;").map(&:to_sql), ["SELECT 1", "SELECT 2"]
 	assert_raises(Plume::SyntaxError) { Plume.parse("select 1 select 2") }
 end
+
+test "IF after CREATE or DROP has to be IF [NOT] EXISTS, it does not name the table" do
+	["drop table if", "create table if (a)", "create index if on t (a)", "drop view if", "create virtual table if using fts5 (a)"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+
+	assert_equal parse_stmt(%(drop table "if")).to_sql, %(DROP TABLE "if")
+end
