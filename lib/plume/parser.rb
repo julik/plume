@@ -3798,7 +3798,7 @@ module Plume
 		# around them (analyzeWindowKeyword and friends in tokenize.c), and names anywhere else
 		def window_keyword_as_name?
 			case current_token
-			when :WINDOW then !name_like?(peek)
+			when :WINDOW then peek(2).then { |name, as| !(name_like?(name) && as == :AS) }
 			when :OVER then !(@previous_token == :RP && (peek == :LP || name_like?(peek)))
 			when :FILTER then !(@previous_token == :RP && peek == :LP)
 			else false

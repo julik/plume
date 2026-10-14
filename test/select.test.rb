@@ -397,3 +397,7 @@ test "filter, over and window are names unless a window function is around them"
 	assert_equal parse_stmt("select 1 window").to_sql, %(SELECT 1 AS "window")
 	assert_equal parse_stmt("select max(a) over w from t window w as ()").to_sql, "SELECT max(a) OVER w FROM t WINDOW w AS ()"
 end
+
+test "select t.window from t cross join u - window is only a keyword before a name and AS" do
+	assert_equal parse_stmt("select t.window from t cross join u").to_sql, %(SELECT t."window" FROM t CROSS JOIN u)
+end
