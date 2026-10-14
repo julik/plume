@@ -52,6 +52,42 @@ module Plume
 			pp.push ")"
 		end
 
+		# Direct child nodes in property declaration order. Arrays of nodes are flattened in
+		def children
+			self.class.literal_properties.each_with_object([]) do |property, kids|
+				value = instance_variable_get(:"@#{property.name}")
+				case value
+				when Node then kids << value
+				when Array then value.each { |v| kids << v if Node === v }
+				end
+			end
+		end
+
+		# Yields every node in the subtree depth-first, parents before their children,
+		# along with the parent (nil for the receiver)
+		def walk(parent = nil, &block)
+			return enum_for(:walk, parent) unless block
+
+			yield self, parent
+			children.each { |child| child.walk(self, &block) }
+			self
+		end
+
+		def each_node(&block)
+			return enum_for(:each_node) unless block
+
+			walk { |node, _parent| yield node }
+		end
+
+		# Uses the public readers, so token-backed values like `TableName#table` come out
+		# as their parsed values rather than raw token spans
+		def deconstruct_keys(keys)
+			names = keys || self.class.literal_properties.map(&:name)
+			names.each_with_object({}) do |name, h|
+				h[name] = public_send(name) if respond_to?(name)
+			end
+		end
+
 		def self.concrete(*a, full_source:, **kw)
 			object = allocate
 			object.send(:initialize, *a, full_source: full_source, **kw)
