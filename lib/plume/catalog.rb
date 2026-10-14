@@ -166,7 +166,9 @@ module Plume
 			# hidden is 0 for ordinary columns, 1 for hidden virtual table columns, 2 and 3 for generated ones
 			columns = info.reject { |row| row[6] == 1 }.map { |row| row[1] }
 			hidden = info.select { |row| row[6] == 1 }.map { |row| row[1] }
-			without_rowid = sql.to_s.match?(/\bWITHOUT\s+ROWID\s*;?\s*\z/i)
+			# The SQL is kept as written, so WITHOUT ROWID may be followed by other options or a comment
+			statement = Parser.new(sql.to_s).parse.first
+			without_rowid = CreateTableStatement === statement && statement.without_row_id
 			pk_rows = info.select { |row| row[5].to_i > 0 }
 			rowid_alias = pk_rows[0][1] if !without_rowid && pk_rows.size == 1 && pk_rows[0][2].to_s.casecmp("INTEGER")&.zero?
 
