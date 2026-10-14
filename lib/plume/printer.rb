@@ -453,7 +453,7 @@ module Plume
 		end
 
 		def print_foreign_key_clause(node)
-			deferrable = node.deferrable_span? ? node.deferrable_span_tok : nil
+			deferrable = node.deferrable_span? ? node.deferrable_span_tok : (node.deferred && "DEFERRABLE INITIALLY DEFERRED")
 			join(
 				"REFERENCES", identifier(node.table), node.columns && "(#{list(node.columns)})",
 				list_of(Array(node.actions)), list_of(Array(node.match_clauses)),

@@ -1279,3 +1279,10 @@ test "CREATE TABLE t (a REFERENCES t2 ON DELETE CASCADE, c DECIMAL(4, 6))" do
 
 	assert_equal node.columns[1].type.text, "DECIMAL(4, 6)"
 end
+
+test "a foreign key clause can be built by hand" do
+	clause = Plume::ForeignKeyClause.new(table: "users", deferred: true)
+
+	assert_equal [clause.table, clause.deferred], ["users", true]
+	assert_equal clause.to_sql, "REFERENCES users DEFERRABLE INITIALLY DEFERRED"
+end

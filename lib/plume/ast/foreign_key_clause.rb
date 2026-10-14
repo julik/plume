@@ -11,7 +11,7 @@ module Plume
 			[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze  => false,
 			[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze => false,
 		}.freeze
-		Deferrable = _Union(TOKEN_TO_DEFERRABLE.values)
+		Deferrable = _Union(*TOKEN_TO_DEFERRABLE.values.uniq)
 
 		token :references_kw
 		token :table_tk
@@ -25,7 +25,7 @@ module Plume
 		nodes :actions, ForeignKeyAction
 		nodes :match_clauses, MatchClause
 
-		def self.new(*, name:, **) = super
+		def self.new(*, table:, **) = super
 		def self.concrete(*, references_kw:, table_tk:, **) = super
 
 		def table = (@table == LiteralNil) ? table_tk_val : @table
