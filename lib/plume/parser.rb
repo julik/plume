@@ -2434,7 +2434,7 @@ module Plume
 				expression_lp = require :LP
 				e = expression
 				as_kw = require :AS
-				t = type_name
+				t = type_name unless current_token == :RP # SQLite takes an empty type, `CAST(x AS )`
 				expression_rp = require :RP
 
 				CastExpression.concrete(
