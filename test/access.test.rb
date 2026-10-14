@@ -108,3 +108,30 @@ end
 test "Plume.reads takes DML too" do
 	assert_equal sorted(Plume.reads("delete from t where a = 1").referenced), { "t" => ["a"] }
 end
+
+test "an already parsed statement can be analyzed without parsing it again" do
+	sql = "update users set email = upper(secret) where id = ?"
+	catalog = Plume::Catalog.from_sql(ACCESS_SCHEMA)
+	from_sql = Plume.access(sql, catalog:)
+
+	[Plume.parse(sql), Plume.parse(sql).first].each do |parsed|
+		a = Plume.access(parsed, catalog:)
+
+		assert_equal a.writes.updated, from_sql.writes.updated
+		assert_equal a.reads.columns, from_sql.reads.columns
+		assert_equal Plume.reads(parsed, catalog:).columns, from_sql.reads.columns
+	end
+end
+
+test "an edited tree is analyzed as edited" do
+	statement = Plume.parse("select email from users").first
+	statement.body.condition = Plume::BinaryExpression.new(
+		operator: :EQUALS, left: Plume::ColumnName.new(column: "team_id"), right: Plume::Variable.new(name: "?"),
+	)
+
+	assert_equal sorted(access(statement).reads.referenced), { "users" => ["team_id"] }
+end
+
+test "a parsed list of several statements is refused like SQL with several statements" do
+	assert_raises(Plume::Analysis::Error) { Plume.access(Plume.parse("select 1; select 2")) }
+end

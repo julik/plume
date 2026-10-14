@@ -243,6 +243,8 @@ access.reads.referenced # => {"users" => #<Set: {"id"}>, "posts" => #<Set: {"use
 
 A value copied into a column being written counts as projected, just like one returned in the result rows.
 
+Both also take what you already parsed - a statement node, or the array `Plume.parse` returns - so the SQL is not parsed twice, and a tree you changed after parsing is analyzed as changed.
+
 The catalog can also come from a live database with `Plume::Catalog.from_sqlite(db)`, or be left out - then `SELECT *` is reported as a read of the column `"*"` and unqualified columns only resolve when there is a single table in scope.
 
 Anything that cannot be attributed (an unknown table or column, an ambiguous name) raises `Plume::Analysis::Error` with a pointer into the SQL. Pass `strict: false` to get the partial result and a list in `reads.unresolved` instead. Each entry of `reads.references` carries the AST node it came from, so you can point at it too - see [examples/read_guard.rb](examples/read_guard.rb) for a small column-level access check built on top.

@@ -101,6 +101,8 @@ module Plume
 
 	module Analysis
 		# Which tables and columns `sql` - a single SELECT, INSERT, UPDATE or DELETE - would read.
+		# Instead of SQL you can pass what you already parsed: a statement node, or the array
+		# `Plume.parse` returns, so the same SQL does not get parsed twice.
 		#
 		# Without a catalog, columns of tables cannot be enumerated: `SELECT *` comes back as a read
 		# of the column "*", and an unqualified column with more than one table in scope is ambiguous.
@@ -111,7 +113,12 @@ module Plume
 
 		# Like `reads`, but also reports what an INSERT, UPDATE or DELETE writes
 		def self.access(sql, catalog: nil, strict: true)
-			statements = Parser.new(sql).parse
+			statements =
+				case sql
+				when Node then [sql]
+				when Array then sql
+				else Parser.new(sql).parse
+				end
 			raise Error, "expected exactly one statement, got #{statements.size}" unless statements.size == 1
 
 			statement = statements.first
