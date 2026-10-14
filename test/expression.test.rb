@@ -2675,3 +2675,12 @@ test "CAST(x AS ) with no type at all" do
 	assert_equal node.as, nil
 	assert_equal node.to_sql, "CAST(x AS )"
 end
+
+test "building a deeply parenthesized expression hashes no nodes" do
+	# Hashing a node hashes its subtree, so one hash per level makes nesting quadratic
+	hashed = 0
+	counter = TracePoint.new(:call) { |tp| hashed += 1 if tp.method_id == :hash && Plume::Node === tp.self }
+	counter.enable { Plume.parse("select #{"(" * 200}1#{")" * 200}") }
+
+	assert_equal hashed, 0
+end
