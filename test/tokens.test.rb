@@ -214,7 +214,8 @@ WEIRD_STRINGS = [
 	["1_000/", [:QNUMBER, :SLASH]],
 	["1_000E+2/", [:QNUMBER, :SLASH]],
 	["2 /* ", [:INTEGER, :SPACE, :SPACE]],
-	["2 /*", [:INTEGER, :SPACE, :SPACE]],
+	["2 /*", [:INTEGER, :SPACE, :SLASH, :STAR]], # SQLite does not see a comment in a "/*" at the very end
+	["2 /*x", [:INTEGER, :SPACE, :SPACE]],
 ].freeze
 
 # From SQLite's test/literal.test - a "_" has to sit between two digits, but SQLite only checks
@@ -324,4 +325,9 @@ test "SQL whose bytes do not fit its encoding still lexes" do
 	assert_equal Plume.parse("select a\xE2 from t".b.force_encoding(Encoding::US_ASCII)).first.body.columns[0].result.column, "a\xE2"
 	assert_equal Plume.parse("select a\x8D from t".b.force_encoding(Encoding::Shift_JIS)).first.body.columns[0].result.column, "a�"
 	assert_raises(Plume::SyntaxError) { Plume.parse("select 1".dup.force_encoding(Encoding::UTF_7)) }
+end
+
+test "select 2 /* is a syntax error, select 2 /* x is not" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 2 /*") }
+	assert_equal parse_stmt("select 2 /* x").to_sql, "SELECT 2"
 end

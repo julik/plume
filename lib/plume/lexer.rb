@@ -383,6 +383,8 @@ module Plume
 			when :SLASH
 				return :SLASH if peek.nil? # EOF
 				return :SLASH if peek != 42 # "*"
+				# A "/*" with nothing after it is a slash and a star to SQLite, not a comment
+				return :SLASH if peek(1).nil? || peek(1) == 0
 
 				step # we know it's a `/*` comment so consume the "*"
 				step until (b = peek).nil? || (b == 42 && peek(1) == 47) # consume until EOF or "*/"
