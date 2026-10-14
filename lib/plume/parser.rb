@@ -1458,6 +1458,7 @@ module Plume
 			left = basic_expression
 
 			while (operator = current_token)
+				break if operator == :BITNOT # only ever unary
 				operator_precedence = OPERATOR_PRECEDENCE[operator] || -1
 				break if operator_precedence < min_precedence
 				next_precedence = operator_precedence + 1

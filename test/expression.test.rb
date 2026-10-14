@@ -2663,3 +2663,8 @@ test "\"a \"\"b\"\"\".`c``d`" do
 
 	assert_equal [column.table, column.column], ["a \"b\"", "c`d"]
 end
+
+test "a ~ b is not an expression, ~ only goes in front" do
+	assert_raises(Plume::SyntaxError) { parse_stmt("select (a ~ b)") }
+	assert_equal parse_stmt("select a & ~b").to_sql, "SELECT a & (~b)"
+end
