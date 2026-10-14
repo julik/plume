@@ -88,6 +88,7 @@ module Plume
 	autoload :WithoutRowidTableOption, "plume/ast/without_rowid_table_option"
 
 	SyntaxError = Class.new(StandardError)
+	NotImplementedError = Class.new(StandardError)
 
 	def self.tokenize(str, with_values: false, skip_spaces: true)
 		lex = Lexer.new(str, skip_spaces: skip_spaces)

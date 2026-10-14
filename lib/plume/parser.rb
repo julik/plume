@@ -285,36 +285,34 @@ module Plume
 			end
 		end
 
-		def _consume_all
-			require current_token until current_token.nil?
-
-			__callee__
+		def _not_implemented
+			raise NotImplementedError, "#{__callee__} is not supported yet"
 		end
-		alias_method :alter_table_stmt, :_consume_all
-		alias_method :analyze_stmt, :_consume_all
-		alias_method :attach_stmt, :_consume_all
-		alias_method :begin_stmt, :_consume_all
-		alias_method :commit_stmt, :_consume_all
-		alias_method :create_index_stmt, :_consume_all
-		alias_method :create_trigger_stmt, :_consume_all
-		alias_method :create_view_stmt, :_consume_all
-		alias_method :create_virtual_table_stmt, :_consume_all
-		alias_method :delete_stmt, :_consume_all
-		alias_method :detach_stmt, :_consume_all
-		alias_method :drop_index_stmt, :_consume_all
-		alias_method :drop_table_stmt, :_consume_all
-		alias_method :drop_trigger_stmt, :_consume_all
-		alias_method :drop_view_stmt, :_consume_all
-		alias_method :insert_stmt, :_consume_all
-		alias_method :pragma_stmt, :_consume_all
-		alias_method :reindex_stmt, :_consume_all
-		alias_method :release_stmt, :_consume_all
-		alias_method :rollback_stmt, :_consume_all
-		alias_method :savepoint_stmt, :_consume_all
-		alias_method :select_stmt, :_consume_all
-		alias_method :update_stmt, :_consume_all
-		alias_method :vacuum_stmt, :_consume_all
-		alias_method :with_stmt, :_consume_all
+		alias_method :alter_table_stmt, :_not_implemented
+		alias_method :analyze_stmt, :_not_implemented
+		alias_method :attach_stmt, :_not_implemented
+		alias_method :begin_stmt, :_not_implemented
+		alias_method :commit_stmt, :_not_implemented
+		alias_method :create_index_stmt, :_not_implemented
+		alias_method :create_trigger_stmt, :_not_implemented
+		alias_method :create_view_stmt, :_not_implemented
+		alias_method :create_virtual_table_stmt, :_not_implemented
+		alias_method :delete_stmt, :_not_implemented
+		alias_method :detach_stmt, :_not_implemented
+		alias_method :drop_index_stmt, :_not_implemented
+		alias_method :drop_table_stmt, :_not_implemented
+		alias_method :drop_trigger_stmt, :_not_implemented
+		alias_method :drop_view_stmt, :_not_implemented
+		alias_method :insert_stmt, :_not_implemented
+		alias_method :pragma_stmt, :_not_implemented
+		alias_method :reindex_stmt, :_not_implemented
+		alias_method :release_stmt, :_not_implemented
+		alias_method :rollback_stmt, :_not_implemented
+		alias_method :savepoint_stmt, :_not_implemented
+		alias_method :select_stmt, :_not_implemented
+		alias_method :update_stmt, :_not_implemented
+		alias_method :vacuum_stmt, :_not_implemented
+		alias_method :with_stmt, :_not_implemented
 
 		# ---------- Statements ----------
 
