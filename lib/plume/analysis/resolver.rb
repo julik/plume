@@ -292,6 +292,16 @@ module Plume
 				when TableName then add_table_source(source, scope, usage)
 				when TableFunction
 					source.arguments&.each { |a| expression(a, scope, :referenced) }
+					# Any virtual table can be called like this, `fts('query')` reads the fts table
+					if @catalog && (table = @catalog.table(source.function, schema: source.schema))
+						record(table.schema, table.name, nil, usage, source)
+						scope.sources << Source.new(
+							name: source.alias || source.function, kind: :table,
+							schema: table.schema, table:, columns: table.columns, node: source,
+						)
+						return
+					end
+
 					@reads.functions << source.function.downcase
 					scope.sources << Source.new(
 						name: source.alias || source.function, kind: :function,

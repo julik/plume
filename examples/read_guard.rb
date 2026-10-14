@@ -13,14 +13,19 @@ require "plume"
 class ReadGuard
 	Denied = Class.new(StandardError)
 
-	# `allowed` maps table names to the columns that may be read, or to :all
-	def initialize(catalog:, allowed:)
+	# `allowed` maps table names to the columns that may be read, or to :all. Table-valued
+	# functions are denied unless listed - some, like dbstat or sqlite_dbpage, read raw pages
+	def initialize(catalog:, allowed:, functions: %w[json_each json_tree])
 		@catalog = catalog
 		@allowed = allowed
+		@functions = functions
 	end
 
 	def check!(sql)
 		reads = Plume.reads(sql, catalog: @catalog)
+		denied_functions = reads.functions.to_a - @functions
+		raise Denied, "not allowed to call #{denied_functions.join(", ")}" if denied_functions.any?
+
 		reads.references.each do |ref|
 			columns = @allowed[ref.table_key]
 			next if columns == :all
@@ -49,10 +54,14 @@ if $PROGRAM_NAME == __FILE__
 		"SELECT title FROM posts WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com')",
 		"WITH recent AS (SELECT * FROM posts ORDER BY id DESC LIMIT 5) SELECT title FROM recent",
 		"SELECT name FROM authors",
+		"SELECT value FROM posts, json_each(posts.title)",
+		"SELECT * FROM sqlite_dbpage",
+		"SELECT * FROM dbstat('main')",
 	].each do |sql|
 		guard.check!(sql)
 		puts "ok      #{sql}"
-	rescue ReadGuard::Denied => e
+	# Anything the analysis cannot account for is refused as well
+	rescue ReadGuard::Denied, Plume::Analysis::Error => e
 		puts "denied  #{sql}\n        #{e.message.gsub("\n", "\n        ")}"
 	end
 end

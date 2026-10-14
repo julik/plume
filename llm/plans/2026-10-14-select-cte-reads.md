@@ -12,6 +12,12 @@ Branch: `julik/select-cte-reads`
 3. Extend to DML (`INSERT`/`UPDATE`/`DELETE`) so the same layer reports writes.
 4. Round-trip AST → SQL so the AST becomes usable for rewriting.
 
+## Progress
+
+Phases 1-5 are done on this branch (see `git log`): every statement parses, the corpus
+round-trips through `to_sql`, and `Plume.reads` / `Plume.access` are checked against SQLite's
+authorizer. FTS5 tests added on request (module arguments, MATCH queries, executed round trips).
+
 ## Starting point (as of `c3b899ba`, 2025-03-28)
 
 - Green on Ruby 3.4.8: `expression` (553), `create_table` (585), `tokens` (21789), `select` (2), `node` (1).
@@ -187,6 +193,25 @@ Branch: `julik/select-cte-reads`
   emit canonical SQL.
 - Round-trip test over the fixture corpus: parse → `to_sql` → parse yields an equal AST.
 - Retire `lib/plume/generator.rb` (or reimplement it on top of AST nodes) — decide when 5.1 lands.
+
+## Phase 7 — Embedded grammars
+
+SQLite carries several languages inside string literals and module arguments. Plume keeps them
+as opaque strings today, and the FTS5 tests prove they come through a round trip byte for byte.
+Giving them their own small parsers, attached to the literal where context says which language
+it is, would let tools look inside:
+
+- FTS5 query syntax in `MATCH` / `=` / table-valued arguments of an fts5 table: phrases, `NEAR()`,
+  `{col1 col2}:` column filters, `^` initial-token, `*` prefix, `AND/OR/NOT`. Column filters name
+  columns - reads analysis could report them.
+- FTS5 / FTS3 / R*Tree module arguments (`tokenize = '…'` with quotes in quotes, `content=`,
+  `prefix=`), and the special-command INSERTs (`INSERT INTO fts(fts, rank) VALUES ('rank', 'bm25(…)')`).
+- JSON paths (`'$.a[0].b'`, `'$[#-1]'`) in json_extract / -> / ->> / json_each.
+- Date and time modifiers and strftime formats (`'+1 day'`, `'start of month'`, `'%Y-%m'`).
+- printf/format strings, LIKE/GLOB patterns with ESCAPE.
+
+Context matters: the same `'…'` is a query only on the right of MATCH against an fts5 table, so
+these hook in after name resolution, not in the parser.
 
 ## Phase 6 — Release
 

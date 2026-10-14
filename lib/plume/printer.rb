@@ -38,10 +38,13 @@ module Plume
 
 		def identifier(name)
 			name = name.to_s
-			return name if name.match?(BARE_IDENTIFIER) && !Lexer::KEYWORDS.include?(name.upcase.to_sym)
+			return name if name.match?(BARE_IDENTIFIER) && bare_keyword_ok?(name.upcase.to_sym)
 
 			%("#{name.gsub('"', '""')}")
 		end
+
+		# Keywords SQLite falls back to treating as identifiers, like ROWID or KEY, need no quotes
+		def bare_keyword_ok?(word) = !Lexer::KEYWORDS.include?(word) || Parser::TOKEN_FALLBACKS.include?(word)
 
 		def string(value) = "'#{value.to_s.gsub("'", "''")}'"
 
