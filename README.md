@@ -9,7 +9,7 @@
 
 <img src="/assets/logo.svg" width="100" alt="Plume logo: a blue feather quill pen" align="right" />
 
-Plume is a Ruby library for working with SQLite elegantly. Presently, this means that it provides a pure Ruby implementation of SQLite's lexer/tokenizer as well as a 100% compatible parser. This is useful for introspecting the structure of SQL queries, and for building tools that work with SQL queries.
+Plume is a Ruby library for working with SQLite elegantly. Presently, this means that it provides a pure Ruby implementation of SQLite's lexer/tokenizer as well as a 100% compatible parser. This is useful for introspecting the structure of SQL queries, and for building tools that work with SQL queries - like working out which tables and columns a query is going to read.
 
 ## Installation
 
@@ -30,7 +30,7 @@ gem install plume
 Parse a SQL query with the `Plume::Parser` class:
 
 > [!NOTE]
-> The parser is still work in progress. Only `CREATE TABLE` statements are supported at the moment.
+> The parser is still work in progress. `SELECT` (including `WITH`), `CREATE TABLE` and `CREATE VIEW` statements are supported at the moment. Other statements raise `Plume::NotImplementedError`.
 
 ```ruby
 sql = <<~SQL
@@ -49,7 +49,7 @@ sql = <<~SQL
     FOREIGN KEY (c0) REFERENCES tb1(c1) ON DELETE CASCADE ON UPDATE RESTRICT MATCH FULL DEFERRABLE INITIALLY DEFERRED
   ) WITHOUT ROWID;
 SQL
-ast = Plume.parse(sql)
+ast = Plume.parse(sql).first # one node per statement
 # => Plume::CreateTableStatement(...)
 ```
 
@@ -196,6 +196,34 @@ tokens = Plume.tokenize("SELECT * FROM users WHERE id = 1")
 
 SQLite works with a grammar of _167_ token types, _136_ of which are keywords. The remaining _31_ are punctuation, operators, and literals.
 
+### What does this query read?
+
+`Plume.reads` works out which tables and columns a `SELECT` would read, looking through aliases, joins, subqueries, CTEs and views:
+
+```ruby
+catalog = Plume::Catalog.from_sql(<<~SQL)
+  CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT);
+  CREATE TABLE posts (id INTEGER PRIMARY KEY, user_id INT, title TEXT);
+SQL
+
+reads = Plume.reads(<<~SQL, catalog: catalog)
+  WITH recent AS (SELECT * FROM posts ORDER BY id DESC LIMIT 10)
+  SELECT r.title, u.name FROM recent r JOIN users u ON u.id = r.user_id
+  WHERE u.email LIKE '%@example.com'
+SQL
+
+reads.tables     # => #<Set: {"posts", "users"}>
+reads.columns    # => {"posts" => #<Set: {"id", "user_id", "title"}>, "users" => #<Set: {"id", "name", "email"}>}
+reads.projected  # columns whose values can end up in the result rows
+reads.referenced # columns only used to filter, join, sort or group
+```
+
+The catalog can also come from a live database with `Plume::Catalog.from_sqlite(db)`, or be left out - then `SELECT *` is reported as a read of the column `"*"` and unqualified columns only resolve when there is a single table in scope.
+
+Anything that cannot be attributed (an unknown table or column, an ambiguous name) raises `Plume::Analysis::Error` with a pointer into the SQL. Pass `strict: false` to get the partial result and a list in `reads.unresolved` instead. Each entry of `reads.references` carries the AST node it came from, so you can point at it too - see [examples/read_guard.rb](examples/read_guard.rb) for a small column-level access check built on top.
+
+The results are tested against SQLite's own [authorizer callback](https://www.sqlite.org/c3ref/set_authorizer.html), which is also the place to enforce access rules at runtime when you have a connection. `Plume.reads` is for when you want to vet SQL ahead of time, without a database, or with good error messages. It reports one thing the authorizer does not: the right-hand join columns of `USING` and `NATURAL` joins.
+
 ## Roadmap
 
 - [x] `expression`
@@ -207,7 +235,7 @@ SQLite works with a grammar of _167_ token types, _136_ of which are keywords. T
 - [x] `create_table_stmt`
 - [ ] `create_index_stmt`
 - [ ] `create_trigger_stmt`
-- [ ] `create_view_stmt`
+- [x] `create_view_stmt`
 - [ ] `create_virtual_table_stmt`
 - [ ] `delete_stmt`
 - [ ] `detach_stmt`
@@ -221,10 +249,10 @@ SQLite works with a grammar of _167_ token types, _136_ of which are keywords. T
 - [ ] `release_stmt`
 - [ ] `rollback_stmt`
 - [ ] `savepoint_stmt`
-- [ ] `select_stmt`
+- [x] `select_stmt`
 - [ ] `update_stmt`
 - [ ] `vacuum_stmt`
-- [ ] `with_stmt`
+- [x] `with_stmt`
 
 ## Development
 
