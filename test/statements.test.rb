@@ -182,3 +182,8 @@ test "list items need their separators, and a separator needs an item after it" 
 
 	assert_equal parse_stmt("create table t (a, primary key (a) unique (a))").to_sql, "CREATE TABLE t (a, PRIMARY KEY (a), UNIQUE (a))"
 end
+
+test "statements need a semicolon between them, and empty ones are fine" do
+	assert_equal Plume.parse(";; select 1;;; select 2;;").map(&:to_sql), ["SELECT 1", "SELECT 2"]
+	assert_raises(Plume::SyntaxError) { Plume.parse("select 1 select 2") }
+end

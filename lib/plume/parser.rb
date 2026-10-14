@@ -176,9 +176,10 @@ module Plume
 			#
 			[].tap do |stmts|
 				until current_token.nil?
-					maybe :SEMI
-					stmts << sql_stmt if current_token
-					maybe :SEMI
+					next if maybe :SEMI
+
+					stmts << sql_stmt
+					require :SEMI if current_token
 				end
 			end
 		end
