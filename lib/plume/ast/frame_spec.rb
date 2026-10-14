@@ -29,6 +29,6 @@ module Plume
 		def self.concrete(*, type_tk:, starting_boundary:, **) = super
 
 		def type = (@type == LiteralNil) ? type_tk_src.to_sym.upcase : @type
-		def exclude = (@exclude == LiteralNil) ? exclude_tk_src.gsub(" ", "_").to_sym.upcase : @exclude
+		def exclude = (@exclude == LiteralNil) ? exclude_tk_src&.gsub(" ", "_")&.to_sym&.upcase : @exclude
 	end
 end

@@ -91,6 +91,8 @@ module Plume
 			[beg, fin].freeze if beg
 		end
 
+		def to_sql = Printer.print(self)
+
 		def source_text
 			return unless @full_source && (loc = location)
 
@@ -137,7 +139,14 @@ module Plume
 			inspectable name
 		end
 
+		def self.token_names
+			ancestors.each_with_object(Set.new) do |ancestor, names|
+				names.merge(ancestor.instance_variable_get(:@token_names) || [])
+			end
+		end
+
 		def self.token(name, **kw)
+			(@token_names ||= Set.new) << name
 			prop name, _Union(Token, LiteralNil, nil), reader: false, default: LiteralNil, **kw
 
 			# Define methods for accessing token properties, like the original source text, parsed value, and location.

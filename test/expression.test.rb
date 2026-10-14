@@ -2653,3 +2653,13 @@ test "count(x) is not distinct" do
 	refute Plume::Parser.new("count(x)").expression.arguments.distinct
 	assert Plume::Parser.new("count(distinct x)").expression.arguments.distinct
 end
+
+test "'it''s'" do
+	assert_equal Plume::Parser.new("'it''s'").expression.value, "it's"
+end
+
+test "\"a \"\"b\"\"\".`c``d`" do
+	column = Plume::Parser.new("\"a \"\"b\"\"\".`c``d`").expression
+
+	assert_equal [column.table, column.column], ["a \"b\"", "c`d"]
+end

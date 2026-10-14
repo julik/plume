@@ -1664,7 +1664,7 @@ module Plume
 						full_source: @lexer.sql,
 						collate_kw: Token::Keyword(collate_kw),
 						**expression_attr,
-						sequence_tk: Token::Keyword(sequence),
+						sequence_tk: Token::Identifier(sequence),
 					)
 				else
 					operator_tk = require operator
@@ -3791,13 +3791,12 @@ module Plume
 			end
 		end
 
+		# The span of whatever the block consumes. Positions come from the buffered tokens - the
+		# lexer itself may already be several tokens ahead, looking ahead for us
 		def scan(&block)
-			ensure_buffer
-			beg = @lexer.anchor
-			ret = block.call
-			ensure_buffer
-			fin = (@lexer.cursor == @lexer.anchor+1) ? @lexer.anchor : @lexer.anchor-1
-			[[], beg, fin]
+			beg = ensure_buffer[0][1]
+			block.call
+			[[], beg, @last_consumed_fin]
 		end
 
 		def require_all_of(*tokens)
@@ -4034,7 +4033,9 @@ module Plume
 		# Returns the new token at the head of the buffer.
 		def advance
 			ensure_buffer
-			@peek_buffer.shift
+			token = @peek_buffer.shift
+			@last_consumed_fin = token[2]
+			token
 		end
 
 		# Ensure that the `@peek_buffer` has at least `size` tokens.

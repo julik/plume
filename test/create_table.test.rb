@@ -1272,3 +1272,10 @@ test "parse fully complex statement" do
 	assert_equal node.without_row_id, true
 	assert_operator Plume::WithoutRowidTableOption, :===, node.options[1]
 end
+
+test "CREATE TABLE t (a REFERENCES t2 ON DELETE CASCADE, c DECIMAL(4, 6))" do
+	# The REFERENCES clause looks ahead for DEFERRABLE, which used to throw off the span of the next type
+	node = parse_stmt("CREATE TABLE t (a REFERENCES t2 ON DELETE CASCADE, c DECIMAL(4, 6))")
+
+	assert_equal node.columns[1].type.text, "DECIMAL(4, 6)"
+end

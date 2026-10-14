@@ -12,6 +12,7 @@ module Plume
 	autoload :Token, "plume/ast/token"
 	autoload :SQLiteGrammar, "plume/sqlite_grammar"
 	autoload :Catalog, "plume/catalog"
+	autoload :Printer, "plume/printer"
 	autoload :Analysis, "plume/analysis"
 
 	autoload :BinaryExpression, "plume/ast/binary_expression"

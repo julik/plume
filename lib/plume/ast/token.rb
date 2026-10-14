@@ -135,8 +135,8 @@ module Plume
 		def string_literal(str, tup)
 			src = source(str, tup)
 			bytesize = src.bytesize
-			# strip the leading and trailing quotes
-			src.byteslice(1, bytesize - 2)
+			# strip the leading and trailing quotes, a quote inside is written twice
+			src.byteslice(1, bytesize - 2).gsub("''", "'")
 		end
 
 		def blob_literal(str, tup)
@@ -155,12 +155,13 @@ module Plume
 
 			return src if tok != :ID
 
+			# Inside quotes, the quote character itself is written twice. Brackets have no escape
 			case src.getbyte(0)
-			when 96, 39, 34, 91 # "`", "'", '"', "["
-				bytesize = src.bytesize
-				src.byteslice(1, bytesize - 2)
-			else
-				src
+			when 96 then src.byteslice(1, src.bytesize - 2).gsub("``", "`")
+			when 39 then src.byteslice(1, src.bytesize - 2).gsub("''", "'")
+			when 34 then src.byteslice(1, src.bytesize - 2).gsub('""', '"')
+			when 91 then src.byteslice(1, src.bytesize - 2)
+			else src
 			end
 		end
 	end

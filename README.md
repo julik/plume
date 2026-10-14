@@ -186,6 +186,19 @@ Plume::CreateTableStatement(
 </details>
 
 
+Turn a tree back into SQL with `to_sql`. It prints from the nodes' values rather than copying the source, so trees built by hand or changed after parsing print too:
+
+```ruby
+stmt = Plume.parse("select a from t where b = 1").first
+stmt.body.condition = Plume::BinaryExpression.new(
+  operator: :ALL,
+  left: stmt.body.condition,
+  right: Plume::BinaryExpression.new(operator: :EQUALS, left: Plume::ColumnName.new(column: "tenant_id"), right: Plume::Variable.new(name: "?")),
+)
+stmt.to_sql
+# => "SELECT a FROM t WHERE (b = 1) AND (tenant_id = ?)"
+```
+
 Tokenize a SQL query with the `Plume::Lexer` class:
 
 ```ruby
