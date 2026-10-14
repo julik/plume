@@ -401,3 +401,7 @@ end
 test "select t.window from t cross join u - window is only a keyword before a name and AS" do
 	assert_equal parse_stmt("select t.window from t cross join u").to_sql, %(SELECT t."window" FROM t CROSS JOIN u)
 end
+
+test "select false.x from true as false - TRUE and FALSE are names to SQLite" do
+	assert_equal parse_stmt("select false.x, true from true as false").to_sql, %(SELECT "false".x, TRUE FROM "true" AS "false")
+end

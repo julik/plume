@@ -102,6 +102,9 @@ module Plume
 			:CURRENT_TIME,
 			:CURRENT_DATE,
 			:CURRENT_TIMESTAMP,
+			# Not keywords to SQLite at all, only names that mean 1 and 0 when no column is called that
+			:TRUE,
+			:FALSE,
 		].freeze
 
 		OPERATOR_PRECEDENCE = {
@@ -2528,7 +2531,7 @@ module Plume
 					select_rp: Token::Punctuation(select_rp),
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
-			elsif !(current_token == :STRING && peek == :DOT) && (literal_tk = maybe { literal_value })
+			elsif !((current_token in :STRING | :TRUE | :FALSE) && peek == :DOT) && (literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
 					value_tk: literal_tk,
