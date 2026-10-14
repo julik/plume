@@ -735,7 +735,7 @@ module Plume
 			first = last = nil
 
 			loop do
-				expected!(:RP) if current_token.nil?
+				expected!(:RP) if current_token.nil? || current_token == :ILLEGAL
 
 				if depth.zero? && current_token in :COMMA | :RP
 					arguments << (first ? @lexer.sql.byteslice(first, last - first) : "")

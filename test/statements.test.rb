@@ -195,3 +195,8 @@ test "IF after CREATE or DROP has to be IF [NOT] EXISTS, it does not name the ta
 
 	assert_equal parse_stmt(%(drop table "if")).to_sql, %(DROP TABLE "if")
 end
+
+test "create virtual table t using fts5(a #) - module arguments still have to be made of tokens" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("create virtual table t using fts5(a #)") }
+	assert_equal parse_stmt("create virtual table t using fts5(a; b, c)").arguments, ["a; b", "c"]
+end
