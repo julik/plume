@@ -1290,3 +1290,11 @@ end
 test "create table t (x \\xAEblob)" do
 	assert_equal parse_stmt("create table t (x \xAEblob)").columns[0].type.affinity, :BLOB
 end
+
+test "create table t (current_time, a current_date)" do
+	node = parse_stmt("create table t (current_time, a current_date)")
+
+	assert_equal node.columns.map(&:name), ["current_time", "a"]
+	assert_equal node.columns[1].type.text, "current_date"
+	assert_equal parse_stmt("select current_time").body.columns[0].result.value, :CURRENT_TIME
+end

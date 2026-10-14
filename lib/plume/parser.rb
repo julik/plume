@@ -98,7 +98,10 @@ module Plume
 			:MATERIALIZED,
 			:REINDEX,
 			:RENAME,
-			:CTIME_KW,
+			# CTIME_KW in parse.y, which our lexer spells out
+			:CURRENT_TIME,
+			:CURRENT_DATE,
+			:CURRENT_TIMESTAMP,
 		].freeze
 
 		OPERATOR_PRECEDENCE = {
