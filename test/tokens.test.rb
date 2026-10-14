@@ -11,7 +11,7 @@ SPACE_TOKENS = [
 	["-- inline comment", :SPACE],
 	["/* single line comment */", :SPACE],
 	["/* multi-line\ncomment */", :SPACE],
-	["\xEF\xFE\xFF", :SPACE],
+	["\xEF\xBB\xBF", :SPACE],
 	["\x09", :SPACE],
 	["\x0A", :SPACE],
 	["\x0C", :SPACE],
@@ -63,6 +63,7 @@ BASIC_TOKENS = [
 	["'abc'", :STRING],
 	["'abc''def'", :STRING],
 	["\xEF\x81", :ID],
+	["\xEF\xFE\xFF", :ID],
 
 	# ASCII control codes
 	["\x00", :ILLEGAL],
@@ -298,4 +299,8 @@ end
 test "a NUL right after a keyword-looking word ends the identifier" do
 	assert_equal [:ID, :ILLEGAL, :ID], lex("SE\0LECT")
 	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT j\0") }
+end
+
+test "a byte order mark is just space" do
+	assert_equal Plume.parse("\xEF\xBB\xBFselect 1").first.to_sql, "SELECT 1"
 end

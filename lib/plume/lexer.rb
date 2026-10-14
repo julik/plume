@@ -605,7 +605,7 @@ module Plume
 
 				:ID
 			when :BOM
-				return step(2) && :SPACE if peek == 0xFE && peek(1) == 0xFF
+				return step(2) && :SPACE if peek == 0xBB && peek(1) == 0xBF # the rest of a UTF-8 BOM
 
 				step while id?(peek)
 				:ID
