@@ -1298,3 +1298,11 @@ test "create table t (current_time, a current_date)" do
 	assert_equal node.columns[1].type.text, "current_date"
 	assert_equal parse_stmt("select current_time").body.columns[0].result.value, :CURRENT_TIME
 end
+
+test "create table t (a default -x) - only a literal can take a sign there" do
+	["create table t (a default -x)", "create table t (a default - -1)", "create table t (a default -(1))", "create table t (a default -true)"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+
+	assert_equal parse_stmt("create table t (a default -'x')").to_sql, "CREATE TABLE t (a DEFAULT (-'x'))"
+end

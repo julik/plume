@@ -1898,8 +1898,11 @@ module Plume
 							default_kw:    Token::Keyword(default_kw),
 							value_tk:      value,
 						)
-					# A sign on something that is not a number, like `DEFAULT -'hello'`
-					elsif (current_token in :PLUS | :MINUS) && (value = maybe { basic_expression })
+					# A sign on something that is not a number, like `DEFAULT -'hello'`. It still has to be
+					# a literal, `DEFAULT -x` is a syntax error
+					elsif (current_token in :PLUS | :MINUS) &&
+							(peek in :STRING | :BLOB | :NULL | :CURRENT_TIME | :CURRENT_DATE | :CURRENT_TIMESTAMP) &&
+							(value = maybe { basic_expression })
 						DefaultColumnConstraint.concrete(
 							full_source:   @lexer.sql,
 							constraint_kw: Token::Keyword(constraint_kw),
