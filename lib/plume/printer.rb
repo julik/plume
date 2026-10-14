@@ -263,10 +263,10 @@ module Plume
 		def print_parenthetical_source(node) = join("(#{print(node.source)})", alias_of(node))
 
 		def print_join_clause(node)
-			node.joins.reduce(print(node.left)) do |sql, each|
+			# Appended in place, building a new string per join copies the whole clause every time
+			node.joins.each_with_object(+print(node.left)) do |each, sql|
 				operator = print(each.operator)
-				right = join(print(each.source), print(each.constraint))
-				operator == "," ? "#{sql}, #{right}" : "#{sql} #{operator} #{right}"
+				sql << (operator == "," ? ", " : " #{operator} ") << join(print(each.source), print(each.constraint))
 			end
 		end
 

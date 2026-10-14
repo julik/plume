@@ -62,3 +62,12 @@ end
 test "names that are keywords get quoted even where SQLite could take them bare" do
 	assert_equal parse_stmt(%(select "raise", "key" from "if")).to_sql, %(SELECT "raise", "key" FROM "if")
 end
+
+test "printing a long chain of joins takes time in proportion to its length" do
+	statement = ->(n) { parse_stmt("select 1 from t0 #{(1..n).map { |i| "join t#{i} on t#{i}.a = t#{i - 1}.a" }.join(" ")}") }
+	small, large = statement.(1000), statement.(16_000)
+	time = ->(node) { Array.new(3) { Process.clock_gettime(Process::CLOCK_MONOTONIC).then { |t| node.to_sql; Process.clock_gettime(Process::CLOCK_MONOTONIC) - t } }.min }
+
+	# 16 times the joins, so about 16 times the time - it was more like 60 when every join copied the clause so far
+	assert time.(large) / time.(small) < 32
+end
