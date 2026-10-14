@@ -1286,3 +1286,7 @@ test "a foreign key clause can be built by hand" do
 	assert_equal [clause.table, clause.deferred], ["users", true]
 	assert_equal clause.to_sql, "REFERENCES users DEFERRABLE INITIALLY DEFERRED"
 end
+
+test "create table t (x \\xAEblob)" do
+	assert_equal parse_stmt("create table t (x \xAEblob)").columns[0].type.affinity, :BLOB
+end
