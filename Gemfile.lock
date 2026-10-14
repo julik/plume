@@ -1,12 +1,7 @@
 GIT
-  remote: https://github.com/joeldrapper/literal.git
-  revision: d8bc1be483a2a44aedb432433d549677457a22ad
-  specs:
-    literal (1.6.0)
-
-GIT
   remote: https://github.com/joeldrapper/quickdraw.git
   revision: 2c5929f79d1e529db2c32953a78eba063736b72a
+  ref: 2c5929f79d1e529db2c32953a78eba063736b72a
   specs:
     quickdraw (0.1.0)
       difftastic (~> 0.1)
@@ -16,6 +11,7 @@ PATH
   remote: .
   specs:
     plume (0.1.0)
+      literal (~> 1.6)
 
 GEM
   remote: https://rubygems.org/
@@ -40,6 +36,7 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.3)
+    literal (1.6.0)
     logger (1.6.5)
     mini_portile2 (2.8.8)
     nokogiri (1.18.1)
@@ -115,7 +112,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  literal!
   plume!
   quickdraw!
   rake

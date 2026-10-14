@@ -2,11 +2,10 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in feather.gemspec
+# Specify your gem's dependencies in plume.gemspec
 gemspec
 
-gem "quickdraw", git: "https://github.com/joeldrapper/quickdraw.git"
-gem "literal", git: "https://github.com/joeldrapper/literal.git"
+gem "quickdraw", git: "https://github.com/joeldrapper/quickdraw.git", ref: "2c5929f79d1e529db2c32953a78eba063736b72a"
 
 group :development do
 	gem "solargraph", platform: :ruby

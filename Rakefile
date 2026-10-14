@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 require "bundler/gem_tasks"
-require "minitest/test_task"
 require "rubocop/rake_task"
 
-Minitest::TestTask.create
-
-desc "Run rubocop"
-task :rubocop do
-	RuboCop::RakeTask.new
+desc "Run the quickdraw test suite"
+task :test do
+	sh "bundle exec qt -t 1 './test/**/*.test.rb'"
 end
+
+RuboCop::RakeTask.new
 
 task default: %i[test rubocop]
