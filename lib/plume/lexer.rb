@@ -432,7 +432,8 @@ module Plume
 				nil if current_byte == 57 # "9"
 
 				token_type = (character_type == :DOT) ? :FLOAT : :INTEGER
-				if current_byte == 48 && ((b = peek) == 120 || b == 88) && xdigit?(peek(1)) # "0" and "x" or "X"
+				hex = current_byte == 48 && ((b = peek) == 120 || b == 88) && xdigit?(peek(1)) # "0" and "x" or "X"
+				if hex
 					step(2) # consume the "x" or "X" and the first hex digit
 					while (b = peek)
 						if xdigit?(b)
@@ -444,25 +445,7 @@ module Plume
 							break
 						end
 					end
-
-					return token_type
-				end
-
-				while (b = peek)
-					if digit?(b)
-						step && next
-					elsif b == 95 # "_"
-						token_type = :QNUMBER
-						step && next
-					else
-						break
-					end
-				end
-
-				if peek == 46 # "."
-					step
-					token_type = :FLOAT if token_type == :INTEGER
-
+				else
 					while (b = peek)
 						if digit?(b)
 							step && next
@@ -473,24 +456,40 @@ module Plume
 							break
 						end
 					end
-				end
 
-				if (peek == 101 || peek == 69) && ( # "e" or "E"
-					digit?(peek(1)) || (
-						(peek(1) == 43 || peek(1) == 45) && digit?(peek(2)) # "+" or "-"
+					if peek == 46 # "."
+						step
+						token_type = :FLOAT if token_type == :INTEGER
+
+						while (b = peek)
+							if digit?(b)
+								step && next
+							elsif b == 95 # "_"
+								token_type = :QNUMBER
+								step && next
+							else
+								break
+							end
+						end
+					end
+
+					if (peek == 101 || peek == 69) && ( # "e" or "E"
+						digit?(peek(1)) || (
+							(peek(1) == 43 || peek(1) == 45) && digit?(peek(2)) # "+" or "-"
+						)
 					)
-				)
-					step(2)
-					token_type = :FLOAT if token_type == :INTEGER
+						step(2)
+						token_type = :FLOAT if token_type == :INTEGER
 
-					while (b = peek)
-						if digit?(b)
-							step && next
-						elsif b == 95 # "_"
-							token_type = :QNUMBER
-							step && next
-						else
-							break
+						while (b = peek)
+							if digit?(b)
+								step && next
+							elsif b == 95 # "_"
+								token_type = :QNUMBER
+								step && next
+							else
+								break
+							end
 						end
 					end
 				end

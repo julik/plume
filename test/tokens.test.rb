@@ -191,6 +191,8 @@ WEIRD_STRINGS = [
 	[".a", [:DOT, :ID]],
 	["/1", [:SLASH, :INTEGER]],
 	["0X123_456/", [:QNUMBER, :SLASH]],
+	["0x1Fg", [:ILLEGAL]],
+	["0x1F_g", [:ILLEGAL]],
 	["1.0E+", [:ILLEGAL, :PLUS]],
 	["1.0E+:", [:ILLEGAL, :PLUS, :ILLEGAL]],
 	["1.0E-", [:ILLEGAL, :MINUS]],
