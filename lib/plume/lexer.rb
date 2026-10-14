@@ -298,6 +298,17 @@ module Plume
 			it[126]	=	:BITNOT		# ~
 		end
 
+		# SQLite's tokenizer lets a "_" go anywhere in a number. Only once the number is used as a value
+		# does sqlite3DequoteNumber want a digit on both sides of each "_", a hex digit for hex literals
+		def self.digit_separators_ok?(number)
+			digit = number.start_with?("0x", "0X") ? 0x08 : 0x04
+			(1...number.bytesize).all? do |i|
+				next true unless number.getbyte(i) == 95 # "_"
+
+				[number.getbyte(i - 1), number.getbyte(i + 1)].all? { |b| b && CHARACTER_FLAGS[b] & digit != 0 }
+			end
+		end
+
 		attr_reader :sql
 		attr_accessor :cursor, :anchor
 
@@ -505,9 +516,6 @@ module Plume
 					step
 				end
 
-				# SQLite takes a "_" only between two digits, see sqlite3DequoteNumber
-				token_type = :ILLEGAL if token_type == :QNUMBER && !separators_between_digits?(hex)
-
 				token_type
 			when :QUOTE2
 				step until (b = peek).nil? || b == 0 || b == 93 # "]"
@@ -641,11 +649,5 @@ module Plume
 		# SQLite will allow '$' in identifiers for compatibility.
 		# But the feature is undocumented.
 
-		def separators_between_digits?(hex)
-			digit = hex ? method(:xdigit?) : method(:digit?)
-			(@anchor...@cursor).all? do |i|
-				@sql.getbyte(i) != 95 || (digit.(@sql.getbyte(i - 1)) && digit.(@sql.getbyte(i + 1))) # "_"
-			end
-		end
 	end
 end

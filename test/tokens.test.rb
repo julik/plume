@@ -217,7 +217,8 @@ WEIRD_STRINGS = [
 	["2 /*", [:INTEGER, :SPACE, :SPACE]],
 ].freeze
 
-# From SQLite's test/literal.test - a "_" has to sit between two digits
+# From SQLite's test/literal.test - a "_" has to sit between two digits, but SQLite only checks
+# that once the number is used as a value, its tokenizer takes them all
 MISPLACED_DIGIT_SEPARATORS = %w[1_ 1234_ 12__34 1_.4 12._34 12.34_ 1.4_e4 1.4e4_ 1e_4 1_e5 1.0e1_______2 0x1_ 0xA__B].freeze
 DIGIT_SEPARATORS = %w[1_000 1_000.5 .5_5 1e5_0 1_0.0_1e1_0 0x1_F 0xA_B_C].freeze
 
@@ -267,9 +268,14 @@ WEIRD_STRINGS.each do |str, tks|
 end
 
 MISPLACED_DIGIT_SEPARATORS.each do |str|
-	test "tokenizes #{str.inspect} as ILLEGAL" do
-		assert_equal [:ILLEGAL], lex(str)
+	test "select #{str} is a syntax error" do
+		assert_raises(Plume::SyntaxError) { Plume.parse("select #{str}") }
 	end
+end
+
+test "misplaced digit separators are fine in virtual table module arguments" do
+	assert_equal lex("1_"), [:QNUMBER]
+	assert_equal parse_stmt("create virtual table t using fts5(a 1_)").arguments, ["a 1_"]
 end
 
 DIGIT_SEPARATORS.each do |str|

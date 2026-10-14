@@ -3500,7 +3500,7 @@ module Plume
 				tk = require :FALSE
 				Token::False(tk)
 			when :QNUMBER
-				tk = require :QNUMBER
+				tk = digit_separators!(require(:QNUMBER))
 				Token::Numeric(tk)
 			when :INTEGER
 				tk = require :INTEGER
@@ -3709,7 +3709,7 @@ module Plume
 				# A signed number is a numeric literal with an optional sign.
 			#
 			sign_tk  = maybe_one_of   :PLUS, :MINUS
-			value_tk = require_one_of :INTEGER, :FLOAT, :QNUMBER
+			value_tk = digit_separators!(require_one_of(:INTEGER, :FLOAT, :QNUMBER))
 
 			return value_tk unless sign_tk
 
@@ -3782,6 +3782,15 @@ module Plume
 		private
 
 		# ---------- Parsing Helpers ----------
+
+		# Inside the arguments of a virtual table module a misplaced "_" is just part of another token,
+		# so it is only an error once the number is a value
+		def digit_separators!(span)
+			tok, beg, fin = span
+			return span unless tok == :QNUMBER && !Lexer.digit_separators_ok?(@lexer.sql.byteslice(beg, fin - beg))
+
+			throw :ERROR, ErrorMessage.new(@lexer.sql, tok, beg, fin, ["a digit on both sides of every _"])
+		end
 
 		def fallback_to_name? = TOKEN_FALLBACKS.include?(current_token) || window_keyword_as_name?
 
