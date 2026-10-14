@@ -61,6 +61,12 @@ module FixtureCorpus
 		@sqlite ||= SQLite3::Database.new(":memory:")
 	end
 
+	# quickdraw forks its workers, which must not inherit an open connection
+	def close_sqlite
+		@sqlite&.close
+		@sqlite = nil
+	end
+
 	def baseline
 		File.exist?(BASELINE_PATH) ? File.readlines(BASELINE_PATH, chomp: true) : []
 	end
