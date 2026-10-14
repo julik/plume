@@ -45,3 +45,11 @@ test "identifiers that are not valid UTF-8 get quoted rather than raising" do
 
 	assert_equal parse_stmt(sql).to_sql, "SELECT \"\xFFa\" FROM t"
 end
+
+test "numeric literals have the value SQLite gives them" do
+	values = parse_stmt("select 0x1F, 0x1_F, 1_000, 1e5_0, 0xFFFFFFFFFFFFFFFF, 1_0.5").body.columns.map { |c| c.result.value }
+
+	assert_equal values, [31, 31, 1000, 1e50, -1, 10.5]
+	assert_equal parse_stmt("create table t (a default - /* minus */ 0x10)").columns[0].constraints[0].value, -16
+	assert_equal parse_stmt("pragma cache_size = - 2000").to_sql, "PRAGMA cache_size = -2000"
+end
