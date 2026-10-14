@@ -58,3 +58,7 @@ test "collation names only have their ASCII letters upcased" do
 	assert_equal parse_stmt("select a from t order by a collate nöcase").to_sql, %(SELECT a FROM t ORDER BY a COLLATE "NöCASE")
 	assert_equal parse_stmt("create index i on t (a collate no\xFFcase)").to_sql, %(CREATE INDEX i ON t (a COLLATE "NO\xFFCASE"))
 end
+
+test "names that are keywords get quoted even where SQLite could take them bare" do
+	assert_equal parse_stmt(%(select "raise", "key" from "if")).to_sql, %(SELECT "raise", "key" FROM "if")
+end
