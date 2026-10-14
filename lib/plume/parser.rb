@@ -276,10 +276,10 @@ module Plume
 			when :RELEASE						then release_stmt
 			when :ROLLBACK					then rollback_stmt
 			when :SAVEPOINT					then savepoint_stmt
-			when :SELECT						then select_stmt
+			when :SELECT, :VALUES		then select_stmt
 			when :UPDATE						then update_stmt
 			when :VACUUM						then vacuum_stmt
-			when :WITH							then with_stmt
+			when :WITH							then select_stmt
 			else
 				expected!(:ALTER, :ANALYZE, :ATTACH, :BEGIN, :COMMIT, :END, :CREATE, :DELETE, :DETACH, :DROP, :INSERT, :REPLACE, :PRAGMA, :REINDEX, :RELEASE, :ROLLBACK, :SAVEPOINT, :SELECT, :UPDATE, :VACUUM, :WITH)
 			end
@@ -309,10 +309,8 @@ module Plume
 		alias_method :release_stmt, :_not_implemented
 		alias_method :rollback_stmt, :_not_implemented
 		alias_method :savepoint_stmt, :_not_implemented
-		alias_method :select_stmt, :_not_implemented
 		alias_method :update_stmt, :_not_implemented
 		alias_method :vacuum_stmt, :_not_implemented
-		alias_method :with_stmt, :_not_implemented
 
 		# ---------- Statements ----------
 
@@ -539,18 +537,14 @@ module Plume
 		def select_stmt
 			#
 				# Relevant `parse.y` grammar rules:
-				#   "cmd"=>[["select"]],
-				#   "select"=>[["WITH", "wqlist", "selectnowith"], ["WITH", "RECURSIVE", "wqlist", "selectnowith"], ["selectnowith"]],
-				#   "selectnowith"=>[["oneselect"], ["selectnowith", "multiselect_op", "oneselect"]],
-				#   "multiselect_op"=>[["UNION"], ["UNION", "ALL"], ["EXCEPT"], ["INTERSECT"]],
-				#   "oneselect"=>[
-				#     ["SELECT", "distinct", "selcollist", "from", "where_opt", "groupby_opt", "having_opt", "orderby_opt", "limit_opt"],
-				#     ["SELECT", "distinct", "selcollist", "from", "where_opt", "groupby_opt", "having_opt", "window_clause", "orderby_opt", "limit_opt"],
-				#     ["values"],
-				#     ["mvalues"]
-				#   ],
-				#   "orderby_opt"=>[[], ["ORDER", "BY", "sortlist"]],
-				#   "limit_opt"=>[[], ["LIMIT", "expr"], ["LIMIT", "expr", "OFFSET", "expr"], ["LIMIT", "expr", "COMMA", "expr"]],
+				#   select ::= WITH wqlist selectnowith |
+				#              WITH RECURSIVE wqlist selectnowith |
+				#              selectnowith
+				#   selectnowith ::= oneselect |
+				#                    selectnowith multiselect_op oneselect
+				#   multiselect_op ::= UNION | UNION ALL | EXCEPT | INTERSECT
+				#   orderby_opt ::= . | ORDER BY sortlist
+				#   limit_opt ::= . | LIMIT expr | LIMIT expr OFFSET expr | LIMIT expr COMMA expr
 				#
 				# Syntax diagram:
 				#   ◯─▶┬▶[ with-stmt ]─┐
@@ -567,31 +561,120 @@ module Plume
 				#    └───────────────────────────────────────────────▶─┴───────▶◯
 				#
 				# Simplified grammar:
+				#   [with_clause] select_core [compound_operator select_core]*
+				#   [ORDER BY ordering_term [, ordering_term]*]
+				#   [LIMIT expr [(OFFSET | COMMA) expr]]
 				#
 				# Relevant SQLite documentation:
 				#   - https://www.sqlite.org/lang_select.html
 				#
 				# The SELECT statement is used to query the database.
 			#
-			select_core
+			with = maybe { with_clause } if current_token == :WITH
+			body = select_core
 
-			# compound = []
-			# while (op = maybe { compound_operator })
-			# 	compound << [op, select_stmt]
-			# end
-			# if maybe :ORDER
-			# 	require :BY
-			# 	order_by = require_some { ordering_term }
-			# end
-			# if maybe :LIMIT
-			# 	limit = expression
-			# 	if maybe :OFFSET
-			# 		offset = expression
-			# 	elsif maybe :COMMA
-			# 		offset = limit
-			# 		limit = expression
-			# 	end
-			# end
+			while (operator_tk = maybe_one_of [:UNION, :ALL].freeze, :UNION, :INTERSECT, :EXCEPT)
+				body = CompoundSelect.concrete(
+					full_source: @lexer.sql,
+					operator_tk: Token::Keyword(operator_tk),
+					left:        body,
+					right:       select_core,
+				)
+			end
+
+			if (order_by_kw = maybe_all_of :ORDER, :BY)
+				orderings = require_some(trailing_sep: :COMMA) { ordering_term }
+			end
+
+			if (limit_kw = maybe :LIMIT)
+				limit = expression
+				if (offset_tk = maybe :OFFSET)
+					offset = expression
+				elsif (offset_tk = maybe :COMMA)
+					# `LIMIT 5, 10` means skip 5 and take 10, the reverse of what it looks like
+					offset = limit
+					limit = expression
+				end
+			end
+
+			SelectStatement.concrete(
+				full_source: @lexer.sql,
+				with_clause: with,
+				body:        body,
+				order_by_kw: Token::Keyword(order_by_kw),
+				orderings:   orderings,
+				limit_kw:    Token::Keyword(limit_kw),
+				limit:       limit,
+				offset_tk:   Token::Keyword(offset_tk),
+				offset:      offset,
+			)
+		end
+
+		def with_clause
+			#
+				# Relevant `parse.y` grammar rules:
+				#   with ::= WITH wqlist | WITH RECURSIVE wqlist
+				#   wqlist ::= wqitem | wqlist COMMA wqitem
+				#   wqitem ::= withnm eidlist_opt wqas LP select RP
+				#   wqas ::= AS | AS MATERIALIZED | AS NOT MATERIALIZED
+				#   eidlist_opt ::= . | LP eidlist RP
+				#
+				# Syntax diagram:
+				#   ◯─▶{ WITH }─┬──────────────────┬▶[ common-table-expression ]┬─▶◯
+				#               └─▶{ RECURSIVE }─▶─┘└───────────{ , }◀──────────┘
+				#
+				#   ◯─▶{ table-name }┬────────────────────────────────────┬▶{ AS }┐
+				#                    └▶{ ( }┬▶{ column-name }┬▶{ ) }──────┘       │
+				#                           └──────{ , }◀────┘                    │
+				#   ┌──────────────────────────────◀──────────────────────────────┘
+				#   ├────────────────▶────────────────┬▶{ ( }─▶[ select-stmt ]─▶{ ) }─▶◯
+				#   ├─▶{ NOT }─┬─▶{ MATERIALIZED }──▶─┘
+				#   └────▶─────┘
+				#
+				# Simplified grammar:
+				#   WITH [RECURSIVE] name [(column [, column]*)] AS [[NOT] MATERIALIZED] (select_stmt)
+				#                    [, name [(column [, column]*)] AS [[NOT] MATERIALIZED] (select_stmt)]*
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/lang_with.html
+				#
+				# Common table expressions act like temporary views that exist only for a single statement.
+			#
+			with_kw = require :WITH
+			recursive_kw = maybe :RECURSIVE
+
+			ctes = require_some(trailing_sep: :COMMA) do
+				name_tk = name
+				if (columns_lp = maybe :LP)
+					columns = require_some(trailing_sep: :COMMA) { indexed_column }
+					columns_rp = require :RP
+				end
+				as_kw = require :AS
+				materialized_tk = maybe_one_of :MATERIALIZED, [:NOT, :MATERIALIZED].freeze
+				select_lp = require :LP
+				select = select_stmt
+				select_rp = require :RP
+
+				CommonTableExpression.concrete(
+					full_source:     @lexer.sql,
+					name_tk:         Token::Identifier(name_tk),
+					columns_lp:      Token::Punctuation(columns_lp),
+					columns:         columns,
+					columns_rp:      Token::Punctuation(columns_rp),
+					as_kw:           Token::Keyword(as_kw),
+					materialized_tk: Token::Keyword(materialized_tk),
+					select_lp:       Token::Punctuation(select_lp),
+					select:          select,
+					select_rp:       Token::Punctuation(select_rp),
+				)
+			end
+
+			WithClause.concrete(
+				full_source:  @lexer.sql,
+				with_kw:      Token::Keyword(with_kw),
+				recursive_kw: Token::Keyword(recursive_kw),
+				ctes:         ctes,
+			)
 		end
 
 		# ---------- Clauses ----------
@@ -652,8 +735,6 @@ module Plume
 				negated = maybe :NOT
 
 				if (in_tk = maybe :IN)
-					expression_node = negated ? NotInExpression : InExpression
-
 					if (value_lp = maybe :LP)
 						if (value_rp = maybe :RP)
 							foo = ParentheticalExpression.concrete(
@@ -663,24 +744,32 @@ module Plume
 								value_rp: Token::Punctuation(value_rp),
 							)
 
-							return BinaryExpression.concrete(
+							left = BinaryExpression.concrete(
 								full_source: @lexer.sql,
 								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
 								left: left,
 								right: foo,
 							)
-						# :nocov:
-						# elsif (s = maybe { select_stmt })
-						# 	require :RP
+						elsif current_token in :SELECT | :VALUES | :WITH
+							select = select_stmt
+							value_rp = require :RP
 
-						# 	return expression_node.new(
-						# 		member: left,
-						# 		collection: s
-						# 	)
-						# :nocov:
-						elsif (e = maybe { expression(next_precedence) })
+							right = SubqueryExpression.concrete(
+								full_source: @lexer.sql,
+								select_lp: Token::Punctuation(value_lp),
+								select: select,
+								select_rp: Token::Punctuation(value_rp),
+							)
+
+							left = BinaryExpression.concrete(
+								full_source: @lexer.sql,
+								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
+								left: left,
+								right: right,
+							)
+						elsif (e = maybe { expression })
 							exprs = require_some(given: e, trailing_sep: :COMMA) do
-								expression(next_precedence)
+								expression
 							end
 							value_rp = require :RP
 
@@ -691,7 +780,7 @@ module Plume
 								value_rp: Token::Punctuation(value_rp),
 							)
 
-							return BinaryExpression.concrete(
+							left = BinaryExpression.concrete(
 								full_source: @lexer.sql,
 								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
 								left: left,
@@ -706,7 +795,7 @@ module Plume
 
 							if (arguments_lp = maybe :LP)
 								function_name = name
-								arguments = maybe_some(trailing_sep: :COMMA) { expression(next_precedence) }
+								arguments = maybe_some(trailing_sep: :COMMA) { expression }
 								arguments_rp = require :RP
 
 								right = FunctionReference.concrete(
@@ -728,7 +817,7 @@ module Plume
 								)
 							end
 						elsif (arguments_lp = maybe :LP)
-							arguments = maybe_some(trailing_sep: :COMMA) { expression(next_precedence) }
+							arguments = maybe_some(trailing_sep: :COMMA) { expression }
 							arguments_rp = require :RP
 
 							right = FunctionReference.concrete(
@@ -750,7 +839,7 @@ module Plume
 							)
 						end
 
-						return BinaryExpression.concrete(
+						left = BinaryExpression.concrete(
 							full_source: @lexer.sql,
 							operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
 							left: left,
@@ -759,21 +848,21 @@ module Plume
 					else
 						expected!(:LP, :ID)
 					end
-				elsif maybe :BETWEEN
+				elsif (between_kw = maybe :BETWEEN)
 					middle = expression(next_precedence)
 					require :AND
 					right = expression(next_precedence)
-					return TernaryExpression.new(
+					left = TernaryExpression.new(
 						operator: (negated ? :NOT_BETWEEN : :BETWEEN),
 						left: left,
 						middle: middle,
 						right: right
 					)
-				elsif maybe :LIKE
+				elsif (like_kw = maybe :LIKE)
 					expression_node = negated ? NotLikeExpression : LikeExpression
 					right = expression(next_precedence)
 					escape = maybe(:ESCAPE) ? expression : nil
-					return expression_node.new(
+					left = expression_node.new(
 						left:,
 						right:,
 						escape:,
@@ -785,13 +874,15 @@ module Plume
 					left_attr = Node === left ? { left: left } : { left_tk: left }
 					right_attr = Node === right ? { right: right } : { right_tk: right }
 
-					return BinaryExpression.concrete(
+					left = BinaryExpression.concrete(
 						full_source: @lexer.sql,
 						operator_tk: Token::Punctuation(operator_tk),
 						**left_attr,
 						**right_attr,
 					)
 				end
+				next if in_tk || between_kw || like_kw || match_tk
+
 
 				expected!(:IN, :BETWEEN, :LIKE, :GLOB, :REGEXP, :MATCH) if negated
 
@@ -1124,21 +1215,18 @@ module Plume
 		def select_core
 			#
 				# Relevant `parse.y` grammar rules:
-				#   "oneselect"=>[
-				#     ["SELECT", "distinct", "selcollist", "from", "where_opt", "groupby_opt", "having_opt", "orderby_opt", "limit_opt"],
-				#     ["SELECT", "distinct", "selcollist", "from", "where_opt", "groupby_opt", "having_opt", "window_clause", "orderby_opt", "limit_opt"],
-				#     ["values"],
-				#     ["mvalues"]
-				#   ],
-				#   "distinct"=>[["DISTINCT"], ["ALL"], []],
-				#   "selcollist"=>[["sclp", "expr", "as"], ["sclp", "STAR"], ["sclp", "nm", "DOT", "STAR"]],
-				#   "from"=>[[], ["FROM", "seltablist"]],
-				#   "where_opt"=>[[], ["WHERE", "expr"]],
-				#   "groupby_opt"=>[[], ["GROUP", "BY", "nexprlist"]],
-				#   "having_opt"=>[[], ["HAVING", "expr"]],
-				#   "orderby_opt"=>[[], ["ORDER", "BY", "sortlist"]],
-				#   "limit_opt"=>[[], ["LIMIT", "expr"], ["LIMIT", "expr", "OFFSET", "expr"], ["LIMIT", "expr", "COMMA", "expr"]],
-				#   "window_clause"=>[["WINDOW", "windowdefn_list"]],
+				#   oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt orderby_opt limit_opt |
+				#                 SELECT distinct selcollist from where_opt groupby_opt having_opt window_clause orderby_opt limit_opt |
+				#                 values
+				#   distinct ::= DISTINCT | ALL | .
+				#   from ::= . | FROM seltablist
+				#   where_opt ::= . | WHERE expr
+				#   groupby_opt ::= . | GROUP BY nexprlist
+				#   having_opt ::= . | HAVING expr
+				#   window_clause ::= WINDOW windowdefn_list
+				#   windowdefn_list ::= windowdefn | windowdefn_list COMMA windowdefn
+				#   windowdefn ::= nm AS LP window RP
+				#   values ::= VALUES LP nexprlist RP | values COMMA LP nexprlist RP
 				#
 				# Syntax diagram:
 				#   ◯─┬───▶{ SELECT }─┬───────▶──────┬─┬▶[ result-column ]─┐
@@ -1163,57 +1251,126 @@ module Plume
 				#                  └──────────{ , }◀──────────┘
 				#
 				# Simplified grammar:
+				#   SELECT [DISTINCT | ALL] result_column [, result_column]*
+				#   [FROM join_clause] [WHERE expr] [GROUP BY expr [, expr]* [HAVING expr]]
+				#   [WINDOW name AS window_defn [, name AS window_defn]*]
+				#   | VALUES (expr [, expr]*) [, (expr [, expr]*)]*
 				#
 				# Relevant SQLite documentation:
-				#   -
+				#   - https://www.sqlite.org/lang_select.html#select_core
 				#
-				# [description]
+				# A single SELECT or VALUES, which compound operators then glue together.
 			#
 			if (select_kw = maybe :SELECT)
 				type_tk = maybe_one_of :DISTINCT, :ALL
-				columns = require_some { result_column }
+				columns = require_some(trailing_sep: :COMMA) { result_column }
 				if (from_kw = maybe :FROM)
-					source = from_source
-					# join_clause
+					source = join_clause
 				end
-				# if (where_kw = maybe :WHERE)
-				# 	condition = expression
-				# end
-				# if (group_by_kw = maybe_all_of :GROUP, :BY)
-				# 	groupings = require_some { expression }
-				# end
-				# if (having_kw = maybe :HAVING)
-				# 	having = expression
-				# end
-				# if (window_kw = maybe :WINDOW)
-				# 	windows = require_some do
-				# 		window_name = identifier
-				# 		require :AS
-				# 		window_def = window_defn
-				# 		[window_name, window_def]
-				# 	end
-				# end
+				if (where_kw = maybe :WHERE)
+					condition = expression
+				end
+				if (group_by_kw = maybe_all_of :GROUP, :BY)
+					groupings = require_some(trailing_sep: :COMMA) { expression }
+				end
+				# SQLite accepts HAVING without GROUP BY, treating the whole result as one group
+				if (having_kw = maybe :HAVING)
+					having = expression
+				end
+				if (window_kw = maybe :WINDOW)
+					windows = require_some(trailing_sep: :COMMA) { window_definition }
+				end
 
-
-				SelectStatement.new(
-					select_kw: Token::Keyword(select_kw),
-					type_tk: Token::Keyword(type_tk),
-					columns:,
-					from_kw: Token::Keyword(from_kw),
-					source:,
-					# where_kw: Token::Keyword(where_kw),
-					# condition: condition,
-					# group_by_kw: Token::Keyword(group_by_kw),
-					# groupings: groupings,
-					# having_kw: Token::Keyword(having_kw),
-					# having: having,
-					# window_kw: Token::Keyword(window_kw),
-					# windows: windows,
+				SelectCore.concrete(
+					full_source: @lexer.sql,
+					select_kw:   Token::Keyword(select_kw),
+					type_tk:     Token::Keyword(type_tk),
+					columns:     columns,
+					from_kw:     Token::Keyword(from_kw),
+					source:      source,
+					where_kw:    Token::Keyword(where_kw),
+					condition:   condition,
+					group_by_kw: Token::Keyword(group_by_kw),
+					groupings:   groupings,
+					having_kw:   Token::Keyword(having_kw),
+					having:      having,
+					window_kw:   Token::Keyword(window_kw),
+					windows:     windows,
 				)
-			elsif maybe :VALUES
+			elsif (values_kw = maybe :VALUES)
+				rows = require_some(trailing_sep: :COMMA) do
+					row_lp = require :LP
+					values = require_some(trailing_sep: :COMMA) { expression }
+					row_rp = require :RP
+
+					ValuesRow.concrete(
+						full_source: @lexer.sql,
+						row_lp:      Token::Punctuation(row_lp),
+						values:      values,
+						row_rp:      Token::Punctuation(row_rp),
+					)
+				end
+
+				ValuesClause.concrete(
+					full_source: @lexer.sql,
+					values_kw:   Token::Keyword(values_kw),
+					rows:        rows,
+				)
 			else
 				expected!(:SELECT, :VALUES)
 			end
+		end
+
+		def window_definition
+			#
+				# Relevant `parse.y` grammar rules:
+				#   windowdefn ::= nm AS LP window RP
+				#
+				# Syntax diagram:
+				#   ◯─▶{ window-name }─▶{ AS }─▶[ window-defn ]─▶◯
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/windowfunctions.html#window_chaining
+				#
+				# A named window from the WINDOW clause, which OVER clauses may refer to or extend.
+			#
+			name_tk = name
+			as_kw = require :AS
+			window_lp = require :LP
+			window = window_body
+			window_rp = require :RP
+
+			WindowDefinition.concrete(
+				full_source: @lexer.sql,
+				name_tk:     Token::Identifier(name_tk),
+				as_kw:       Token::Keyword(as_kw),
+				window_lp:   Token::Punctuation(window_lp),
+				**window,
+				window_rp:   Token::Punctuation(window_rp),
+			)
+		end
+
+		# The inside of a window-defn parenthesis, shared by OVER (…) and WINDOW name AS (…)
+		def window_body
+			base_window_name_tk = maybe { identifier(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
+			if (partition_by_kw = maybe_all_of(:PARTITION, :BY))
+				partitions = require_some(trailing_sep: :COMMA) { expression }
+			end
+			if (order_by_kw = maybe_all_of(:ORDER, :BY))
+				orderings = require_some(trailing_sep: :COMMA) { ordering_term }
+			end
+			if current_token in :RANGE | :ROWS | :GROUPS
+				frame = frame_spec
+			end
+
+			{
+				base_window_name_tk: Token::Identifier(base_window_name_tk),
+				partition_by_kw:     Token::Keyword(partition_by_kw),
+				partitions:          partitions,
+				order_by_kw:         Token::Keyword(order_by_kw),
+				orderings:           orderings,
+				frame:               frame,
+			}
 		end
 
 		def filter_clause
@@ -1285,28 +1442,14 @@ module Plume
 			#
 			over_kw = require :OVER
 			if (window_lp = maybe :LP)
-				base_window_name_tk = maybe { identifier(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
-				if (partition_by_kw = maybe_all_of(:PARTITION, :BY))
-					partitions = require_some(trailing_sep: :COMMA) { expression }
-				end
-				if (order_by_kw = maybe_all_of(:ORDER, :BY))
-					orderings = require_some(trailing_sep: :COMMA) { ordering_term }
-				end
-				if current_token in :RANGE | :ROWS | :GROUPS
-					frame = frame_spec
-				end
+				window = window_body
 				window_rp = require :RP
 
 				OverClause.concrete(
 					full_source: @lexer.sql,
 					over_kw: Token::Keyword(over_kw),
 					window_lp: Token::Punctuation(window_lp),
-					base_window_name_tk: Token::Identifier(base_window_name_tk),
-					partition_by_kw: Token::Keyword(partition_by_kw),
-					partitions: partitions,
-					order_by_kw: Token::Keyword(order_by_kw),
-					orderings: orderings,
-					frame: frame,
+					**window,
 					window_rp: Token::Punctuation(window_rp),
 				)
 			else
@@ -1489,7 +1632,6 @@ module Plume
 					**operand_attr,
 				)
 			elsif (operator_tk = maybe :NOT)
-				# TODO: could be NOT EXISTS expression
 				operand = expression(OPERATOR_PRECEDENCE[:NOT])
 				operand_attr = Node === operand ? { operand: operand } : { operand_tk: operand }
 
@@ -1499,11 +1641,26 @@ module Plume
 					**operand_attr,
 				)
 			elsif (value_lp = maybe :LP)
-				# TODO: could be implicit EXISTS expression
+				if current_token in :SELECT | :VALUES | :WITH
+					select = select_stmt
+					select_rp = require :RP
+
+					return SubqueryExpression.concrete(
+						full_source: @lexer.sql,
+						select_lp: Token::Punctuation(value_lp),
+						select: select,
+						select_rp: Token::Punctuation(select_rp),
+					)
+				end
+
 				value = expression(0)
+				# A row value like `(a, b) = (1, 2)`
+				if current_token == :COMMA
+					value = require_some(given: value, trailing_sep: :COMMA) { expression(0) }
+				end
 				value_rp = require :RP
 
-				value_attr = Node === value ? { value: value } : { value_tk: value }
+				value_attr = (Node === value || Array === value) ? { value: value } : { value_tk: value }
 
 				ParentheticalExpression.concrete(
 					full_source: @lexer.sql,
@@ -1581,8 +1738,18 @@ module Plume
 						else_clause:,
 					)
 				end
-			elsif maybe :EXISTS
-				# is EXISTS expression
+			elsif (exists_kw = maybe :EXISTS)
+				select_lp = require :LP
+				select = select_stmt
+				select_rp = require :RP
+
+				ExistsExpression.concrete(
+					full_source: @lexer.sql,
+					exists_kw: Token::Keyword(exists_kw),
+					select_lp: Token::Punctuation(select_lp),
+					select: select,
+					select_rp: Token::Punctuation(select_rp),
+				)
 			elsif (literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
@@ -1641,8 +1808,11 @@ module Plume
 				end
 			elsif :RAISE == current_token
 				raise_function
-			elsif (var = maybe :VARIABLE)
-				var
+			elsif (variable_tk = maybe :VARIABLE)
+				Variable.concrete(
+					full_source: @lexer.sql,
+					name_tk: Token::Variable(variable_tk),
+				)
 			else
 				expected!("<basic expression>")
 			end
@@ -2032,10 +2202,10 @@ module Plume
 		def result_column
 			#
 				# Relevant `parse.y` grammar rules:
-				#   "selcollist"=>[["sclp", "expr", "as"], ["sclp", "STAR"], ["sclp", "nm", "DOT", "STAR"]],
-				#   "sclp"=>[["selcollist", "COMMA"], []],
-				#   "as"=>[["AS", "nm"], ["ids"], []],
-				#   "nm"=>[["idj"], ["STRING"]]
+				#   selcollist ::= sclp expr as | sclp STAR | sclp nm DOT STAR
+				#   sclp ::= selcollist COMMA | .
+				#   as ::= AS nm | ids | .
+				#   nm ::= idj | STRING
 				#
 				# Syntax diagram:
 				#   ◯┬─▶[ expr ]─┬─────────────▶───────────────┬─▶◯
@@ -2045,61 +2215,184 @@ module Plume
 				#    └─▶{ table-name }─▶{ . }─▶{ * }─────────▶─┘
 				#
 				# Simplified grammar:
+				#   expr [[AS] alias] | * | table.*
 				#
 				# Relevant SQLite documentation:
-				#   -
+				#   - https://www.sqlite.org/syntax/result-column.html
 				#
-				# [description]
+				# One of the columns a select core returns.
 			#
 			if (star_tk = maybe :STAR)
 				StarResultColumn.concrete(
 					full_source: @lexer.sql,
-					star_tk: Token::Punctuation(star_tk),
+					star_tk:     Token::Punctuation(star_tk),
 				)
-			elsif peek == :DOT
-				table_tk = identifier
+			elsif peek(2) == [:DOT, :STAR]
+				table_tk = name
 				dot_tk = require :DOT
 				star_tk = require :STAR
 
 				StarResultColumn.concrete(
 					full_source: @lexer.sql,
-					table_tk: Token::Identifier(table_tk),
-					dot_tk: Token::Punctuation(dot_tk),
-					star_tk: Token::Punctuation(star_tk),
+					table_tk:    Token::Identifier(table_tk),
+					dot_tk:      Token::Punctuation(dot_tk),
+					star_tk:     Token::Punctuation(star_tk),
 				)
-			elsif (result = maybe { expression })
-				as_kw = maybe :AS
-				alias_tk = maybe { identifier }
+			else
+				result = expression
+				as_kw, alias_tk = as_alias
+				result_attr = Node === result ? { result: result } : { result_tk: result }
 
 				ResultColumn.concrete(
 					full_source: @lexer.sql,
-					result: result,
-					as_kw: Token::Keyword(as_kw),
-					alias_tk: Token::Identifier(alias_tk),
+					**result_attr,
+					as_kw:       Token::Keyword(as_kw),
+					alias_tk:    Token::Identifier(alias_tk),
 				)
-			else
-				expected!(:STAR, :ID, "expression")
 			end
 		end
 
-		def from_source
+		# `as ::= AS nm | ids | .` - without the AS only an identifier or a string will do,
+		# so keywords like INDEXED or the join keywords are never mistaken for an alias
+		def as_alias
+			if (as_kw = maybe :AS)
+				[as_kw, name]
+			else
+				[nil, maybe { identifier_or_string }]
+			end
+		end
+
+		def join_clause
 			#
 				# Relevant `parse.y` grammar rules:
-				#   "from"=>[[], ["FROM", "seltablist"]],
-				#   "seltablist"=>[
-				#     ["stl_prefix", "nm", "dbnm", "as", "on_using"],
-				#     ["stl_prefix", "nm", "dbnm", "as", "indexed_by", "on_using"],
-				#     ["stl_prefix", "nm", "dbnm", "LP", "exprlist", "RP", "as", "on_using"],
-				#     ["stl_prefix", "LP", "select", "RP", "as", "on_using"],
-				#     ["stl_prefix", "LP", "seltablist", "RP", "as", "on_using"]
-				#   ],
-				#   "stl_prefix"=>[["seltablist", "joinop"], []],
-				#   "joinop"=>[["COMMA"], ["JOIN"], ["JOIN_KW", "JOIN"], ["JOIN_KW", "nm", "JOIN"], ["JOIN_KW", "nm", "nm", "JOIN"]],
-				#   "on_using"=>[["ON", "expr"], ["USING", "LP", "idlist", "RP"], []],
-				#   "indexed_by"=>[["INDEXED", "BY", "nm"], ["NOT", "INDEXED"]],
-				#   "as"=>[["AS", "nm"], ["ids"], []],
-				#   "nm"=>[["idj"], ["STRING"]],
-				#   "dbnm"=>[[], ["DOT", "nm"]],
+				#   seltablist ::= stl_prefix nm dbnm as on_using |
+				#                  stl_prefix nm dbnm as indexed_by on_using |
+				#                  stl_prefix nm dbnm LP exprlist RP as on_using |
+				#                  stl_prefix LP select RP as on_using |
+				#                  stl_prefix LP seltablist RP as on_using
+				#   stl_prefix ::= seltablist joinop | .
+				#   joinop ::= COMMA | JOIN | JOIN_KW JOIN | JOIN_KW nm JOIN | JOIN_KW nm nm JOIN
+				#   on_using ::= ON expr | USING LP idlist RP | .
+				#
+				# Syntax diagram:
+				#   ◯─▶[ table-or-subquery ]┬───────────────────────────────▶────────────────────────────────┬─▶◯
+				#                           └┬▶[ join-operator ]─▶[ table-or-subquery ]─▶[ join-constraint ]┬┘
+				#                            └───────────────────────────────◀──────────────────────────────┘
+				#
+				# Simplified grammar:
+				#   table_or_subquery [join_operator table_or_subquery [join_constraint]]*
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/syntax/join-clause.html
+				#
+				# Everything after FROM. A comma between sources is a join operator as well.
+			#
+			left = table_or_subquery
+			joins = []
+
+			while (operator = join_operator)
+				source = table_or_subquery
+				constraint = join_constraint
+
+				joins << Join.concrete(
+					full_source: @lexer.sql,
+					operator:    operator,
+					source:      source,
+					constraint:  constraint,
+				)
+			end
+
+			return left if joins.empty?
+
+			JoinClause.concrete(
+				full_source: @lexer.sql,
+				left:        left,
+				joins:       joins,
+			)
+		end
+
+		JOIN_KEYWORDS = Set[:NATURAL, :LEFT, :RIGHT, :FULL, :INNER, :OUTER, :CROSS].freeze
+
+		def join_operator
+			#
+				# Syntax diagram:
+				#   ◯┬──────────────▶─────────────────────────────────────────┬─▶◯
+				#    ├─▶{ , }──────────────────────────────────────────────▶─┤
+				#    ├─▶{ NATURAL }─┬┬─▶{ LEFT }──┬┬────────────┬┬▶{ JOIN }─┘
+				#    └──────▶───────┘├─▶{ RIGHT }─┤└▶{ OUTER }─▶┘│
+				#                    ├─▶{ FULL }──┘              │
+				#                    ├─▶{ INNER }───────────────▶┤
+				#                    └─▶{ CROSS }───────────────▶┘
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/syntax/join-operator.html
+			#
+			if (comma_tk = maybe :COMMA)
+				return JoinOperator.concrete(
+					full_source: @lexer.sql,
+					operator_tk: Token::Punctuation(comma_tk),
+				)
+			end
+
+			keywords = []
+			keywords << advance while keywords.size < 3 && JOIN_KEYWORDS.include?(current_token)
+			join_tk = keywords.any? ? require(:JOIN) : maybe(:JOIN)
+			return unless join_tk
+
+			JoinOperator.concrete(
+				full_source: @lexer.sql,
+				operator_tk: Token::Keyword(token_span_from(*keywords, join_tk)),
+			)
+		end
+
+		def join_constraint
+			#
+				# Syntax diagram:
+				#   ◯─┬─▶{ ON }─▶[ expr ]─────────────────────────────▶─┬─▶◯
+				#     ├─▶{ USING }─▶{ ( }┬▶{ column-name }┬▶{ ) }────▶─┤
+				#     │                  └──────{ , }◀────┘             │
+				#     └────────────────────────▶────────────────────────┘
+				#
+				# Relevant SQLite documentation:
+				#   - https://www.sqlite.org/syntax/join-constraint.html
+			#
+			if (on_kw = maybe :ON)
+				JoinOnConstraint.concrete(
+					full_source: @lexer.sql,
+					on_kw:       Token::Keyword(on_kw),
+					expression:  expression,
+				)
+			elsif (using_kw = maybe :USING)
+				columns_lp = require :LP
+				columns = require_some(trailing_sep: :COMMA) do
+					ColumnName.concrete(
+						full_source: @lexer.sql,
+						column_tk:   Token::Identifier(name),
+					)
+				end
+				columns_rp = require :RP
+
+				JoinUsingConstraint.concrete(
+					full_source: @lexer.sql,
+					using_kw:    Token::Keyword(using_kw),
+					columns_lp:  Token::Punctuation(columns_lp),
+					columns:     columns,
+					columns_rp:  Token::Punctuation(columns_rp),
+				)
+			end
+		end
+
+		def table_or_subquery
+			#
+				# Relevant `parse.y` grammar rules:
+				#   seltablist ::= stl_prefix nm dbnm as on_using |
+				#                  stl_prefix nm dbnm as indexed_by on_using |
+				#                  stl_prefix nm dbnm LP exprlist RP as on_using |
+				#                  stl_prefix LP select RP as on_using |
+				#                  stl_prefix LP seltablist RP as on_using
+				#   indexed_by ::= INDEXED BY nm | NOT INDEXED
+				#   as ::= AS nm | ids | .
+				#   dbnm ::= . | DOT nm
 				#
 				# Syntax diagram:
 				#                                              ┌───────┬────────────────┐
@@ -2116,78 +2409,88 @@ module Plume
 				#            │└─────────{ , }◀───────┘│
 				#            └─▶────[ join-clause ]───┘
 				#
-				#   ◯─▶[ table-or-subquery ]┬───────────────────────────────▶────────────────────────────────┬─▶◯
-				#                           └┬▶[ join-operator ]─▶[ table-or-subquery ]─▶[ join-constraint ]┬┘
-				#                            └───────────────────────────────◀──────────────────────────────┘
-				#
 				# Simplified grammar:
+				#   [schema .] table [[AS] alias] [INDEXED BY index | NOT INDEXED]
+				#   | [schema .] function (expr [, expr]*) [[AS] alias]
+				#   | (select_stmt) [[AS] alias]
+				#   | (join_clause) [[AS] alias]
 				#
 				# Relevant SQLite documentation:
-				#   -
+				#   - https://www.sqlite.org/syntax/table-or-subquery.html
 				#
-				# [description]
+				# One source of rows in a FROM clause.
 			#
 			if (source_lp = maybe :LP)
-			elsif (ref = maybe { name })
-				if (dot_tk = maybe :DOT)
-					table_tk = name
+				if current_token in :SELECT | :VALUES | :WITH
+					select = select_stmt
+					source_rp = require :RP
+					as_kw, alias_tk = as_alias
 
-					if (arguments_lp = maybe :LP)
-						function_name = name
-						arguments = maybe_some(trailing_sep: :COMMA) { expression(next_precedence) }
-						arguments_rp = require :RP
-
-						right = FunctionReference.concrete(
-							full_source: @lexer.sql,
-							schema_tk: Token::Identifier(ref),
-							function_tk: Token::Identifier(name),
-							arguments_lp: Token::Punctuation(arguments_lp),
-							arguments: FunctionArguments.concrete(
-								full_source: @lexer.sql,
-								expressions: arguments
-							),
-							arguments_rp: Token::Punctuation(arguments_rp),
-						)
-					else
-						as_kw = maybe :AS
-						alias_tk = maybe { identifier }
-
-						TableName.concrete(
-							full_source: @lexer.sql,
-							schema_tk: Token::Identifier(ref),
-							dot_tk: Token::Punctuation(dot_tk),
-							table_tk: Token::Identifier(table_tk),
-							as_kw: Token::Keyword(as_kw),
-							alias_tk: Token::Identifier(alias_tk)
-						)
-					end
-				elsif (arguments_lp = maybe :LP)
-					arguments = maybe_some(trailing_sep: :COMMA) { expression(next_precedence) }
-					arguments_rp = require :RP
-
-					right = FunctionReference.concrete(
+					SubquerySource.concrete(
 						full_source: @lexer.sql,
-						function_tk: Token::Identifier(ref),
-						arguments_lp: Token::Punctuation(arguments_lp),
-						arguments: FunctionArguments.concrete(
-							full_source: @lexer.sql,
-							expressions: arguments
-						),
-						arguments_rp: Token::Punctuation(arguments_rp),
+						select_lp:   Token::Punctuation(source_lp),
+						select:      select,
+						select_rp:   Token::Punctuation(source_rp),
+						as_kw:       Token::Keyword(as_kw),
+						alias_tk:    Token::Identifier(alias_tk),
 					)
 				else
-					as_kw = maybe :AS
-					alias_tk = maybe { identifier }
+					source = join_clause
+					source_rp = require :RP
+					as_kw, alias_tk = as_alias
 
-					TableName.concrete(
+					ParentheticalSource.concrete(
 						full_source: @lexer.sql,
-						table_tk: Token::Identifier(ref),
-						as_kw: Token::Keyword(as_kw),
-						alias_tk: Token::Identifier(alias_tk)
+						source_lp:   Token::Punctuation(source_lp),
+						source:      source,
+						source_rp:   Token::Punctuation(source_rp),
+						as_kw:       Token::Keyword(as_kw),
+						alias_tk:    Token::Identifier(alias_tk),
 					)
 				end
 			else
-				expected!(:LP, "name")
+				schema_tk = nil
+				object_tk = name
+				if (dot_tk = maybe :DOT)
+					schema_tk = object_tk
+					object_tk = name
+				end
+
+				if (arguments_lp = maybe :LP)
+					arguments = maybe_some(trailing_sep: :COMMA) { expression }
+					arguments_rp = require :RP
+					as_kw, alias_tk = as_alias
+
+					TableFunction.concrete(
+						full_source:  @lexer.sql,
+						schema_tk:    Token::Identifier(schema_tk),
+						dot_tk:       Token::Punctuation(dot_tk),
+						function_tk:  Token::Identifier(object_tk),
+						arguments_lp: Token::Punctuation(arguments_lp),
+						arguments:    arguments,
+						arguments_rp: Token::Punctuation(arguments_rp),
+						as_kw:        Token::Keyword(as_kw),
+						alias_tk:     Token::Identifier(alias_tk),
+					)
+				else
+					as_kw, alias_tk = as_alias
+					if (indexed_kw = maybe_all_of :INDEXED, :BY)
+						index_tk = name
+					else
+						indexed_kw = maybe_all_of :NOT, :INDEXED
+					end
+
+					TableName.concrete(
+						full_source: @lexer.sql,
+						schema_tk:   Token::Identifier(schema_tk),
+						dot_tk:      Token::Punctuation(dot_tk),
+						table_tk:    Token::Identifier(object_tk),
+						as_kw:       Token::Keyword(as_kw),
+						alias_tk:    Token::Identifier(alias_tk),
+						indexed_kw:  Token::Keyword(indexed_kw),
+						index_tk:    Token::Identifier(index_tk),
+					)
+				end
 			end
 		end
 

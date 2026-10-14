@@ -37,10 +37,10 @@ end
 test "pattern matching uses the public readers" do
 	node = parse_stmt("select * from main.tb0")
 
-	case node.source
+	case node.body.source
 	in { schema: "main", table: "tb0" }
 		success!
 	else
-		failure! { node.source.deconstruct_keys(nil).inspect }
+		failure! { node.body.source.deconstruct_keys(nil).inspect }
 	end
 end

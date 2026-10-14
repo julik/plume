@@ -1,6 +1,6 @@
 KEYWORD        TOTAL    PASS    FAIL     NYI
-SELECT         11287     770   10494      23
-CREATE          1500     230      39    1231
+SELECT         11287    8612    2642      33
+CREATE          1500     268      10    1222
 INSERT           772       0       0     772
 PRAGMA           707       0       0     707
 BEGIN            325       0       0     325
@@ -8,11 +8,11 @@ DROP             313       0       0     313
 DELETE           307       0       0     307
 UPDATE           245       0       0     245
 ATTACH            92       0       0      92
-EXPLAIN           63       7      40      16
+EXPLAIN           63      48       0      15
 ALTER             46       0       0      46
 ROLLBACK          31       0       0      31
 COMMIT            30       0       0      30
-WITH              25       0       0      25
+WITH              25      17       8       0
 VACUUM            21       0       0      21
 SAVEPOINT         20       0       0      20
 DETACH            13       0       0      13
@@ -21,4 +21,4 @@ REINDEX           10       0       0      10
 REPLACE            9       0       0       9
 END                5       0       0       5
 RELEASE            5       0       0       5
-ALL            15836    1007   10573    4256
+ALL            15836    8945    2660    4231

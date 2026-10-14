@@ -21,6 +21,9 @@ module Plume
 				SignedExpression,
 				LiteralExpression,
 				ParentheticalExpression,
+				SubqueryExpression,
+				ExistsExpression,
+				Variable,
 			)
 		},
 	)

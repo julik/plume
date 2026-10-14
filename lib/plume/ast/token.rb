@@ -16,6 +16,7 @@ module Plume
 			:false,
 			:null,
 			:current,
+			:variable,
 		)
 
 		Tuple = _Tuple(_Union(Symbol, _Array(Symbol)), Integer, Integer, Type)
@@ -60,6 +61,10 @@ module Plume
 			[*arg, :current] if arg
 		end
 
+		def Variable(arg)
+			[*arg, :variable] if arg
+		end
+
 		def source(str, tup)
 			return unless str && tup
 
@@ -84,6 +89,7 @@ module Plume
 			when :keyword     then source(str, tup)
 			when :identifier  then identifier(str, tup)
 			when :punctuation then source(str, tup)
+			when :variable    then source(str, tup)
 			end
 		end
 
