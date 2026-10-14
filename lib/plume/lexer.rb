@@ -499,6 +499,9 @@ module Plume
 					step
 				end
 
+				# SQLite takes a "_" only between two digits, see sqlite3DequoteNumber
+				token_type = :ILLEGAL if token_type == :QNUMBER && !separators_between_digits?(hex)
+
 				token_type
 			when :QUOTE2
 				step until (b = peek).nil? || b == 93 # "]"
@@ -633,5 +636,12 @@ module Plume
 		# middle of identifiers.  But many SQL implementations do.
 		# SQLite will allow '$' in identifiers for compatibility.
 		# But the feature is undocumented.
+
+		def separators_between_digits?(hex)
+			digit = hex ? method(:xdigit?) : method(:digit?)
+			(@anchor...@cursor).all? do |i|
+				@sql.getbyte(i) != 95 || (digit.(@sql.getbyte(i - 1)) && digit.(@sql.getbyte(i + 1))) # "_"
+			end
+		end
 	end
 end
