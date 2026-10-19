@@ -363,7 +363,7 @@ module Plume
 		def transaction_name
 			return [] unless (transaction_kw = maybe :TRANSACTION)
 
-			name_tk = maybe { name(except: [:TO]) } unless current_token.nil? || current_token == :SEMI
+			name_tk = maybe { name(except: [:TO]) } unless statement_end?
 			[transaction_kw, name_tk]
 		end
 
@@ -537,7 +537,7 @@ module Plume
 				#   - https://www.sqlite.org/lang_analyze.html
 			#
 			analyze_kw = require :ANALYZE
-			target = table_name unless current_token.nil? || current_token == :SEMI
+			target = table_name unless statement_end?
 
 			AnalyzeStatement.concrete(
 				full_source: @lexer.sql,
@@ -555,7 +555,7 @@ module Plume
 				#   - https://www.sqlite.org/lang_reindex.html
 			#
 			reindex_kw = require :REINDEX
-			target = table_name unless current_token.nil? || current_token == :SEMI
+			target = table_name unless statement_end?
 
 			ReindexStatement.concrete(
 				full_source: @lexer.sql,
@@ -1125,7 +1125,6 @@ module Plume
 				#
 				# Adds rows to a table, from a VALUES list, a select, or the column defaults.
 			#
-			with ||= with_clause if current_token == :WITH
 			insert_kw = require_one_of(
 				[:INSERT, :OR, :ROLLBACK].freeze, [:INSERT, :OR, :ABORT].freeze, [:INSERT, :OR, :FAIL].freeze,
 				[:INSERT, :OR, :IGNORE].freeze, [:INSERT, :OR, :REPLACE].freeze, :INSERT, :REPLACE,
@@ -1189,7 +1188,6 @@ module Plume
 				#
 				# Changes columns of existing rows.
 			#
-			with ||= with_clause if current_token == :WITH
 			update_kw = require_one_of(
 				[:UPDATE, :OR, :ROLLBACK].freeze, [:UPDATE, :OR, :ABORT].freeze, [:UPDATE, :OR, :FAIL].freeze,
 				[:UPDATE, :OR, :IGNORE].freeze, [:UPDATE, :OR, :REPLACE].freeze, :UPDATE,
@@ -1245,7 +1243,6 @@ module Plume
 				#
 				# Removes rows from a table.
 			#
-			with ||= with_clause if current_token == :WITH
 			delete_kw = require :DELETE
 			from_kw = require :FROM
 			table = qualified_table_name(indexed: true)
@@ -1466,20 +1463,13 @@ module Plume
 				if (in_tk = maybe :IN)
 					if (value_lp = maybe :LP)
 						if (value_rp = maybe :RP)
-							foo = ParentheticalExpression.concrete(
+							right = ParentheticalExpression.concrete(
 								full_source: @lexer.sql,
 								value_lp: Token::Punctuation(value_lp),
 								value: nil,
 								value_rp: Token::Punctuation(value_rp),
 							)
-
-							left = BinaryExpression.concrete(
-								full_source: @lexer.sql,
-								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
-								left: left,
-								right: foo,
-							)
-						elsif current_token in :SELECT | :VALUES | :WITH
+						elsif subquery_start?
 							select = select_stmt
 							value_rp = require :RP
 
@@ -1488,13 +1478,6 @@ module Plume
 								select_lp: Token::Punctuation(value_lp),
 								select: select,
 								select_rp: Token::Punctuation(value_rp),
-							)
-
-							left = BinaryExpression.concrete(
-								full_source: @lexer.sql,
-								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
-								left: left,
-								right: right,
 							)
 						elsif (e = maybe { expression })
 							exprs = require_some(given: e, trailing_sep: :COMMA) do
@@ -1507,13 +1490,6 @@ module Plume
 								value_lp: Token::Punctuation(value_lp),
 								value: exprs,
 								value_rp: Token::Punctuation(value_rp),
-							)
-
-							left = BinaryExpression.concrete(
-								full_source: @lexer.sql,
-								operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
-								left: left,
-								right: right,
 							)
 						else
 							expected!(:RP, "select-stmt", "expr")
@@ -1567,16 +1543,16 @@ module Plume
 								table_tk: Token::Identifier(table),
 							)
 						end
-
-						left = BinaryExpression.concrete(
-							full_source: @lexer.sql,
-							operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
-							left: left,
-							right: right,
-						)
 					else
 						expected!(:LP, :ID)
 					end
+
+					left = BinaryExpression.concrete(
+						full_source: @lexer.sql,
+						operator_tk: Token::Punctuation(token_span_from(negated, in_tk)),
+						left: left,
+						right: right,
+					)
 				elsif (between_kw = maybe :BETWEEN)
 					middle = expression(next_precedence)
 					and_kw = require :AND
@@ -2395,7 +2371,7 @@ module Plume
 					**operand_attr,
 				)
 			elsif (value_lp = maybe :LP)
-				if current_token in :SELECT | :VALUES | :WITH
+				if subquery_start?
 					select = select_stmt
 					select_rp = require :RP
 
@@ -2994,7 +2970,6 @@ module Plume
 				# Relevant SQLite documentation:
 				#   - https://www.sqlite.org/syntax/qualified-table-name.html
 			#
-			schema_tk = nil
 			table_tk = name
 			if (dot_tk = maybe :DOT)
 				schema_tk = table_tk
@@ -3003,13 +2978,7 @@ module Plume
 			if (as_kw = maybe :AS)
 				alias_tk = name
 			end
-			if indexed
-				if (indexed_kw = maybe_all_of :INDEXED, :BY)
-					index_tk = name
-				else
-					indexed_kw = maybe_all_of :NOT, :INDEXED
-				end
-			end
+			indexed_kw, index_tk = indexed_by if indexed
 
 			TableName.concrete(
 				full_source: @lexer.sql,
@@ -3210,6 +3179,15 @@ module Plume
 			end
 		end
 
+		# indexed_by ::= INDEXED BY nm | NOT INDEXED
+		def indexed_by
+			if (indexed_kw = maybe_all_of :INDEXED, :BY)
+				[indexed_kw, name]
+			else
+				[maybe_all_of(:NOT, :INDEXED), nil]
+			end
+		end
+
 		def join_clause
 			#
 				# Relevant `parse.y` grammar rules:
@@ -3312,12 +3290,7 @@ module Plume
 				)
 			elsif (using_kw = maybe :USING)
 				columns_lp = require :LP
-				columns = require_some(trailing_sep: :COMMA) do
-					ColumnName.concrete(
-						full_source: @lexer.sql,
-						column_tk:   Token::Identifier(name),
-					)
-				end
+				columns = require_some(trailing_sep: :COMMA) { column_reference }
 				columns_rp = require :RP
 
 				JoinUsingConstraint.concrete(
@@ -3369,7 +3342,7 @@ module Plume
 				# One source of rows in a FROM clause.
 			#
 			if (source_lp = maybe :LP)
-				if current_token in :SELECT | :VALUES | :WITH
+				if subquery_start?
 					select = select_stmt
 					source_rp = require :RP
 					as_kw, alias_tk = as_alias
@@ -3422,11 +3395,7 @@ module Plume
 					)
 				else
 					as_kw, alias_tk = as_alias
-					if (indexed_kw = maybe_all_of :INDEXED, :BY)
-						index_tk = name
-					else
-						indexed_kw = maybe_all_of :NOT, :INDEXED
-					end
+					indexed_kw, index_tk = indexed_by
 
 					TableName.concrete(
 						full_source: @lexer.sql,
@@ -4008,6 +3977,14 @@ module Plume
 		def current_token
 			buf = ensure_buffer
 			buf[0][0]
+		end
+
+		def statement_end?
+			current_token.nil? || current_token == :SEMI
+		end
+
+		def subquery_start?
+			current_token in :SELECT | :VALUES | :WITH
 		end
 
 		# Access the string value for the current token.
