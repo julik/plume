@@ -8,12 +8,11 @@ module Plume
 		token :into_kw
 
 		attr :schema, Stringy
-		attr :into, Expression
+		node :into, Expression
 
 		def self.new(*, **) = super
 		def self.concrete(*, vacuum_kw:, **) = super
 
 		def schema = (@schema == LiteralNil) ? schema_tk_val : @schema
-		def into = (@into == LiteralNil) ? nil : @into
 	end
 end

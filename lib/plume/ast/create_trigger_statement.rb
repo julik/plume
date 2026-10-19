@@ -18,13 +18,11 @@ module Plume
 		node :trigger, TableName
 		nodes :columns, ColumnName
 		node :table, TableName
-		attr :condition, Expression
+		node :condition, Expression
 		nodes :statements, _Any
 
 		def self.new(*, trigger:, table:, statements:, **) = super
 		def self.concrete(*, create_kw:, trigger_kw:, trigger:, table:, statements:, **) = super
-
-		def condition = (@condition == LiteralNil) ? nil : @condition
 
 		inspectable def temporary = temp_kw?
 		inspectable def if_not_exists = if_not_exists_kw?

@@ -14,16 +14,13 @@ module Plume
 
 		nodes :columns, _Union(ResultColumn, StarResultColumn)
 		node :source, _Any
-		attr :condition, Expression
+		node :condition, Expression
 		nodes :groupings, Expression
-		attr :having, Expression
+		node :having, Expression
 		nodes :windows, WindowDefinition
 
 		def self.new(*, columns:, **) = super
 		def self.concrete(*, select_kw:, columns:, **) = super
-
-		def condition = (@condition == LiteralNil) ? nil : @condition
-		def having = (@having == LiteralNil) ? nil : @having
 
 		inspectable def distinct = type_tk_tok == :DISTINCT
 	end

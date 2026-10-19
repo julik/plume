@@ -16,17 +16,13 @@ module Plume
 
 		node :with_clause, WithClause
 		node :table, TableName
-		attr :condition, Expression
+		node :condition, Expression
 		node :returning, ReturningClause
 		nodes :orderings, OrderingTerm
-		attr :limit, Expression
-		attr :offset, Expression
+		node :limit, Expression
+		node :offset, Expression
 
 		def self.new(*, table:, **) = super
 		def self.concrete(*, delete_kw:, from_kw:, table:, **) = super
-
-		def condition = (@condition == LiteralNil) ? nil : @condition
-		def limit = (@limit == LiteralNil) ? nil : @limit
-		def offset = (@offset == LiteralNil) ? nil : @offset
 	end
 end

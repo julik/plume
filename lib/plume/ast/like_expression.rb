@@ -7,16 +7,13 @@ module Plume
 		token :operator_tk
 		token :escape_kw
 
-		attr :left, Expression
-		attr :right, Expression
-		attr :escape, Expression
+		node :left, Expression
+		node :right, Expression
+		node :escape, Expression
 
 		def self.new(*, left:, right:, **) = super
 		def self.concrete(*, operator_tk:, left:, right:, **) = super
 
-		def left = @left
-		def right = @right
-		def escape = (@escape == LiteralNil) ? nil : @escape
 		def operator = :LIKE
 	end
 end

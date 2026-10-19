@@ -17,14 +17,11 @@ module Plume
 		node :with_clause, _Any
 		node :body, _Any
 		nodes :orderings, OrderingTerm
-		attr :limit, Expression
-		attr :offset, Expression
+		node :limit, Expression
+		node :offset, Expression
 
 		def self.new(*, body:, **) = super
 		def self.concrete(*, body:, **) = super
-
-		def limit = (@limit == LiteralNil) ? nil : @limit
-		def offset = (@offset == LiteralNil) ? nil : @offset
 
 		# Every `SelectCore` and `ValuesClause` making up the body, left to right
 		def cores

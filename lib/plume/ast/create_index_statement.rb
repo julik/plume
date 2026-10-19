@@ -16,13 +16,12 @@ module Plume
 		node :index, TableName
 		attr :table, Stringy
 		nodes :columns, OrderingTerm
-		attr :condition, Expression
+		node :condition, Expression
 
 		def self.new(*, index:, table:, columns:, **) = super
 		def self.concrete(*, create_kw:, index_kw:, index:, table_tk:, columns:, **) = super
 
 		def table = (@table == LiteralNil) ? table_tk_val : @table
-		def condition = (@condition == LiteralNil) ? nil : @condition
 
 		inspectable def unique = unique_kw?
 		inspectable def if_not_exists = if_not_exists_kw?

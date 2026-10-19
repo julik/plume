@@ -5,11 +5,9 @@ module Plume
 	class DetachStatement < Node
 		token :detach_kw # DETACH or DETACH DATABASE
 
-		attr :schema, Expression
+		node :schema, Expression
 
 		def self.new(*, schema:, **) = super
 		def self.concrete(*, detach_kw:, schema:, **) = super
-
-		def schema = @schema
 	end
 end

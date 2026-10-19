@@ -8,12 +8,11 @@ module Plume
 		token :eq_tk
 
 		nodes :columns, ColumnName
-		attr :value, Expression
+		node :value, Expression
 
 		def self.new(*, columns:, value:, **) = super
 		def self.concrete(*, columns:, value:, **) = super
 
-		def value = @value
 		def column_names = columns.map(&:column)
 	end
 end

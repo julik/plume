@@ -13,15 +13,12 @@ module Plume
 		token :where_kw
 
 		nodes :targets, OrderingTerm
-		attr :target_condition, Expression
+		node :target_condition, Expression
 		nodes :assignments, Assignment
-		attr :condition, Expression
+		node :condition, Expression
 
 		def self.new(*, **) = super
 		def self.concrete(*, on_conflict_kw:, action_kw:, **) = super
-
-		def target_condition = (@target_condition == LiteralNil) ? nil : @target_condition
-		def condition = (@condition == LiteralNil) ? nil : @condition
 
 		# :NOTHING or :UPDATE
 		inspectable def action = action_kw_tok

@@ -14,7 +14,7 @@ module Plume
 		token :new_name_tk
 
 		node :table, TableName
-		attr :action, Action
+		node :action, Action
 		node :column_definition, ColumnDefinition
 		attr :column, Stringy
 		attr :new_name, Stringy
@@ -22,7 +22,6 @@ module Plume
 		def self.new(*, table:, action:, **) = super
 		def self.concrete(*, alter_table_kw:, table:, action:, **) = super
 
-		def action = @action
 		def column = (@column == LiteralNil) ? column_tk_val : @column
 		def new_name = (@new_name == LiteralNil) ? new_name_tk_val : @new_name
 	end

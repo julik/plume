@@ -21,18 +21,14 @@ module Plume
 		node :table, TableName
 		nodes :assignments, Assignment
 		node :source, _Any
-		attr :condition, Expression
+		node :condition, Expression
 		node :returning, ReturningClause
 		nodes :orderings, OrderingTerm
-		attr :limit, Expression
-		attr :offset, Expression
+		node :limit, Expression
+		node :offset, Expression
 
 		def self.new(*, table:, assignments:, **) = super
 		def self.concrete(*, update_kw:, table:, assignments:, **) = super
-
-		def condition = (@condition == LiteralNil) ? nil : @condition
-		def limit = (@limit == LiteralNil) ? nil : @limit
-		def offset = (@offset == LiteralNil) ? nil : @offset
 
 		inspectable def or_action = TOKEN_TO_RESOLUTION[update_kw_tok]
 	end

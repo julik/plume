@@ -14,16 +14,13 @@ module Plume
 		token :and_kw
 
 		attr :operator, Operator
-		attr :left, Expression
-		attr :middle, Expression
-		attr :right, Expression
+		node :left, Expression
+		node :middle, Expression
+		node :right, Expression
 
 		def self.new(*, operator:, left:, middle:, right:, **) = super
 		def self.concrete(*, operator_tk:, left:, middle:, right:, **) = super
 
 		def operator = (@operator == LiteralNil) ? TOKEN_TO_OPERATOR[operator_tk_tok] : @operator
-		def left = @left
-		def middle = @middle
-		def right = @right
 	end
 end

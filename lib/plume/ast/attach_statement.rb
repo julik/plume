@@ -7,15 +7,11 @@ module Plume
 		token :as_kw
 		token :key_kw
 
-		attr :file, Expression
-		attr :schema, Expression
-		attr :key, Expression
+		node :file, Expression
+		node :schema, Expression
+		node :key, Expression
 
 		def self.new(*, file:, schema:, **) = super
 		def self.concrete(*, attach_kw:, file:, schema:, **) = super
-
-		def file = @file
-		def schema = @schema
-		def key = (@key == LiteralNil) ? nil : @key
 	end
 end

@@ -4,11 +4,9 @@ module Plume
 	class JoinOnConstraint < Node
 		token :on_kw
 
-		attr :expression, Expression
+		node :expression, Expression
 
 		def self.new(*, expression:, **) = super
 		def self.concrete(*, on_kw:, expression:, **) = super
-
-		def expression = @expression
 	end
 end
