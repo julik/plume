@@ -2,6 +2,8 @@
 
 module Plume
 	class Node < Literal::Struct
+		extend Union::Types
+
 		Stringy = _Union(String, Symbol)
 
 		prop :full_source, _Nilable(String)
@@ -134,9 +136,8 @@ module Plume
 			object
 		end
 
-		# Literal checks a union's plain values (nil, true, symbols…) with a Set lookup, which hashes
-		# the value - and hashing a node hashes its whole subtree. Keeping nil out of the union
-		# (it goes through _Nilable) keeps building a tree linear rather than quadratic
+		# Every prop is type checked as a tree is built, so the check must never hash a node,
+		# see Plume::Union
 		def self.attr(name, type, **kw)
 			prop name, _Nilable(_Union(type, LiteralNil)), reader: kw.fetch(:reader, false), default: LiteralNil, **kw
 			inspectable name

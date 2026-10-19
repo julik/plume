@@ -3,9 +3,11 @@
 require "plume/version"
 require "set"
 require "literal"
+require "plume/union"
 
 module Plume
 	extend Literal::Types
+	extend Union::Types
 
 	autoload :Lexer, "plume/lexer"
 	autoload :Parser, "plume/parser"
