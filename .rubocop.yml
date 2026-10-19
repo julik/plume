@@ -11,6 +11,9 @@ Layout/HashAlignment:
 Layout/MultilineArrayLineBreaks:
   Enabled: false
 
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: false
+
 Layout/ExtraSpacing:
   Enabled: false
 
