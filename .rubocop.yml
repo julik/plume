@@ -56,7 +56,7 @@ Layout/EmptyComment:
   Exclude:
     - lib/plume/parser.rb
 
-# A `private` section reads better here than prefixing every helper
+# A `private` section reads better than prefixing every helper, as the lexer and parser already do
 Style/AccessModifierDeclarations:
   EnforcedStyle: group
 
