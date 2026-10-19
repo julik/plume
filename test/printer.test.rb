@@ -15,6 +15,17 @@ test "literals keep their meaning" do
 		"SELECT 'it''s', X'00FF', 0x1F, 1e3, NULL, TRUE, CURRENT_DATE, -1, -(-1)"
 end
 
+test "a number SQL cannot spell is refused rather than printed as something else" do
+	[Rational(1, 3), Complex(1, 2), Float::NAN, Float::INFINITY].each do |number|
+		assert_raises(ArgumentError) { Plume::LiteralExpression.new(value: number).to_sql }
+	end
+	assert_equal Plume::LiteralExpression.new(value: 2.5).to_sql, "2.5"
+end
+
+test "a parenthesized NULL keeps its NULL" do
+	assert_equal parse_stmt("select (null), x in (), x in (null)").to_sql, "SELECT (NULL), x IN (), x IN (NULL)"
+end
+
 test "aliases always get their AS" do
 	assert_equal parse_stmt("select a x from t y").to_sql, "SELECT a AS x FROM t AS y"
 end
@@ -42,4 +53,14 @@ end
 
 test "a foreign key action built by hand prints" do
 	assert_equal Plume::ForeignKeyAction.new(trigger: :DELETE, action: :SET_NULL).to_sql, "ON DELETE SET NULL"
+end
+
+test "plain values in a tree built by hand print as literals" do
+	node = Plume::BinaryExpression.new(
+		operator: :ALL,
+		left: Plume::BinaryExpression.new(operator: :ABOVE, left: Plume::ColumnName.new(column: "age"), right: 21),
+		right: Plume::BinaryExpression.new(operator: :EQUALS, left: Plume::ColumnName.new(column: "name"), right: "o'hara"),
+	)
+
+	assert_equal node.to_sql, "(age > 21) AND (name = 'o''hara')"
 end

@@ -32,6 +32,8 @@ module Plume
 			when nil then nil
 			when Array then node.map { |n| print(n) }.join(", ")
 			when Node then send(:"print_#{underscore(node.class.name.split("::").last)}", node)
+			# Expressions built by hand may hold plain values, which stand for the literal they spell
+			when LiteralValue then print(LiteralExpression.new(value: node))
 			else raise ArgumentError, "cannot print #{node.inspect}"
 			end
 		end
@@ -283,9 +285,14 @@ module Plume
 			when true then "TRUE"
 			when false then "FALSE"
 			when Symbol then value.to_s
-			when Numeric then value.to_s
+			when Integer then value.to_s
+			when Float
+				# SQLite has no literal for NaN or infinity
+				value.finite? ? value.to_s : raise(ArgumentError, "cannot print #{value}")
 			when String
 				value.encoding == Encoding::BINARY ? "X'#{value.unpack1("H*").upcase}'" : string(value)
+			# A Rational would print as integer division (1/3), a Complex as nothing SQL can read
+			else raise ArgumentError, "cannot print #{value.inspect}"
 			end
 		end
 
@@ -325,17 +332,7 @@ module Plume
 
 		def print_collation_expression(node) = "#{operand(node.expression)} COLLATE #{identifier(node.sequence)}"
 
-		def print_parenthetical_expression(node)
-			return "()" if node.instance_variable_get(:@value).nil? # `x IN ()`
-
-			value = node.value
-			"(#{value.is_a?(Array) ? list(value) : print_value(value)})"
-		end
-
-		# ParentheticalExpression#value unwraps literals into plain Ruby values
-		def print_value(value)
-			Node === value ? print(value) : print(LiteralExpression.new(value:))
-		end
+		def print_parenthetical_expression(node) = "(#{print(node.contents)})"
 
 		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
 
