@@ -222,6 +222,16 @@ test "select * from nowhere" do
 	assert_equal reads("select * from nowhere", strict: false).unresolved.map(&:reason), ["no such table"]
 end
 
+test "views that select from each other are reported, not followed forever" do
+	catalog = Plume::Catalog.from_sql("CREATE VIEW v1 AS SELECT * FROM v2; CREATE VIEW v2 AS SELECT * FROM v1;")
+
+	assert_equal Plume.reads("select * from v1", catalog:, strict: false).unresolved.map(&:reason), ["circularly defined view"]
+end
+
+test "a view may be used twice in one query" do
+	assert_equal sorted(reads("select a.id, b.email from user_emails a, user_emails b").columns), { "users" => ["email", "id"] }
+end
+
 test "only a single SELECT is analyzed" do
 	["select 1; select 2", "create table x (a)"].each do |sql|
 		raised = begin

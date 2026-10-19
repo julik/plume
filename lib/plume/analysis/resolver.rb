@@ -86,6 +86,8 @@ module Plume
 			def start(statement)
 				@reads = Reads.new(statement)
 				@writes = Writes.new(statement, @reads.unresolved)
+				# By identity: a view holds its parsed select, and hashing that hashes the whole tree
+				@expanding_views = Set.new.compare_by_identity
 			end
 
 			def with_scope(with_clause, parent)
@@ -339,8 +341,14 @@ module Plume
 					scope.sources << Source.table(name, table, source)
 				elsif (view = @catalog.view(source.table, schema: source.schema))
 					@reads.views << Analysis.table_key(view.schema, view.name)
-					# A view's body starts a scope chain of its own, so the CTEs of the query using it stay out of sight
-					names = select(view.select, parent: nil, usage:)
+					if @expanding_views.include?(view)
+						unresolved(source.table, "circularly defined view", source)
+					else
+						@expanding_views << view
+						# A view's body starts a scope chain of its own, so the CTEs of the query using it stay out of sight
+						names = select(view.select, parent: nil, usage:)
+						@expanding_views.delete(view)
+					end
 					scope.sources << Source.new(name:, kind: :derived, columns: view.columns || names, node: source)
 				else
 					unresolved(source.table, "no such table", source)
