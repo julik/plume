@@ -232,6 +232,13 @@ test "a view may be used twice in one query" do
 	assert_equal sorted(reads("select a.id, b.email from user_emails a, user_emails b").columns), { "users" => ["email", "id"] }
 end
 
+test "a table made from a select whose columns cannot be known takes any column" do
+	catalog = Plume::Catalog.from_sql("CREATE TABLE c AS SELECT * FROM missing")
+
+	assert_equal sorted(Plume.reads("select q from c", catalog:).columns), { "c" => ["q"] }
+	assert_equal sorted(Plume.access("insert into c values (1)", catalog:).writes.inserted), { "c" => ["*"] }
+end
+
 test "only a single SELECT is analyzed" do
 	["select 1; select 2", "create table x (a)"].each do |sql|
 		raised = begin

@@ -7,8 +7,12 @@ module Plume
 	class Catalog
 		ROWID_NAMES = %w[rowid oid _rowid_].freeze
 
+		# `columns` is nil when they cannot be known, like a CREATE TABLE … AS SELECT * from a table
+		# the catalog lacks; any column name is then taken as written
 		Table = Data.define(:schema, :name, :columns, :hidden_columns, :rowid_alias, :without_rowid) do
 			def column(name)
+				return name.to_s unless columns
+
 				needle = name.to_s.downcase
 				columns.find { |c| c.downcase == needle } || hidden_columns.find { |c| c.downcase == needle }
 			end
@@ -126,7 +130,7 @@ module Plume
 
 			if statement.select_statement
 				columns = Analysis::Resolver.new(catalog: self).output_columns(statement.select_statement)
-				add_table(name, columns.map { |c| c || "" }, schema:)
+				add_table(name, (columns unless columns.include?(nil)), schema:)
 				return
 			end
 

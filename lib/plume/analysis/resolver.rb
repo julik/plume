@@ -26,8 +26,8 @@ module Plume
 				end
 
 				def column(name)
-					return table.column(name) if table
 					return unless columns
+					return table.column(name) if table
 
 					needle = name.downcase
 					columns.find { |c| c&.downcase == needle }
@@ -540,7 +540,7 @@ module Plume
 				case source.kind
 				when :table
 					if source.table
-						column = source.column(name)
+						column = source.table.column(name)
 						column ||= source.table.rowid_alias || "rowid" if Catalog::ROWID_NAMES.include?(name.downcase) && source.table.rowid?
 						return unresolved(name, "no such column in #{source.table.name}", node) unless column
 
