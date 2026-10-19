@@ -11,8 +11,8 @@ module Plume
 		token :value_tk
 		token :value_rp
 
-		attr :schema, Stringy
-		attr :name, Stringy
+		attribute :schema, Stringy
+		attribute :name, Stringy
 
 		def self.new(*, name:, **) = super
 		def self.concrete(*, pragma_kw:, name_tk:, **) = super

@@ -7,7 +7,7 @@ module Plume
 		token :schema_tk
 		token :into_kw
 
-		attr :schema, Stringy
+		attribute :schema, Stringy
 		node :into, Expression
 
 		def self.new(*, **) = super

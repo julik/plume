@@ -47,9 +47,9 @@ module Plume
 		token :left_tk             # required
 		token :right_tk            # required
 
-		attr :operator, Operator   # required
-		attr :left,     Expression # required
-		attr :right,    Expression # required
+		attribute :operator, Operator   # required
+		attribute :left,     Expression # required
+		attribute :right,    Expression # required
 
 		def self.new(*, operator:, left:, right:, **) = super
 		def self.concrete(*, operator_tk:, **) = super

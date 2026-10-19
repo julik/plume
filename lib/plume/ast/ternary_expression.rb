@@ -13,7 +13,7 @@ module Plume
 		token :operator_tk
 		token :and_kw
 
-		attr :operator, Operator
+		attribute :operator, Operator
 		node :left, Expression
 		node :middle, Expression
 		node :right, Expression

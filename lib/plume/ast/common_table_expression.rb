@@ -10,7 +10,7 @@ module Plume
 		token :select_lp
 		token :select_rp
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		nodes :columns, IndexedColumn
 		node :select, SelectStatement
 

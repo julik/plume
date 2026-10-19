@@ -13,8 +13,8 @@ module Plume
 		nodes :partitions, Expression
 		nodes :orderings, OrderingTerm
 		node :frame, FrameSpec
-		attr :window_name, Stringy
-		attr :base_window_name, Stringy
+		attribute :window_name, Stringy
+		attribute :base_window_name, Stringy
 
 		def self.new(*, **) = super
 		def self.concrete(*, over_kw:, **) = super

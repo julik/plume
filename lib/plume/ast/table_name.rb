@@ -10,9 +10,9 @@ module Plume
 		token :indexed_kw # INDEXED BY, or NOT INDEXED
 		token :index_tk
 
-		attr :schema, Stringy
-		attr :table, Stringy
-		attr :alias, Stringy
+		attribute :schema, Stringy
+		attribute :table, Stringy
+		attribute :alias, Stringy
 
 		def self.new(*, table:, **) = super
 		def self.concrete(*, table_tk:, **) = super

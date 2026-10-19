@@ -4,7 +4,7 @@ module Plume
 	class ColumnDefinition < Node
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		node :type, ColumnType
 		nodes :constraints, ColumnConstraint
 

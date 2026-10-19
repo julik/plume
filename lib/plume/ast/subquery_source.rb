@@ -9,7 +9,7 @@ module Plume
 		token :alias_tk
 
 		node :select, SelectStatement
-		attr :alias, Stringy
+		attribute :alias, Stringy
 
 		def self.new(*, select:, **) = super
 		def self.concrete(*, select:, **) = super

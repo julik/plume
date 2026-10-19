@@ -11,8 +11,8 @@ module Plume
 		token :order_by_kw
 		token :window_rp
 
-		attr :name, Stringy
-		attr :base_window_name, Stringy
+		attribute :name, Stringy
+		attribute :base_window_name, Stringy
 		nodes :partitions, Expression
 		nodes :orderings, OrderingTerm
 		node :frame, FrameSpec

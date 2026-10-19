@@ -4,7 +4,7 @@ module Plume
 	class ColumnType < Node
 		token :text_span
 
-		attr :text, Stringy
+		attribute :text, Stringy
 
 		def self.new(*, text:, **) = super
 		def self.concrete(*, text_span:, **) = super

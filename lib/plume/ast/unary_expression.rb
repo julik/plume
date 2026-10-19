@@ -16,8 +16,8 @@ module Plume
 		token :operator_tk         # required
 		token :operand_tk          # required
 
-		attr :operator, Operator   # required
-		attr :operand,  Expression # required
+		attribute :operator, Operator   # required
+		attribute :operand,  Expression # required
 
 		def self.new(*, operator:, operand:, **) = super
 		def self.concrete(*, operator_tk:, **) = super

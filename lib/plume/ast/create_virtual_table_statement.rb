@@ -14,8 +14,8 @@ module Plume
 		token :arguments_rp
 
 		node :table, TableName
-		attr :module_name, Stringy
-		attr :arguments, _Array(String)
+		attribute :module_name, Stringy
+		attribute :arguments, _Array(String)
 
 		def self.new(*, table:, module_name:, **) = super
 		def self.concrete(*, create_virtual_table_kw:, table:, module_tk:, **) = super

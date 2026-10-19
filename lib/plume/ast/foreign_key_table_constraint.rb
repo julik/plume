@@ -8,7 +8,7 @@ module Plume
 		token :foreign_key_lp
 		token :foreign_key_rp
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		nodes :columns, IndexedColumn
 		node :foreign_key_clause, ForeignKeyClause
 

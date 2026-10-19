@@ -14,7 +14,7 @@ module Plume
 		token :where_kw
 
 		node :index, TableName
-		attr :table, Stringy
+		attribute :table, Stringy
 		nodes :columns, OrderingTerm
 		node :condition, Expression
 

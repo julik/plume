@@ -15,8 +15,8 @@ module Plume
 		token :type_tk
 		token :value_tk
 
-		attr :type, Type
-		attr :value, Value
+		attribute :type, Type
+		attribute :value, Value
 
 		def self.new(*, type:, **) = super
 		def self.concrete(*, type_tk:, **) = super

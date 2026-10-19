@@ -8,8 +8,8 @@ module Plume
 		token :else_clause_tk
 		token :end_kw
 
-		attr :predicate, Expression
-		attr :else_clause, Expression
+		attribute :predicate, Expression
+		attribute :else_clause, Expression
 
 		nodes :conditions, CaseCondition
 

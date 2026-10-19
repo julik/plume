@@ -7,8 +7,8 @@ module Plume
 		token :collate_kw
 		token :collation_tk
 
-		attr :name, Stringy
-		attr :collation, Stringy
+		attribute :name, Stringy
+		attribute :collation, Stringy
 
 		def self.new(*, collation:, **) = super
 		def self.concrete(*, collate_kw:, collation_tk:, **) = super

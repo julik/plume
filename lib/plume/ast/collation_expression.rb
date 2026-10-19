@@ -6,8 +6,8 @@ module Plume
 		token :expression_tk
 		token :sequence_tk
 
-		attr :expression, Expression
-		attr :sequence, Stringy
+		attribute :expression, Expression
+		attribute :sequence, Stringy
 
 		def self.new(*, sequence:, **) = super
 		def self.concrete(*, sequence_tk:, **) = super

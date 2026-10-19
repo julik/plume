@@ -11,8 +11,8 @@ module Plume
 		token :as_rp
 		token :type_tk
 
-		attr :name, Stringy
-		attr :type, Type
+		attribute :name, Stringy
+		attribute :type, Type
 		node :expression, Expression
 
 		def self.new(*, expression:, **) = super

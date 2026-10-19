@@ -11,10 +11,10 @@ module Plume
 		token :as_kw
 		token :alias_tk
 
-		attr :schema, Stringy
-		attr :function, Stringy
+		attribute :schema, Stringy
+		attribute :function, Stringy
 		nodes :arguments, Expression
-		attr :alias, Stringy
+		attribute :alias, Stringy
 
 		def self.new(*, function:, **) = super
 		def self.concrete(*, function_tk:, **) = super

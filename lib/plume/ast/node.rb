@@ -138,7 +138,7 @@ module Plume
 
 		# Every prop is type checked as a tree is built, so the check must never hash a node,
 		# see Plume::Union
-		def self.attr(name, type, **kw)
+		def self.attribute(name, type, **kw)
 			prop name, _Nilable(_Union(type, LiteralNil)), reader: kw.fetch(:reader, false), default: LiteralNil, **kw
 			inspectable name
 		end
@@ -186,12 +186,12 @@ module Plume
 		end
 
 		def self.node(name, type, **kw)
-			attr name, _Nilable(type), **kw
+			attribute name, _Nilable(type), **kw
 			define_node_reader(name)
 		end
 
 		def self.nodes(name, type, **kw)
-			attr name, _Nilable(_Array(type)), **kw
+			attribute name, _Nilable(_Array(type)), **kw
 			define_node_reader(name)
 		end
 

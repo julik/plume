@@ -6,8 +6,8 @@ module Plume
 
 		token :operator_tk
 
-		attr :kind, Kind
-		attr :natural, _Boolean
+		attribute :kind, Kind
+		attribute :natural, _Boolean
 
 		def self.new(*, kind:, **) = super
 		def self.concrete(*, operator_tk:, **) = super

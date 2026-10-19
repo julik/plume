@@ -6,7 +6,7 @@ module Plume
 		token :release_kw # RELEASE or RELEASE SAVEPOINT
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 
 		def self.new(*, name:, **) = super
 		def self.concrete(*, release_kw:, name_tk:, **) = super

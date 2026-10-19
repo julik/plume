@@ -7,7 +7,7 @@ module Plume
 		token :result_tk
 
 		node :result, Expression
-		attr :alias, Stringy
+		attribute :alias, Stringy
 
 		def self.new(*, result:, **) = super
 		def self.concrete(*, **) = super

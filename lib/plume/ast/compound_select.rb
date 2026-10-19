@@ -14,7 +14,7 @@ module Plume
 
 		token :operator_tk
 
-		attr :operator, Operator
+		attribute :operator, Operator
 		node :left, _Any
 		node :right, _Any
 

@@ -5,7 +5,7 @@ module Plume
 		token :constraint_kw
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		node :foreign_key_clause, ForeignKeyClause
 
 		def self.new(*, foreign_key_clause:, **) = super

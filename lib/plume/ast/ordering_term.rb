@@ -18,9 +18,9 @@ module Plume
 		token :nulls_tk
 
 		node :expression, Expression
-		attr :collation, Stringy
-		attr :direction, Direction
-		attr :nulls, Nulls
+		attribute :collation, Stringy
+		attribute :direction, Direction
+		attribute :nulls, Nulls
 
 		def self.new(*, **) = super
 		def self.concrete(*, **) = super

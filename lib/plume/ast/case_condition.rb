@@ -7,8 +7,8 @@ module Plume
 		token :then_kw
 		token :consequence_tk
 
-		attr :predicate, Expression
-		attr :consequence, Expression
+		attribute :predicate, Expression
+		attribute :consequence, Expression
 
 		def self.new(*, predicate:, consequence:, **) = super
 		def self.concrete(*, when_kw:, then_kw:, **) = super

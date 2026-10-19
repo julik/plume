@@ -9,8 +9,8 @@ module Plume
 		token :default_rp
 		token :value_tk
 
-		attr :name, Stringy
-		attr :value, Expression
+		attribute :name, Stringy
+		attribute :value, Expression
 
 		def self.new(*, **) = super
 		def self.concrete(*, default_kw:, **) = super

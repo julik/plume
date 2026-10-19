@@ -4,7 +4,7 @@ module Plume
 	class LiteralExpression < Node
 		token :value_tk          # required
 
-		attr :value, _Void # required
+		attribute :value, _Void # required
 
 		def self.new(*, value:, **) = super
 		def self.concrete(*, **) = super

@@ -9,7 +9,7 @@ module Plume
 		token :to_kw # TO or TO SAVEPOINT
 		token :savepoint_tk
 
-		attr :savepoint, Stringy
+		attribute :savepoint, Stringy
 
 		def self.new(*, **) = super
 		def self.concrete(*, rollback_kw:, **) = super

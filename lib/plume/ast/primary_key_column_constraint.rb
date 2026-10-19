@@ -8,9 +8,9 @@ module Plume
 		token :direction_tk
 		token :autoincrement_kw
 
-		attr :name, Stringy
-		attr :direction, Stringy
-		attr :autoincrement, _Boolean
+		attribute :name, Stringy
+		attribute :direction, Stringy
+		attribute :autoincrement, _Boolean
 		node :conflict_clause, ConflictClause
 
 		def self.new(*, **) = super
