@@ -8,7 +8,7 @@ module Plume
 		token :check_lp
 		token :check_rp
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		node :expression, Expression
 		node :conflict_clause, ConflictClause
 

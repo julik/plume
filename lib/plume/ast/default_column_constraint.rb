@@ -9,15 +9,15 @@ module Plume
 		token :default_rp
 		token :value_tk
 
-		attr :name, Stringy
-		attr :value, Expression
+		attribute :name, Stringy
+		attribute :value, Expression
 
 		def self.new(*, **) = super
 		def self.concrete(*, default_kw:, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @value.nil? && @value_tk.nil?
 				raise ArgumentError.new("missing either: :value, :value_tk")
 			end

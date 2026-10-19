@@ -5,7 +5,7 @@ module Plume
 		token :distinct_kw
 		token :order_by_kw
 
-		attr :distinct, _Boolean
+		attribute :distinct, _Boolean
 		nodes :expressions, Expression
 		nodes :order_by, OrderingTerm
 

@@ -6,7 +6,7 @@ module Plume
 		token :dot_tk
 		token :star_tk
 
-		attr :table, Stringy
+		attribute :table, Stringy
 
 		def self.new(*, **) = super
 		def self.concrete(*, star_tk:, **) = super

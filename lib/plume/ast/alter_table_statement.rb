@@ -14,10 +14,10 @@ module Plume
 		token :new_name_tk
 
 		node :table, TableName
-		attr :action, Action
+		attribute :action, Action
 		node :column_definition, ColumnDefinition
-		attr :column, Stringy
-		attr :new_name, Stringy
+		attribute :column, Stringy
+		attribute :new_name, Stringy
 
 		def self.new(*, table:, action:, **) = super
 		def self.concrete(*, alter_table_kw:, table:, action:, **) = super

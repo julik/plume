@@ -9,7 +9,7 @@ module Plume
 		token :on_conflict_kw
 		token :resolution_kw
 
-		attr :resolution, RESOLUTIONS
+		attribute :resolution, RESOLUTIONS
 
 		def self.new(*, resolution:, **) = super
 		def self.concrete(*, on_conflict_kw:, resolution_kw:, **) = super

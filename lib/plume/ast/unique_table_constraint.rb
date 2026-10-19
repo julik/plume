@@ -8,7 +8,7 @@ module Plume
 		token :unique_lp
 		token :unique_rp
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		nodes :columns, IndexedColumn
 		node :conflict_clause, ConflictClause
 

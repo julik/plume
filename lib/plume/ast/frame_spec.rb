@@ -20,8 +20,8 @@ module Plume
 		token :exclude_kw
 		token :exclude_tk
 
-		attr :type, Type
-		attr :exclude, Exclude
+		attribute :type, Type
+		attribute :exclude, Exclude
 		node :starting_boundary, FrameBoundary
 		node :ending_boundary, FrameBoundary
 

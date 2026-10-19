@@ -25,8 +25,8 @@ module Plume
 		token :columns_rp
 		token :as_kw
 
-		attr :temporary, _Boolean
-		attr :if_not_exists, _Boolean
+		attribute :temporary, _Boolean
+		attribute :if_not_exists, _Boolean
 		node  :table,           TableName
 		nodes :columns,         ColumnDefinition
 		nodes :constraints,     TableConstraint

@@ -4,14 +4,14 @@ module Plume
 	class LiteralExpression < Node
 		token :value_tk          # required
 
-		attr :value, _Void # required
+		attribute :value, _Void # required
 
 		def self.new(*, value:, **) = super
 		def self.concrete(*, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @value == LiteralNil && @value_tk == LiteralNil
 				raise ArgumentError.new("missing either: :value, :value_tk")
 			end

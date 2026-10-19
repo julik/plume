@@ -8,13 +8,13 @@ module Plume
 		extend self
 
 		PARSE_Y_URI = URI("https://raw.githubusercontent.com/sqlite/sqlite/refs/heads/master/src/parse.y").freeze
-		RULE_PATTERN = /^(?:.+::=[^.]+\.)|(?:%token_class[^.]+\.)/.freeze
+		RULE_PATTERN = /^(?:.+::=[^.]+\.)|(?:%token_class[^.]+\.)/
 		IGNORED_SNIPPETS = [
-			/^\/\//,
+			%r{^//},
 			/^scanpt.+::=/,
 			/^scantok.+::=/,
 		].freeze
-		TOKEN_CLASS_SIGIL = '%token_class '.freeze
+		TOKEN_CLASS_SIGIL = "%token_class "
 
 		def rules
 			return @hash if defined? @hash
@@ -27,15 +27,15 @@ module Plume
 				next if IGNORED_SNIPPETS.any? { |it| result.match?(it) }
 
 				if result.start_with?(TOKEN_CLASS_SIGIL)
-					rule, definition = result.gsub(TOKEN_CLASS_SIGIL, '').split(/\s+/)
+					rule, definition = result.gsub(TOKEN_CLASS_SIGIL, "").split(/\s+/)
 				else
-					rule, definition = result.gsub(/\(.*?\)/, '').split(/\s+::=\s+/)
+					rule, definition = result.gsub(/\(.*?\)/, "").split(/\s+::=\s+/)
 				end
 
-				tokens = definition.chomp('.').tap(&:strip!).split(/\s+/)
+				tokens = definition.chomp(".").tap(&:strip!).split(/\s+/)
 				next (@hash[rule.strip] << tokens) if tokens.empty?
 
-				sequences = tokens.map { |it| it.split('|') }.reduce(&:product).map{ |it| Array(it).flatten }
+				sequences = tokens.map { |it| it.split("|") }.reduce(&:product).map { |it| Array(it).flatten }
 				sequences.each { |it| @hash[rule.strip] << it.reject { |it| ["scanpt", "scantok"].include?(it) } }
 			end
 

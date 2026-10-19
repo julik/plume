@@ -38,3 +38,14 @@ jobs:
       - name: Quickdraw tests (without SQLite)
         if: ${{ startsWith(matrix.ruby-version, 'jruby') }}
         run: bundle exec qt -t 1 $(ls test/*.test.rb | grep -v -e fts.test.rb -e reads_oracle.test.rb)
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: RuboCop
+        run: bundle exec rubocop

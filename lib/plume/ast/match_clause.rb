@@ -5,7 +5,7 @@ module Plume
 		token :match_kw
 		token :type_tk
 
-		attr :type, Stringy
+		attribute :type, Stringy
 
 		def self.new(*, type:, **) = super
 		def self.concrete(*, match_kw:, type_tk:, **) = super

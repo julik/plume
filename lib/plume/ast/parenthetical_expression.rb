@@ -7,15 +7,15 @@ module Plume
 		token :value_rp
 
 		# Hand-built trees may wrap plain Ruby values; a lambda keeps them out of the union's
-		# plain-value set, see Node.attr
-		attr :value, _Union(Expression, _Array(Expression), ->(v) { LiteralValue === v })
+		# plain-value set, see Node.attribute
+		attribute :value, _Union(Expression, _Array(Expression), -> (v) { LiteralValue === v })
 
 		def self.new(*, value:, **) = super
 		def self.concrete(*, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @value == LiteralNil && @value_tk == LiteralNil
 				raise ArgumentError.new("missing either: :value, :value_tk")
 			end

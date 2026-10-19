@@ -14,7 +14,7 @@ module Plume
 
 		token :operator_tk
 
-		attr :operator, Operator
+		attribute :operator, Operator
 		node :left, _Any
 		node :right, _Any
 
@@ -24,7 +24,7 @@ module Plume
 		def operator = (@operator == LiteralNil) ? TOKEN_TO_OPERATOR[operator_tk_tok] : @operator
 
 		def cores
-			[*(CompoundSelect === left ? left.cores : [left]), right]
+			[*((CompoundSelect === left) ? left.cores : [left]), right]
 		end
 	end
 end

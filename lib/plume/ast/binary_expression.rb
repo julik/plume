@@ -47,16 +47,16 @@ module Plume
 		token :left_tk             # required
 		token :right_tk            # required
 
-		attr :operator, Operator   # required
-		attr :left,     Expression # required
-		attr :right,    Expression # required
+		attribute :operator, Operator   # required
+		attribute :left,     Expression # required
+		attribute :right,    Expression # required
 
 		def self.new(*, operator:, left:, right:, **) = super
 		def self.concrete(*, operator_tk:, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @left.nil? && @left_tk.nil?
 				raise ArgumentError.new("missing either: :left, :left_tk")
 			elsif @right.nil? && @right_tk.nil?

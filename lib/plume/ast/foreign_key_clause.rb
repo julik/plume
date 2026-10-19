@@ -19,8 +19,8 @@ module Plume
 		token :columns_rp
 		token :deferrable_span
 
-		attr :table, Stringy
-		attr :deferred, Deferrable
+		attribute :table, Stringy
+		attribute :deferred, Deferrable
 		nodes :columns, IndexedColumn
 		nodes :actions, ForeignKeyAction
 		nodes :match_clauses, MatchClause

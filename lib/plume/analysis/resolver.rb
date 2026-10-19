@@ -11,18 +11,18 @@ module Plume
 			#   kind :table   - a base table, reads are recorded against it
 			#        :derived - CTE, view or subquery, its body has been analyzed already
 			#        :function - table-valued function, nothing to record
-			#        :group   - an aliased `(a JOIN b) AS x`, columns live in `members`
+			#        :group   - an aliased `(a JOIN b) AS x`, columns live in `inner_sources`
 			# `columns` is nil when we cannot know them (no catalog, unknown function)
 			# `qualified_only` sources answer to `name.column` but never to a bare column name -
 			# that is how the `excluded` row of an upsert behaves
-			Source = Struct.new(:name, :kind, :schema, :table, :columns, :members, :merged, :qualified_only, :node, keyword_init: true) do
+			Source = Struct.new(:name, :kind, :schema, :table, :columns, :inner_sources, :merged, :qualified_only, :node, keyword_init: true) do
 				def self.table(name, table, node) = new(name:, kind: :table, schema: table.schema, table:, columns: table.columns, node:)
 
 				def matches?(qualifier, schema_qualifier)
 					return false unless name&.casecmp?(qualifier)
 					return true unless schema_qualifier
 
-					self.schema&.casecmp?(schema_qualifier) || (self.schema.nil? && schema_qualifier.casecmp?("main"))
+					schema&.casecmp?(schema_qualifier) || (schema.nil? && schema_qualifier.casecmp?("main"))
 				end
 
 				def column(name)
@@ -320,7 +320,7 @@ module Plume
 					if source.alias
 						inner = Scope.new(sources: [], parent: scope.parent, ctes: {})
 						add_source(source.source, inner, usage)
-						scope.sources << Source.new(name: source.alias, kind: :group, members: inner.sources, node: source)
+						scope.sources << Source.new(name: source.alias, kind: :group, inner_sources: inner.sources, node: source)
 					else
 						add_source(source.source, scope, usage)
 					end
@@ -429,7 +429,7 @@ module Plume
 			def star_source(source, usage, node, skip_merged:)
 				case source.kind
 				when :group
-					source.members.flat_map { |m| star_source(m, usage, node, skip_merged:) || [] }
+					source.inner_sources.flat_map { |m| star_source(m, usage, node, skip_merged:) || [] }
 				when :table
 					if source.columns.nil?
 						record(source.schema, source.node.table, "*", usage, node)
@@ -515,13 +515,13 @@ module Plume
 			end
 
 			def source_has?(source, name)
-				return source.members.any? { |m| source_has?(m, name) } if source.kind == :group
+				return source.inner_sources.any? { |m| source_has?(m, name) } if source.kind == :group
 
 				!!source.column(name)
 			end
 
 			def source_unknown?(source)
-				return source.members.any? { |m| source_unknown?(m) } if source.kind == :group
+				return source.inner_sources.any? { |m| source_unknown?(m) } if source.kind == :group
 
 				source.columns.nil?
 			end
@@ -549,7 +549,7 @@ module Plume
 						record(source.schema, source.node.table, name, usage, node)
 					end
 				when :group
-					member = source.members.find { |m| source_has?(m, name) } || source.members.find { |m| source_unknown?(m) }
+					member = source.inner_sources.find { |m| source_has?(m, name) } || source.inner_sources.find { |m| source_unknown?(m) }
 					member ? read_through(member, name, usage, node) : unresolved(name, "no such column", node)
 				when :derived, :function
 					if source.columns && !source.column(name) && !source.columns.include?(nil)

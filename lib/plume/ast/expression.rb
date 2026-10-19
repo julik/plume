@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Plume
-	# No plain values (nil, true, symbols) in here, see Node.attr for why
+	# No plain values (nil, true, symbols) in here, see Node.attribute for why
 	Expression = _Union(
 		Numeric,
 		String,

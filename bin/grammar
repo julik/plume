@@ -7,13 +7,15 @@ require "fileutils"
 require "time"
 
 def contains?(array, sub)
-	array.join(',').include?(sub.join(','))
+	array.join(",").include?(sub.join(","))
 end
+
 def starts_with?(array, sub)
-	array.join(',').start_with?(sub.join(','))
+	array.join(",").start_with?(sub.join(","))
 end
+
 def ends_with?(array, sub)
-	array.join(',').end_with?(sub.join(','))
+	array.join(",").end_with?(sub.join(","))
 end
 
 uri = URI("https://raw.githubusercontent.com/sqlite/sqlite/refs/heads/master/src/parse.y")
@@ -41,7 +43,7 @@ end
 grammar = Hash.new { |h, k| h[k] = [] }
 pattern = /^(?:.+::=[^.]+\.)|(?:%token_class[^.]+\.)/
 ignored_snippets = [
-	/^\/\//,
+	%r{^//},
 	/^scanpt.+::=/,
 	/^scantok.+::=/,
 ].freeze
@@ -51,88 +53,88 @@ matches.each do |match|
 	result = match.tap(&:strip!)
 	next if ignored_snippets.any? { |it| result.match?(it) }
 
-	if result.start_with?('%token_class')
-		rule, definition = result.gsub('%token_class ', '').split(/\s+/)
+	if result.start_with?("%token_class")
+		rule, definition = result.gsub("%token_class ", "").split(/\s+/)
 	else
-		rule, definition = result.gsub(/\(.*?\)/, '').split(/\s+::=\s+/)
+		rule, definition = result.gsub(/\(.*?\)/, "").split(/\s+::=\s+/)
 	end
-	tokens = definition.chomp('.').tap(&:strip!).split(/\s+/)
+	tokens = definition.chomp(".").tap(&:strip!).split(/\s+/)
 	next (grammar[rule.strip] << tokens) if tokens.empty?
-  sequences = tokens.map { |it| it.split('|') }.reduce(&:product).map{ |it| Array(it).flatten }
-  sequences.each { |it| grammar[rule.strip] << it.reject { |it| ["scanpt", "scantok"].include?(it) } }
+	sequences = tokens.map { |it| it.split("|") }.reduce(&:product).map { |it| Array(it).flatten }
+	sequences.each { |it| grammar[rule.strip] << it.reject { |it| ["scanpt", "scantok"].include?(it) } }
 end
 
 # e.g. "cmdlist"=>[["cmdlist", "ecmd"], ["ecmd"]]
 # e.g. "case_exprlist"=>[["case_exprlist", "WHEN", "expr", "THEN", "expr"], ["WHEN", "expr", "THEN", "expr"]]
 def mutate_one_or_more_no_sep(rule, pair)
-  return unless pair.size == 2
-  base, recurse = pair.sort_by(&:size)
-  _rule, *rest = recurse
-  return unless _rule == rule && rest == base
+	return unless pair.size == 2
+	base, recurse = pair.sort_by(&:size)
+	head_rule, *rest = recurse
+	return unless head_rule == rule && rest == base
 
-  # rule ::= rule rest | rest
-  #      vvv
-  # rule ::= rest | rest rule
-  [rule, [rest, rest + [rule]]]
+	# rule ::= rule rest | rest
+	#      vvv
+	# rule ::= rest | rest rule
+	[rule, [rest, rest + [rule]]]
 end
 
 # e.g. "eidlist"=>[["eidlist", "COMMA", "nm", "collate", "sortorder"], ["nm", "collate", "sortorder"]]
 # e.g. "idlist"=>[["idlist", "COMMA", "nm"], ["nm"]]
 # e.g. "conslist"=>[["conslist", "tconscomma", "tcons"], ["tcons"]]
 def mutate_one_or_more_w_sep(rule, pair)
-  return unless pair.size == 2
-  base, recurse = pair.sort_by(&:size)
-  return unless base.size > 0
-  _rule, separator, *rest = recurse
-  return unless _rule == rule && rest == base
+	return unless pair.size == 2
+	base, recurse = pair.sort_by(&:size)
+	return unless base.size > 0
+	head_rule, separator, *rest = recurse
+	return unless head_rule == rule && rest == base
 
-  # rule ::= rule separator rest | rest
+	# rule ::= rule separator rest | rest
 	#      vvv
-  # rule ::= rest | rest separator rule
-  [rule, [rest, rest + [separator, rule]]]
+	# rule ::= rest | rest separator rule
+	[rule, [rest, rest + [separator, rule]]]
 end
 
 # e.g. "vtabarg"=>[[], ["vtabarg", "vtabargtoken"]]
 def mutate_zero_or_more_no_sep(rule, pair)
-  return unless pair.size == 2
-  empty, recurse = pair.sort_by(&:size)
-  return unless empty.size == 0
-  _rule, *rest = recurse
-  return unless _rule == rule
+	return unless pair.size == 2
+	empty, recurse = pair.sort_by(&:size)
+	return unless empty.size == 0
+	head_rule, *rest = recurse
+	return unless head_rule == rule
 
-  # rule ::= rule rest | ε
-  #      vvv
-  # rule ::= ε | rest rule
-  [rule, [[], rest + [rule]]]
+	# rule ::= rule rest | ε
+	#      vvv
+	# rule ::= ε | rest rule
+	[rule, [[], rest + [rule]]]
 end
 
 # e.g. "table_option_set"=>[[], ["table_option"], ["table_option_set", "COMMA", "table_option"]]
 def mutate_zero_or_more_w_sep(rule, triple)
-  return unless triple.size == 3
-  empty, base, recurse = triple.sort_by(&:size)
-  return unless empty.size == 0
-  _rule, separator, *rest = recurse
-  return unless _rule == rule && rest == base
+	return unless triple.size == 3
+	empty, base, recurse = triple.sort_by(&:size)
+	return unless empty.size == 0
+	head_rule, separator, *rest = recurse
+	return unless head_rule == rule && rest == base
 
-  # rule ::= ε | rest | rule separator rest
-  #      vvv
-  # rule ::= ε | rest | rest separator rule
-  [rule, [[], rest, rest + [separator, rule]]]
+	# rule ::= ε | rest | rule separator rest
+	#      vvv
+	# rule ::= ε | rest | rest separator rule
+	[rule, [[], rest, rest + [separator, rule]]]
 end
 
 # e.g. "mvalues"=>[["values", "COMMA", "LP", "nexprlist", "RP"], ["mvalues", "COMMA", "LP", "nexprlist", "RP"]]
 def mutate_one_or_more_w_sep_and_initial(rule, pair)
-  return unless pair.size == 2
-  base, recurse = pair.sort_by { |it| it[0] == rule ? 1 : 0 }
-  return unless base.size == recurse.size
-  initial, separator, *lrest = base
-  _rule, separator, *rrest = recurse
-  return unless _rule == rule && lrest == rrest
+	return unless pair.size == 2
+	base, recurse = pair.sort_by { |it| (it[0] == rule) ? 1 : 0 }
+	return unless base.size == recurse.size
+	initial, separator, *lrest = base
+	head_rule, separator, *rrest = recurse
+	return unless head_rule == rule && lrest == rrest
 
-  # rule ::= initial separator rest | rule separator rest
-  #      vvv
-  # rule ::= initial separator rest | rest separator rule
-  [rule, [base, lrest + [separator, rule]]]
+	# rule ::= initial separator rest | rule separator rest
+	#      vvv
+	# rule ::= initial separator rest | rest separator rule
+	[rule, [base, lrest + [separator, rule]]]
 end
 
 # e.g. "setlist"=>[
@@ -163,8 +165,8 @@ end
 # - CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual, 1, 2, 3, varchar(32));
 def mutate_pair_combinations(rule, definitions)
 	mutations = definitions.combination(2).filter_map do |pair|
-  	_rule, result_definitions =
-   		mutate_one_or_more_no_sep(rule, pair) ||
+		_, result_definitions =
+			mutate_one_or_more_no_sep(rule, pair) ||
 			mutate_one_or_more_w_sep(rule, pair) ||
 			mutate_zero_or_more_no_sep(rule, pair) ||
 			mutate_one_or_more_w_sep_and_initial(rule, pair)
@@ -180,11 +182,11 @@ end
 def reduce_required_then_optional(definitions)
 	return unless definitions.size > 1
 	return if definitions.any? { |it| it.size == 0 }
-  base, *rest = definitions.sort_by(&:size)
-  return unless rest.all? { |it| starts_with?(it, base) }
-  remaining = rest.map { |it| it[base.size..-1] }
+	base, *rest = definitions.sort_by(&:size)
+	return unless rest.all? { |it| starts_with?(it, base) }
+	remaining = rest.map { |it| it.drop(base.size) }
 
-	[base.join(' '), remaining]
+	[base.join(" "), remaining]
 end
 
 def reduce_optional_then_required(definitions)
@@ -194,7 +196,7 @@ def reduce_optional_then_required(definitions)
 	return unless rest.all? { |it| ends_with?(base, it) }
 	remaining = rest.map { |it| it[0..-base.size] }
 
-	[base.join(' '), remaining]
+	[base.join(" "), remaining]
 end
 
 def reduce_all_optionals(definitions)
@@ -204,7 +206,7 @@ def reduce_all_optionals(definitions)
 	match = subsets.permutation(2).find { |it| it.flatten == superset }
 	return unless match
 
-	[match.map { |it| "(#{it.join(' ')})?" }.join(' '), []]
+	[match.map { |it| "(#{it.join(" ")})?" }.join(" "), []]
 end
 
 [["nm"], ["nm", "DOT", "nm"], ["nm", "DOT", "nm", "AS", "nm"], ["nm", "AS", "nm"]]
@@ -212,25 +214,25 @@ end
 
 # transform the `expr` rule into layered rules
 def mutate_expr(rule, definitions)
-	return unless rule == 'expr'
+	return unless rule == "expr"
 
 	expr_rules = $contents
 		.scan(/^.*expr.*::=(?:(?:.+?{)|(?:[^.]+?\.))/)
 		.filter_map do |it|
-			rule, raw_definition = it.tap(&:strip!).gsub(/\(.*?\)/, '').split(' ::= ')
-			next unless rule == 'expr'
-			definition, operator = raw_definition.chomp('{').tap(&:strip!).split(/\.\s*/)
-			sequences = definition&.split(/\s+/)&.map { |it| it.split('|') }&.reduce(&:product)&.map{ |it| Array(it).flatten }
+			rule, raw_definition = it.tap(&:strip!).gsub(/\(.*?\)/, "").split(" ::= ")
+			next unless rule == "expr"
+			definition, operator = raw_definition.chomp("{").tap(&:strip!).split(/\.\s*/)
+			sequences = definition&.split(/\s+/)&.map { |it| it.split("|") }&.reduce(&:product)&.map { |it| Array(it).flatten }
 
 			[sequences, operator&.byteslice(1..-2)]
 		end
 	precedence_levels = $contents
 		.scan(/^(?:%left[^.]+\.)|(?:%right[^.]+\.)|(?:%nonassoc[^.]+\.)/)
-		.map { |s| assoc, ops = s.scan(/^%(.+?)[[:space:]]([^.]+)\./)[0]; [assoc,ops.split(/[[:space:]]+/)] }
+		.map { |s| assoc, ops = s.scan(/^%(.+?)[[:space:]]([^.]+)\./)[0]; [assoc, ops.split(/[[:space:]]+/)] }
 
 	operators_w_precedence = precedence_levels.flat_map(&:last)
 	recursive_expr_rules = expr_rules.select do |seq, op|
-		next false if seq.none? { |it| it.include?('expr') }
+		next false if seq.none? { |it| it.include?("expr") }
 		next true if op
 
 		seq.any? { |it| it.intersect?(operators_w_precedence) }
@@ -239,30 +241,32 @@ def mutate_expr(rule, definitions)
 		rules = recursive_expr_rules
 			.select { |seq, op| op.nil? ? seq.any? { |it| it.intersect?(operators) } : operators.include?(op) }
 
-		if assoc == 'right'
+		if assoc == "right"
 			rules.select! { |seq, op| op.nil? ? seq.any? { |it| operators.include?(it[0]) } : operators.include?(op) }
 		end
 
-		rules.concat(
-			recursive_expr_rules.select do |seq, op|
-				seq.any? { |it| contains?(it, ['NOT', 'NULL']) }
-			end
-		) if operators.include?('NOTNULL')
+		if operators.include?("NOTNULL")
+			rules.concat(
+				recursive_expr_rules.select do |seq, op|
+					seq.any? { |it| contains?(it, ["NOT", "NULL"]) }
+				end
+			)
+		end
 
 		rule_name =
 			if operators.size == 1
 				"#{operators[0].downcase}_expr"
-			elsif operators.include?('IS')
+			elsif operators.include?("IS")
 				"predicate_expr"
-			elsif operators.include?('GT')
+			elsif operators.include?("GT")
 				"comparative_expr"
-			elsif operators.include?('BITAND')
+			elsif operators.include?("BITAND")
 				"bitwise_expr"
-			elsif operators.include?('PLUS')
+			elsif operators.include?("PLUS")
 				"additive_expr"
-			elsif operators.include?('STAR')
+			elsif operators.include?("STAR")
 				"multiplicative_expr"
-			elsif operators.include?('CONCAT')
+			elsif operators.include?("CONCAT")
 				"manipulative_expr"
 			end
 
@@ -271,141 +275,123 @@ def mutate_expr(rule, definitions)
 
 	atom_layer_rules = definitions - precedence_layer_rules.flat_map(&:last)
 	layer_0, rest = atom_layer_rules.partition { |it| it.all? { |s| s.getbyte(0) <= 90 } }
-	layer_1, layer_2 = rest.partition { |it| !it.include?('expr') }
+	layer_1, layer_2 = rest.partition { |it| !it.include?("expr") }
 
 	layered_rules = precedence_layer_rules + [
-		['layer_2_expr', layer_2],
-		['layer_1_expr', layer_1],
-		['layer_0_expr', layer_0],
+		["layer_2_expr", layer_2],
+		["layer_1_expr", layer_1],
+		["layer_0_expr", layer_0],
 	]
 	# or_expr ::= and_expr | and_expr OR or_expr
 	layered_rules.each_cons(2).take(3).map do |(l_layer, rules), (r_layer, _)|
 		new_rules = rules.map do |rule|
 			first, *rest, last = rule
-			first = r_layer if first == 'expr'
-			last = l_layer if last == 'expr'
-			rest.map! { |item| item == 'expr' ? l_layer : item }
+			first = r_layer if first == "expr"
+			last = l_layer if last == "expr"
+			rest.map! { |item| (item == "expr") ? l_layer : item }
 			[first, *rest, last]
 		end
 		[l_layer, [[r_layer], new_rules]]
 	end
 
-
-	[['expr', [precedence_layer_rules.first.first]]] + layered_rules
+	[["expr", [precedence_layer_rules.first.first]]] + layered_rules
 end
 
-
-
-
-
-
 new_grammar = grammar.flat_map do |rule, definitions|
-  mutation =
-	  mutate_expr(rule, definitions) ||
-  	mutate_one_or_more_no_sep(rule, definitions) ||
-   	mutate_one_or_more_w_sep(rule, definitions) ||
-    mutate_zero_or_more_no_sep(rule, definitions) ||
-    mutate_zero_or_more_w_sep(rule, definitions) ||
-    mutate_one_or_more_w_sep_and_initial(rule, definitions) ||
-    mutate_one_or_more_with_sep_and_variations(rule, definitions) ||
-    mutate_pair_combinations(rule, definitions)
+	mutation =
+		mutate_expr(rule, definitions) ||
+		mutate_one_or_more_no_sep(rule, definitions) ||
+		mutate_one_or_more_w_sep(rule, definitions) ||
+		mutate_zero_or_more_no_sep(rule, definitions) ||
+		mutate_zero_or_more_w_sep(rule, definitions) ||
+		mutate_one_or_more_w_sep_and_initial(rule, definitions) ||
+		mutate_one_or_more_with_sep_and_variations(rule, definitions) ||
+		mutate_pair_combinations(rule, definitions)
 
-  next [[rule, definitions]] if mutation.nil?
-  mutation.size == 2 ? [mutation] : mutation
+	next [[rule, definitions]] if mutation.nil?
+	(mutation.size == 2) ? [mutation] : mutation
 end.to_h
-
 
 grammar.transform_values(&:size).sort_by(&:last).to_h
 
 def determine_rule_levels(grammar)
-  levels = {}
-  is_terminal = ->(s) { s.getbyte(0) <= 90 }
-  can_resolve = ->(rule_symbols, max_level) {
-    rule_symbols.all? { |s| is_terminal.call(s) || levels[s]&.between?(0, max_level) }
-  }
+	levels = {}
+	is_terminal = -> (s) { s.getbyte(0) <= 90 }
+	can_resolve = -> (rule_symbols, max_level) {
+		rule_symbols.all? { |s| is_terminal.call(s) || levels[s]&.between?(0, max_level) }
+	}
 
-  recursive_rules = grammar.select do |rule, productions|
-    productions.any? { |prod| prod.include?(rule) }
-  end.keys.to_set
-  recursive_rules.each { |rule| levels[rule] = -1 }
+	recursive_rules = grammar.select do |rule, productions|
+		productions.any? { |prod| prod.include?(rule) }
+	end.keys.to_set
+	recursive_rules.each { |rule| levels[rule] = -1 }
 
-  current_level = 0
-  until levels.size == grammar.size
-    resolved_any = false
+	current_level = 0
+	until levels.size == grammar.size
+		resolved_any = false
 
-    grammar.each do |rule, productions|
-      next if levels.key?(rule)
+		grammar.each do |rule, productions|
+			next if levels.key?(rule)
 
-      if productions.all? { |prod| can_resolve.call(prod, current_level) }
-        levels[rule] = current_level
-        resolved_any = true
-      end
-    end
+			if productions.all? { |prod| can_resolve.call(prod, current_level) }
+				levels[rule] = current_level
+				resolved_any = true
+			end
+		end
 
-    # If we couldn't resolve any rules, assign remaining rules to current level
-    unless resolved_any
-      grammar.keys.each do |rule|
-        levels[rule] ||= current_level
-      end
-      break
-    end
+		# If we couldn't resolve any rules, assign remaining rules to current level
+		unless resolved_any
+			grammar.keys.each do |rule|
+				levels[rule] ||= current_level
+			end
+			break
+		end
 
-    current_level += 1
-  end
+		current_level += 1
+	end
 
-  levels
+	levels
 end
-
 
 # EXPLAIN (QUERY PLAN)?
 # => [["EXPLAIN"], ["EXPLAIN", "QUERY", "PLAN"]]
-
-
-
-
-
-
-
-
-
-
 
 grammar.values.flatten.uniq.select { |it| it.getbyte(0) <= 90 }.size
 # => 168
 grammar.size
 # => 137
-recursive_rules = grammar.select {|k,vs| vs.any? {|v| v.include?(k) } }
+recursive_rules = grammar.select { |k, vs| vs.any? { |v| v.include?(k) } }
 # => 24
 
 def find_all_token_sequences(start_rule)
-  results = Set.new
-  queue = [[start_rule]]
+	results = Set.new
+	queue = [[start_rule]]
 
-  while (current_sequence = queue.shift)
-    if current_sequence.all? { |item| item.getbyte(0) <= 90 }
-      results.add(current_sequence)
-      puts results.size
-    else
-      # Find first non-token (lowercase symbol)
-      i, len = 0, current_sequence.length
-      while i < len
-      	break if current_sequence[i].getbyte(0) > 90
-      	i += 1
-      end
+	while (current_sequence = queue.shift)
+		if current_sequence.all? { |item| item.getbyte(0) <= 90 }
+			results.add(current_sequence)
+			puts results.size
+		else
+			# Find first non-token (lowercase symbol)
+			i, len = 0, current_sequence.length
+			while i < len
+				break if current_sequence[i].getbyte(0) > 90
+				i += 1
+			end
 
-      current_rule = current_sequence[i]
-      definitions = GRAMMAR[current_rule]
+			current_rule = current_sequence[i]
+			definitions = GRAMMAR[current_rule]
 
-      prefix = current_sequence[0...i]
-      suffix = current_sequence[(i + 1)..-1]
-      p({current_rule: current_rule, current_sequence: current_sequence, definitions: definitions, prefix: prefix, suffix: suffix})
+			prefix = current_sequence[0...i]
+			suffix = current_sequence[(i + 1)..-1]
+			p({ current_rule: current_rule, current_sequence: current_sequence, definitions: definitions, prefix: prefix, suffix: suffix })
 
-      definitions.each do |definition|
-	      next if definition.include?(current_rule)
-        queue << (prefix + definition + suffix)
-      end
-    end
-  end
+			definitions.each do |definition|
+				next if definition.include?(current_rule)
+				queue << (prefix + definition + suffix)
+			end
+		end
+	end
 
-  results
+	results
 end

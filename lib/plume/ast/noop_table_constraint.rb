@@ -5,7 +5,7 @@ module Plume
 		token :constraint_kw
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 
 		def self.new(*, **) = super
 		def self.concrete(*, **) = super

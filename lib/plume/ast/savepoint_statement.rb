@@ -6,7 +6,7 @@ module Plume
 		token :savepoint_kw
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 
 		def self.new(*, name:, **) = super
 		def self.concrete(*, savepoint_kw:, name_tk:, **) = super

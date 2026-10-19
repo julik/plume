@@ -7,15 +7,15 @@ module Plume
 		token :then_kw
 		token :consequence_tk
 
-		attr :predicate, Expression
-		attr :consequence, Expression
+		attribute :predicate, Expression
+		attribute :consequence, Expression
 
 		def self.new(*, predicate:, consequence:, **) = super
 		def self.concrete(*, when_kw:, then_kw:, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @predicate.nil? && @predicate_tk.nil?
 				raise ArgumentError.new("missing either: :predicate, :predicate_tk")
 			elsif @consequence.nil? && @consequence_tk.nil?

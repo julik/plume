@@ -11,8 +11,8 @@ module Plume
 		token :within_lp
 		token :within_rp
 
-		attr :schema, Stringy
-		attr :function, Stringy
+		attribute :schema, Stringy
+		attribute :function, Stringy
 		node :arguments, _Union(FunctionArguments, StarFunctionArgument, EmptyFunctionArgument)
 		node :within_group, Expression # the ORDER BY expression of an ordered-set aggregate
 		node :filter_clause, Expression

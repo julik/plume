@@ -6,15 +6,15 @@ module Plume
 		token :expression_tk
 		token :sequence_tk
 
-		attr :expression, Expression
-		attr :sequence, Stringy
+		attribute :expression, Expression
+		attribute :sequence, Stringy
 
 		def self.new(*, sequence:, **) = super
 		def self.concrete(*, sequence_tk:, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @expression.nil? && @expression_tk.nil?
 				raise ArgumentError.new("missing either: :expression, :expression_tk")
 			end

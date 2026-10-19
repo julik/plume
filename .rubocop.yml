@@ -1,5 +1,5 @@
 inherit_from:
-  - "https://www.goodcop.style/tabs.yml"
+  - .rubocop/goodcop-tabs.yml
 
 AllCops:
   TargetRubyVersion: 3.2
@@ -9,6 +9,9 @@ Layout/HashAlignment:
   Enabled: false
 
 Layout/MultilineArrayLineBreaks:
+  Enabled: false
+
+Layout/MultilineHashKeyLineBreaks:
   Enabled: false
 
 Layout/ExtraSpacing:
@@ -21,7 +24,7 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Layout/EndAlignment:
-  EnforcedStyleAlignWith: keyword
+  EnforcedStyleAlignWith: variable
 
 Layout/MultilineAssignmentLayout:
   Enabled: false
@@ -43,3 +46,22 @@ Layout/EmptyLineAfterMultilineCondition:
 
 Layout/HeredocIndentation:
   Enabled: false
+
+# The railroad diagrams of the SQLite grammar in parser.rb are drawn in comments
+Layout/CommentIndentation:
+  Exclude:
+    - lib/plume/parser.rb
+
+Layout/EmptyComment:
+  Exclude:
+    - lib/plume/parser.rb
+
+# A `private` section reads better than prefixing every helper, as the lexer and parser already do
+Style/AccessModifierDeclarations:
+  EnforcedStyle: group
+
+# A bare `return` from inside a search loop is how the resolver (and bin/grammar) bail out early
+Lint/NonLocalExitFromIterator:
+  Exclude:
+    - lib/plume/analysis/resolver.rb
+    - bin/grammar

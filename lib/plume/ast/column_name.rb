@@ -8,9 +8,9 @@ module Plume
 		token :dot2 # maybe
 		token :column_tk # required
 
-		attr :schema, Stringy # maybe
-		attr :table, Stringy # maybe
-		attr :column, Stringy # required
+		attribute :schema, Stringy # maybe
+		attribute :table, Stringy # maybe
+		attribute :column, Stringy # required
 
 		def self.new(*, column:, **) = super
 		def self.concrete(*, column_tk:, **) = super

@@ -113,7 +113,7 @@ end
 
 test "pragma forms" do
 	assert_equal parse_stmt("pragma journal_mode").value, nil
-	assert_equal parse_stmt("pragma main.cache_size = -2000").then { [_1.schema, _1.name, _1.value] }, ["main", "cache_size", -2000]
+	assert_equal parse_stmt("pragma main.cache_size = -2000").then { |s| [s.schema, s.name, s.value] }, ["main", "cache_size", -2000]
 	assert_equal parse_stmt("pragma table_info('t')").value, "t"
 	assert_equal parse_stmt("pragma foreign_keys = on").value, "on"
 	assert_equal parse_stmt("pragma auto_vacuum = true").value, "true"
@@ -134,7 +134,7 @@ test "analyze, reindex and vacuum" do
 	assert_equal parse_stmt("analyze main.t").target.schema, "main"
 	assert_equal parse_stmt("reindex i").target.name, "i"
 	assert_equal parse_stmt("vacuum").schema, nil
-	assert_equal parse_stmt("vacuum main into 'backup.db'").then { [_1.schema, _1.into.value] }, ["main", "backup.db"]
+	assert_equal parse_stmt("vacuum main into 'backup.db'").then { |s| [s.schema, s.into.value] }, ["main", "backup.db"]
 end
 
 test "explain query plan select 1" do

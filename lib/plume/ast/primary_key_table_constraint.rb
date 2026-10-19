@@ -9,8 +9,8 @@ module Plume
 		token :autoincrement_kw
 		token :primary_key_rp
 
-		attr :name, Stringy
-		attr :autoincrement, _Boolean
+		attribute :name, Stringy
+		attribute :autoincrement, _Boolean
 		nodes :columns, IndexedColumn
 		node :conflict_clause, ConflictClause
 

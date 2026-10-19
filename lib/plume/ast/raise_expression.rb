@@ -11,8 +11,8 @@ module Plume
 		token :error_message_tk      # maybe
 		token :raise_rp              # required
 
-		attr :type,          Type    # required
-		attr :error_message, Expression # maybe
+		attribute :type,          Type    # required
+		attribute :error_message, Expression # maybe
 
 		def self.new(*, type:, **) = super
 		def self.concrete(*, raise_kw:, raise_lp:, type_kw:, raise_rp:, **) = super

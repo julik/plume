@@ -9,7 +9,7 @@ module Plume
 		token :alias_tk
 
 		node :source, _Any
-		attr :alias, Stringy
+		attribute :alias, Stringy
 
 		def self.new(*, source:, **) = super
 		def self.concrete(*, source:, **) = super

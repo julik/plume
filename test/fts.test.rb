@@ -55,7 +55,7 @@ test "CREATE VIRTUAL TABLE keeps the module's own argument syntax intact" do
 	assert_equal node.module_name, "fts5"
 	assert_equal node.arguments, [
 		"title", "body", "content = 'docs'", "content_rowid = 'id'",
-		"tokenize = 'unicode61 tokenchars ''-_'''", "prefix = '2 3'",
+		"tokenize = 'unicode61 tokenchars ''-_'''", "prefix = '2 3'"
 	]
 end
 

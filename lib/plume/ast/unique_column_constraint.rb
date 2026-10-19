@@ -6,7 +6,7 @@ module Plume
 		token :name_tk
 		token :unique_kw
 
-		attr :name, Stringy
+		attribute :name, Stringy
 		node :conflict_clause, ConflictClause
 
 		def self.new(*, **) = super

@@ -5,7 +5,7 @@ module Plume
 	class Variable < Node
 		token :name_tk
 
-		attr :name, Stringy
+		attribute :name, Stringy
 
 		def self.new(*, name:, **) = super
 		def self.concrete(*, name_tk:, **) = super

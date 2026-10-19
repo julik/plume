@@ -16,15 +16,15 @@ module Plume
 		token :operator_tk         # required
 		token :operand_tk          # required
 
-		attr :operator, Operator   # required
-		attr :operand,  Expression # required
+		attribute :operator, Operator   # required
+		attribute :operand,  Expression # required
 
 		def self.new(*, operator:, operand:, **) = super
 		def self.concrete(*, operator_tk:, **) = super
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @operand.nil? && @operand_tk.nil?
 				raise ArgumentError.new("missing either: :operand, :operand_tk")
 			end
