@@ -165,7 +165,7 @@ end
 # - CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual, 1, 2, 3, varchar(32));
 def mutate_pair_combinations(rule, definitions)
 	mutations = definitions.combination(2).filter_map do |pair|
-		head_rule, result_definitions =
+		_, result_definitions =
 			mutate_one_or_more_no_sep(rule, pair) ||
 			mutate_one_or_more_w_sep(rule, pair) ||
 			mutate_zero_or_more_no_sep(rule, pair) ||
