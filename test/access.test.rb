@@ -7,8 +7,6 @@ SQL
 
 class Quickdraw::Test
 	def access(sql, **) = Plume.access(sql, catalog: Plume::Catalog.from_sql(ACCESS_SCHEMA), **)
-
-	def sorted(hash) = hash.transform_values { |set| set.to_a.sort }
 end
 
 test "insert into users (email) values (?)" do

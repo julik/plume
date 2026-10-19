@@ -18,14 +18,10 @@ module Plume
 
 		View = Data.define(:schema, :name, :columns, :select)
 
-		def self.from_sql(sql)
-			new.tap { |catalog| catalog.load_sql(sql) }
-		end
+		def self.from_sql(sql) = new.load_sql(sql)
 
 		# Takes a sqlite3-ruby `SQLite3::Database` (or anything with a compatible `#execute`)
-		def self.from_sqlite(db)
-			new.tap { |catalog| catalog.load_sqlite(db) }
-		end
+		def self.from_sqlite(db) = new.load_sqlite(db)
 
 		def initialize
 			@tables = {}
@@ -122,8 +118,10 @@ module Plume
 				collection.find { |(_s, n), _| n == name.to_s.downcase }&.last
 		end
 
+		def schema_of(name, statement) = name.schema || (statement.temporary ? "temp" : "main")
+
 		def add_create_table(statement)
-			schema = statement.table.schema || (statement.temporary ? "temp" : "main")
+			schema = schema_of(statement.table, statement)
 			name = statement.table.name
 
 			if statement.select_statement
@@ -137,7 +135,7 @@ module Plume
 		end
 
 		def add_create_view(statement)
-			schema = statement.view.schema || (statement.temporary ? "temp" : "main")
+			schema = schema_of(statement.view, statement)
 			add_view(statement.view.name, statement.select, columns: statement.column_names, schema:)
 		end
 

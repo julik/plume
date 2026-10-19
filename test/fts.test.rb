@@ -7,7 +7,6 @@
 # trip intact, and the reads have to be right.
 
 require "sqlite3"
-require_relative "support/ast_shape"
 require_relative "support/authorizer_oracle"
 
 FTS_SCHEMA = <<~SQL
@@ -47,13 +46,6 @@ class Quickdraw::Test
 		FTS_ROWS.each { |row| db.execute("INSERT INTO docs VALUES (?, ?, ?, ?)", row) }
 		db.execute("INSERT INTO docs_fts(docs_fts) VALUES ('rebuild')")
 		db
-	end
-
-	def round_trip(sql)
-		original = Plume.parse(sql)
-		printed = original.map(&:to_sql).join(";\n")
-		assert_equal AstShape.of(Plume.parse(printed)), AstShape.of(original)
-		printed
 	end
 end
 

@@ -14,8 +14,6 @@ class Quickdraw::Test
 	def catalog = (@catalog ||= Plume::Catalog.from_sql(SCHEMA))
 
 	def reads(sql, **) = Plume.reads(sql, catalog:, **)
-
-	def columns_of(hash) = hash.transform_values { |set| set.to_a.sort }
 end
 
 # -- catalog
@@ -49,8 +47,8 @@ test "select email from users where id = ?" do
 	r = reads("select email from users where id = ?")
 
 	assert_equal r.tables.to_a, ["users"]
-	assert_equal columns_of(r.projected), { "users" => ["email"] }
-	assert_equal columns_of(r.referenced), { "users" => ["id"] }
+	assert_equal sorted(r.projected), { "users" => ["email"] }
+	assert_equal sorted(r.referenced), { "users" => ["id"] }
 end
 
 test "select count(*) from users" do
@@ -61,42 +59,42 @@ test "select count(*) from users" do
 end
 
 test "select * from users" do
-	assert_equal columns_of(reads("select * from users").projected), { "users" => ["email", "id", "secret", "team_id"] }
+	assert_equal sorted(reads("select * from users").projected), { "users" => ["email", "id", "secret", "team_id"] }
 end
 
 test "select t.*, u.email from teams t, users u" do
-	assert_equal columns_of(reads("select t.*, u.email from teams t, users u").projected),
+	assert_equal sorted(reads("select t.*, u.email from teams t, users u").projected),
 		{ "teams" => ["id", "name"], "users" => ["email"] }
 end
 
 test "select u.email, t.name from users u join teams t on t.id = u.team_id order by t.name" do
 	r = reads("select u.email, t.name from users u join teams t on t.id = u.team_id order by t.name")
 
-	assert_equal columns_of(r.projected), { "users" => ["email"], "teams" => ["name"] }
-	assert_equal columns_of(r.referenced), { "teams" => ["id", "name"], "users" => ["team_id"] }
+	assert_equal sorted(r.projected), { "users" => ["email"], "teams" => ["name"] }
+	assert_equal sorted(r.referenced), { "teams" => ["id", "name"], "users" => ["team_id"] }
 end
 
 test "select name from users join teams using (id)" do
 	r = reads("select name from users join teams using (id)")
 
 	# Both sides of a USING are read, even though SQLite's authorizer only reports one
-	assert_equal columns_of(r.referenced), { "users" => ["id"], "teams" => ["id"] }
+	assert_equal sorted(r.referenced), { "users" => ["id"], "teams" => ["id"] }
 end
 
 test "select * from users natural join teams" do
 	r = reads("select * from users natural join teams")
 
-	assert_equal columns_of(r.referenced), { "users" => ["id"], "teams" => ["id"] }
+	assert_equal sorted(r.referenced), { "users" => ["id"], "teams" => ["id"] }
 	# The merged column appears once in the output
-	assert_equal columns_of(r.projected), { "users" => ["email", "id", "secret", "team_id"], "teams" => ["name"] }
+	assert_equal sorted(r.projected), { "users" => ["email", "id", "secret", "team_id"], "teams" => ["name"] }
 end
 
 test "select rowid, oid, _rowid_ from users" do
-	assert_equal columns_of(reads("select rowid, oid, _rowid_ from users").projected), { "users" => ["id"] }
+	assert_equal sorted(reads("select rowid, oid, _rowid_ from users").projected), { "users" => ["id"] }
 end
 
 test "select rowid from plain" do
-	assert_equal columns_of(reads("select rowid from plain").projected), { "plain" => ["rowid"] }
+	assert_equal sorted(reads("select rowid from plain").projected), { "plain" => ["rowid"] }
 end
 
 test "select rowid from tags" do
@@ -108,7 +106,7 @@ end
 test "select email as e from users order by e" do
 	r = reads("select email as e from users order by e")
 
-	assert_equal columns_of(r.columns), { "users" => ["email"] }
+	assert_equal sorted(r.columns), { "users" => ["email"] }
 end
 
 test "select email as e from users where e like '%@x'" do
@@ -126,30 +124,30 @@ end
 test "select email from users u where exists (select 1 from teams t where t.id = u.team_id)" do
 	r = reads("select email from users u where exists (select 1 from teams t where t.id = u.team_id)")
 
-	assert_equal columns_of(r.projected), { "users" => ["email"] }
-	assert_equal columns_of(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
+	assert_equal sorted(r.projected), { "users" => ["email"] }
+	assert_equal sorted(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
 end
 
 test "select id from users where team_id in (select id from teams where name = 'x')" do
 	r = reads("select id from users where team_id in (select id from teams where name = 'x')")
 
 	# Columns selected by a filtering subquery only filter
-	assert_equal columns_of(r.referenced), { "users" => ["team_id"], "teams" => ["id", "name"] }
-	assert_equal columns_of(r.projected), { "users" => ["id"] }
+	assert_equal sorted(r.referenced), { "users" => ["team_id"], "teams" => ["id", "name"] }
+	assert_equal sorted(r.projected), { "users" => ["id"] }
 end
 
 test "select (select name from teams where id = team_id) from users" do
 	r = reads("select (select name from teams where id = team_id) from users")
 
-	assert_equal columns_of(r.projected), { "teams" => ["name"] }
-	assert_equal columns_of(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
+	assert_equal sorted(r.projected), { "teams" => ["name"] }
+	assert_equal sorted(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
 end
 
 test "select s.e from (select email as e, secret from users) s" do
 	r = reads("select s.e from (select email as e, secret from users) s")
 
 	# Everything the subquery selects is read, used further up or not
-	assert_equal columns_of(r.projected), { "users" => ["email", "secret"] }
+	assert_equal sorted(r.projected), { "users" => ["email", "secret"] }
 end
 
 test "select s.missing from (select email from users) s" do
@@ -166,7 +164,7 @@ test "with x as (select secret from users) select 1" do
 end
 
 test "with x as (select id, secret from users) select id from x" do
-	assert_equal columns_of(reads("with x as (select id, secret from users) select id from x").projected),
+	assert_equal sorted(reads("with x as (select id, secret from users) select id from x").projected),
 		{ "users" => ["id", "secret"] }
 end
 
@@ -190,7 +188,7 @@ test "select email from user_emails" do
 	r = reads("select email from user_emails")
 
 	assert_equal r.views.to_a, ["user_emails"]
-	assert_equal columns_of(r.projected), { "users" => ["email", "id"] }
+	assert_equal sorted(r.projected), { "users" => ["email", "id"] }
 end
 
 # -- table-valued functions
@@ -199,7 +197,7 @@ test "select j.value, u.email from users u, json_each(u.secret) j" do
 	r = reads("select j.value, u.email from users u, json_each(u.secret) j")
 
 	assert_equal r.functions.to_a, ["json_each"]
-	assert_equal columns_of(r.columns), { "users" => ["email", "secret"] }
+	assert_equal sorted(r.columns), { "users" => ["email", "secret"] }
 end
 
 # -- strictness
@@ -241,12 +239,12 @@ end
 test "select * from users u join teams t on t.id = u.team_id, without a catalog" do
 	r = Plume.reads("select u.*, t.name from users u join teams t on t.id = u.team_id")
 
-	assert_equal columns_of(r.projected), { "users" => ["*"], "teams" => ["name"] }
-	assert_equal columns_of(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
+	assert_equal sorted(r.projected), { "users" => ["*"], "teams" => ["name"] }
+	assert_equal sorted(r.referenced), { "teams" => ["id"], "users" => ["team_id"] }
 end
 
 test "select email from users where id = 1, without a catalog" do
-	assert_equal columns_of(Plume.reads("select email from users where id = 1").columns), { "users" => ["email", "id"] }
+	assert_equal sorted(Plume.reads("select email from users where id = 1").columns), { "users" => ["email", "id"] }
 end
 
 test "select email from users, teams, without a catalog" do
