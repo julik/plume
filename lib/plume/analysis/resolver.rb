@@ -16,6 +16,8 @@ module Plume
 			# `qualified_only` sources answer to `name.column` but never to a bare column name -
 			# that is how the `excluded` row of an upsert behaves
 			Source = Struct.new(:name, :kind, :schema, :table, :columns, :members, :merged, :qualified_only, :node, keyword_init: true) do
+				def self.table(name, table, node) = new(name:, kind: :table, schema: table.schema, table:, columns: table.columns, node:)
+
 				def matches?(qualifier, schema_qualifier)
 					return false unless name&.casecmp?(qualifier)
 					return true unless schema_qualifier
@@ -24,10 +26,11 @@ module Plume
 				end
 
 				def column(name)
+					return table.column(name) if table
 					return unless columns
 
 					needle = name.downcase
-					columns.find { |c| c&.downcase == needle } || table&.hidden_columns&.find { |c| c.downcase == needle }
+					columns.find { |c| c&.downcase == needle }
 				end
 			end
 
@@ -60,8 +63,7 @@ module Plume
 			end
 
 			def analyze(statement)
-				@reads = Reads.new(statement)
-				@writes = Writes.new(statement, @reads.unresolved)
+				start(statement)
 
 				case statement
 				when SelectStatement then select(statement, parent: nil, usage: :projected)
@@ -75,12 +77,16 @@ module Plume
 
 			# Names of the columns a select produces, nil for the ones we cannot name
 			def output_columns(statement)
-				@reads = Reads.new(statement)
-				@writes = Writes.new(statement, @reads.unresolved)
+				start(statement)
 				select(statement, parent: nil, usage: :projected) || []
 			end
 
 			private
+
+			def start(statement)
+				@reads = Reads.new(statement)
+				@writes = Writes.new(statement, @reads.unresolved)
+			end
 
 			def with_scope(with_clause, parent)
 				scope = Scope.new(sources: [], parent:, ctes: {})
@@ -181,7 +187,7 @@ module Plume
 					if @catalog.nil?
 						Source.new(name:, kind: :table, schema: node.schema, node:)
 					elsif (table = @catalog.table(node.table, schema: node.schema))
-						Source.new(name:, kind: :table, schema: table.schema, table:, columns: table.columns, node:)
+						Source.table(name, table, node)
 					elsif (view = @catalog.view(node.table, schema: node.schema))
 						# Writable only through INSTEAD OF triggers, which we do not look into
 						@reads.views << Analysis.table_key(view.schema, view.name)
@@ -295,10 +301,7 @@ module Plume
 					# Any virtual table can be called like this, `fts('query')` reads the fts table
 					if @catalog && (table = @catalog.table(source.function, schema: source.schema))
 						record(table.schema, table.name, nil, usage, source)
-						scope.sources << Source.new(
-							name: source.alias || source.function, kind: :table,
-							schema: table.schema, table:, columns: table.columns, node: source,
-						)
+						scope.sources << Source.table(source.alias || source.function, table, source)
 						return
 					end
 
@@ -333,22 +336,16 @@ module Plume
 					scope.sources << Source.new(name:, kind: :table, schema: source.schema, table: nil, node: source)
 				elsif (table = @catalog.table(source.table, schema: source.schema))
 					record(table.schema, table.name, nil, usage, source)
-					scope.sources << Source.new(name:, kind: :table, schema: table.schema, table:, columns: table.columns, node: source)
+					scope.sources << Source.table(name, table, source)
 				elsif (view = @catalog.view(source.table, schema: source.schema))
 					@reads.views << Analysis.table_key(view.schema, view.name)
-					names = Resolver.new(catalog: @catalog).send(:analyze_view, view, usage, @reads)
+					# A view's body starts a scope chain of its own, so the CTEs of the query using it stay out of sight
+					names = select(view.select, parent: nil, usage:)
 					scope.sources << Source.new(name:, kind: :derived, columns: view.columns || names, node: source)
 				else
 					unresolved(source.table, "no such table", source)
 					scope.sources << Source.new(name:, kind: :table, schema: source.schema, node: source)
 				end
-			end
-
-			# Views are analyzed in a fresh resolver so the CTEs of the query using the view are not
-			# visible inside it, but the reads land in the same bag
-			def analyze_view(view, usage, reads)
-				@reads = reads
-				select(view.select, parent: nil, usage:)
 			end
 
 			def find_cte(name, scope)
@@ -362,8 +359,7 @@ module Plume
 			def analyze_cte(cte, usage)
 				declared = cte.node.column_names
 				# A recursive CTE refers to itself, we know its columns at best from the declaration
-				return declared || cte.columns if cte.in_progress
-				return declared || cte.columns if cte.analyzed.include?(usage)
+				return declared || cte.columns if cte.in_progress || cte.analyzed.include?(usage)
 
 				cte.in_progress = true
 				names = select(cte.node.select, parent: cte.scope, usage:)
