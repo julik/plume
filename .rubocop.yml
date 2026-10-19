@@ -43,3 +43,12 @@ Layout/EmptyLineAfterMultilineCondition:
 
 Layout/HeredocIndentation:
   Enabled: false
+
+# The railroad diagrams of the SQLite grammar in parser.rb are drawn in comments
+Layout/CommentIndentation:
+  Exclude:
+    - lib/plume/parser.rb
+
+Layout/EmptyComment:
+  Exclude:
+    - lib/plume/parser.rb
