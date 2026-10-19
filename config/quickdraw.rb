@@ -16,6 +16,7 @@ if ENV["COVERAGE"] == "true"
 end
 
 require "plume"
+require_relative "../test/support/ast_shape"
 
 class Quickdraw::Test
 	def lex(str, with_values: false)
@@ -26,6 +27,16 @@ class Quickdraw::Test
 		end
 		tokens
 	end
+
+	# Printing a parse and parsing that again must give the same tree
+	def round_trip(sql)
+		original = Plume.parse(sql)
+		printed = original.map(&:to_sql).join(";\n")
+		assert_equal AstShape.of(Plume.parse(printed)), AstShape.of(original)
+		printed
+	end
+
+	def sorted(hash) = hash.transform_values { |set| set.to_a.sort }
 
 	def parse_stmt(sql)
 		Plume::Parser.new(sql).parse.first

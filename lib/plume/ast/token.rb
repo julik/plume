@@ -16,6 +16,7 @@ module Plume
 			:false,
 			:null,
 			:current,
+			:variable,
 		)
 
 		Tuple = _Tuple(_Union(Symbol, _Array(Symbol)), Integer, Integer, Type)
@@ -60,8 +61,12 @@ module Plume
 			[*arg, :current] if arg
 		end
 
+		def Variable(arg)
+			[*arg, :variable] if arg
+		end
+
 		def source(str, tup)
-			return unless str && tup
+			return unless str && present?(tup)
 
 			_, beg, fin, = tup
 
@@ -69,7 +74,7 @@ module Plume
 		end
 
 		def value(str, tup)
-			return unless str && tup
+			return unless str && present?(tup)
 
 			*, type = tup
 
@@ -84,11 +89,12 @@ module Plume
 			when :keyword     then source(str, tup)
 			when :identifier  then identifier(str, tup)
 			when :punctuation then source(str, tup)
+			when :variable    then source(str, tup)
 			end
 		end
 
 		def location(tup)
-			return unless tup
+			return unless present?(tup)
 
 			_, beg, fin, = tup
 
@@ -96,7 +102,7 @@ module Plume
 		end
 
 		def token(tup)
-			return unless tup
+			return unless present?(tup)
 
 			tok, * = tup
 
@@ -108,6 +114,8 @@ module Plume
 		end
 
 		private
+
+		def present?(tup) = !(tup.nil? || LiteralNil.equal?(tup))
 
 		def numeric_literal(str, tup)
 			tok, * = tup
@@ -127,8 +135,8 @@ module Plume
 		def string_literal(str, tup)
 			src = source(str, tup)
 			bytesize = src.bytesize
-			# strip the leading and trailing quotes
-			src.byteslice(1, bytesize - 2)
+			# strip the leading and trailing quotes, a quote inside is written twice
+			src.byteslice(1, bytesize - 2).gsub("''", "'")
 		end
 
 		def blob_literal(str, tup)
@@ -147,12 +155,13 @@ module Plume
 
 			return src if tok != :ID
 
+			# Inside quotes, the quote character itself is written twice. Brackets have no escape
 			case src.getbyte(0)
-			when 96, 39, 34, 91 # "`", "'", '"', "["
-				bytesize = src.bytesize
-				src.byteslice(1, bytesize - 2)
-			else
-				src
+			when 96 then src.byteslice(1, src.bytesize - 2).gsub("``", "`")
+			when 39 then src.byteslice(1, src.bytesize - 2).gsub("''", "'")
+			when 34 then src.byteslice(1, src.bytesize - 2).gsub('""', '"')
+			when 91 then src.byteslice(1, src.bytesize - 2)
+			else src
 			end
 		end
 	end

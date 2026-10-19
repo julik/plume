@@ -23,7 +23,7 @@ module Plume
 			end
 		end
 
-		def predicate = @predicate || predicate_tk_val
-		def consequence = @consequence || consequence_tk_val
+		def predicate = (@predicate == LiteralNil) ? predicate_tk_val : @predicate
+		def consequence = (@consequence == LiteralNil) ? consequence_tk_val : @consequence
 	end
 end

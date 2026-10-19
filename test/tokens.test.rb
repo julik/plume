@@ -269,3 +269,10 @@ end
 test "tokenizes UTF16 string as ID" do
 	assert_token "\u{3042}".encode(Encoding::UTF_16), :ID
 end
+
+test "lexing leaves the caller's string alone" do
+	sql = +"select 1"
+	Plume.parse(sql)
+
+	refute sql.frozen?
+end

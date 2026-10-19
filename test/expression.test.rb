@@ -2604,3 +2604,62 @@ test "RAISE (FAIL, 'error message')" do
 	assert_equal actual.type, expected.type
 	assert_equal actual.error_message.value, expected.error_message.value
 end
+# -- operators after IN, BETWEEN, LIKE and GLOB keep the expression going
+
+test "a IN (1, 2) AND b" do
+	actual = Plume::Parser.new("a IN (1, 2) AND b").expression
+
+	assert_equal actual.operator, :ALL
+	assert_equal actual.left.operator, :IN
+	assert_equal actual.right.column, "b"
+end
+
+test "a IN (b OR c)" do
+	actual = Plume::Parser.new("a IN (b OR c)").expression
+
+	assert_equal actual.right.value.first.operator, :ANY
+end
+
+test "a BETWEEN 1 AND 2 OR b" do
+	actual = Plume::Parser.new("a BETWEEN 1 AND 2 OR b").expression
+
+	assert_equal actual.operator, :ANY
+	assert_operator Plume::TernaryExpression, :===, actual.left
+end
+
+test "a LIKE 'x%' AND b GLOB 'y*' AND c" do
+	actual = Plume::Parser.new("a LIKE 'x%' AND b GLOB 'y*' AND c").expression
+
+	assert_equal actual.operator, :ALL
+	assert_equal actual.right.column, "c"
+end
+
+# -- bind parameters
+
+test "a = ?" do
+	actual = Plume::Parser.new("a = ?").expression
+
+	assert_operator Plume::Variable, :===, actual.right
+	assert_equal actual.right.name, "?"
+end
+
+test "f(:a, ?2, @b, $c)" do
+	actual = Plume::Parser.new("f(:a, ?2, @b, $c)").expression
+
+	assert_equal actual.arguments.expressions.map(&:name), [":a", "?2", "@b", "$c"]
+end
+
+test "count(x) is not distinct" do
+	refute Plume::Parser.new("count(x)").expression.arguments.distinct
+	assert Plume::Parser.new("count(distinct x)").expression.arguments.distinct
+end
+
+test "'it''s'" do
+	assert_equal Plume::Parser.new("'it''s'").expression.value, "it's"
+end
+
+test "\"a \"\"b\"\"\".`c``d`" do
+	column = Plume::Parser.new("\"a \"\"b\"\"\".`c``d`").expression
+
+	assert_equal [column.table, column.column], ["a \"b\"", "c`d"]
+end

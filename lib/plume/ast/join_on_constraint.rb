@@ -2,6 +2,11 @@
 
 module Plume
 	class JoinOnConstraint < Node
-		prop :expression, Expression
+		token :on_kw
+
+		node :expression, Expression
+
+		def self.new(*, expression:, **) = super
+		def self.concrete(*, on_kw:, expression:, **) = super
 	end
 end

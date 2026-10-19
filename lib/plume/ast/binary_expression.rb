@@ -67,9 +67,5 @@ module Plume
 		def operator = (@operator == LiteralNil) ? TOKEN_TO_OPERATOR[operator_tk_tok] : @operator
 		def left = (@left == LiteralNil) ? left_tk_val : @left
 		def right = (@right == LiteralNil) ? right_tk_val : @right
-
-		def to_sql
-			# ALWAYS USE READER METHODS
-		end
 	end
 end

@@ -192,6 +192,7 @@ module Plume
 			:WHERE,
 			:WINDOW,
 			:WITH,
+			:WITHIN,
 			:WITHOUT,
 			:TRUE,
 			:FALSE,
@@ -302,12 +303,12 @@ module Plume
 		attr_accessor :cursor, :anchor
 
 		def initialize(sql, skip_spaces: false)
-			case sql.encoding
-			when Encoding::UTF_8, Encoding::ASCII_8BIT
-				@sql = sql.freeze
-			else
-				@sql = sql.encode(Encoding::UTF_8).freeze
-			end
+			# Freezing the caller's string would leave them with a frozen string they did not ask for
+			@sql =
+				case sql.encoding
+				when Encoding::UTF_8, Encoding::ASCII_8BIT then sql.frozen? ? sql : sql.dup.freeze
+				else sql.encode(Encoding::UTF_8).freeze
+				end
 			@skip_spaces = skip_spaces
 			@cursor, @anchor = 0
 		end

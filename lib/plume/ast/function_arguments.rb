@@ -2,8 +2,16 @@
 
 module Plume
 	class FunctionArguments < Node
-		prop :distinct, _Nilable(_Boolean)
-		prop :expressions, _Array(Expression)
-		prop :order_by, _Nilable(_Array(OrderingTerm))
+		token :distinct_kw
+		token :order_by_kw
+
+		attr :distinct, _Boolean
+		nodes :expressions, Expression
+		nodes :order_by, OrderingTerm
+
+		def self.new(*, expressions:, **) = super
+		def self.concrete(*, expressions:, **) = super
+
+		def distinct = (@distinct == LiteralNil) ? distinct_kw? : @distinct
 	end
 end

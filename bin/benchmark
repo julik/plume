@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Times the lexer, parser, printer and read analysis over the fixture corpus
+
+require "bundler/setup"
+require "plume"
+require "benchmark"
+require_relative "../test/support/fixture_corpus"
+
+sources = FixtureCorpus.baseline.map { |path| FixtureCorpus.read(path) }
+bytes = sources.sum(&:bytesize)
+trees = nil
+
+def report(label, seconds, count, bytes)
+	puts format("%-10s %7.2fs  %8.0f statements/s  %6.2f MB/s", label, seconds, count / seconds, bytes / seconds / 1_000_000)
+end
+
+puts "#{sources.size} fixtures, #{(bytes / 1024.0).round} KB of SQL, Ruby #{RUBY_VERSION}#{" +YJIT" if defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?}"
+report("lex", Benchmark.realtime { sources.each { |sql| Plume.tokenize(sql) } }, sources.size, bytes)
+report("parse", Benchmark.realtime { trees = sources.map { |sql| Plume.parse(sql) } }, sources.size, bytes)
+report("to_sql", Benchmark.realtime { trees.each { |t| t.each(&:to_sql) } }, sources.size, bytes)
+
+selects = sources.select { |sql| (t = Plume.parse(sql)).size == 1 && Plume::SelectStatement === t.first }
+seconds = Benchmark.realtime { selects.each { |sql| Plume.reads(sql, strict: false) } }
+report("reads", seconds, selects.size, selects.sum(&:bytesize))

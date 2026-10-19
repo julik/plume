@@ -26,7 +26,8 @@ Gem::Specification.new do |spec|
 	]
 	spec.require_paths = ["lib"]
 
-	# Uncomment to register a new dependency of your gem
+	spec.add_dependency "literal", "~> 1.6"
+
 	spec.add_development_dependency "rake"
 	spec.add_development_dependency "quickdraw"
 

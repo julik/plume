@@ -8,7 +8,8 @@ module Plume
 			:MINUS => :NEGATE,
 			:NOT => :NOT,
 			:ISNULL => :IS_NULL,
-			:NOTNULL => :NOT_NULL
+			:NOTNULL => :NOT_NULL,
+			[:NOT, :NULL].freeze => :NOT_NULL,
 		}.freeze
 		Operator = _Union(*TOKEN_TO_OPERATOR.values)
 

@@ -18,6 +18,6 @@ module Plume
 
 		def name = (@name == LiteralNil) ? name_tk_val : @name
 		def direction = (@direction == LiteralNil) ? direction_tk_val&.to_sym&.upcase : @direction
-		def autoincrement = (@autoincrement == LiteralNil) ? !!@autoincrement_kw : @autoincrement
+		def autoincrement = (@autoincrement == LiteralNil) ? autoincrement_kw? : @autoincrement
 	end
 end
