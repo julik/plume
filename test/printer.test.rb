@@ -15,6 +15,13 @@ test "literals keep their meaning" do
 		"SELECT 'it''s', X'00FF', 0x1F, 1e3, NULL, TRUE, CURRENT_DATE, -1, -(-1)"
 end
 
+test "a number SQL cannot spell is refused rather than printed as something else" do
+	[Rational(1, 3), Complex(1, 2), Float::NAN, Float::INFINITY].each do |number|
+		assert_raises(ArgumentError) { Plume::LiteralExpression.new(value: number).to_sql }
+	end
+	assert_equal Plume::LiteralExpression.new(value: 2.5).to_sql, "2.5"
+end
+
 test "a parenthesized NULL keeps its NULL" do
 	assert_equal parse_stmt("select (null), x in (), x in (null)").to_sql, "SELECT (NULL), x IN (), x IN (NULL)"
 end

@@ -285,9 +285,14 @@ module Plume
 			when true then "TRUE"
 			when false then "FALSE"
 			when Symbol then value.to_s
-			when Numeric then value.to_s
+			when Integer then value.to_s
+			when Float
+				# SQLite has no literal for NaN or infinity
+				value.finite? ? value.to_s : raise(ArgumentError, "cannot print #{value}")
 			when String
 				value.encoding == Encoding::BINARY ? "X'#{value.unpack1("H*").upcase}'" : string(value)
+			# A Rational would print as integer division (1/3), a Complex as nothing SQL can read
+			else raise ArgumentError, "cannot print #{value.inspect}"
 			end
 		end
 

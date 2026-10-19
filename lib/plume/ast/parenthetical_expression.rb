@@ -26,8 +26,7 @@ module Plume
 		def contents = LiteralNil.equal?(@value) ? value_tk_val : @value
 
 		def value
-			v = (@value == LiteralNil) ? value_tk_val : @value
-			case v
+			case (v = contents)
 			when LiteralNil then nil
 			when LiteralFalse then false
 			when LiteralExpression then v.value
