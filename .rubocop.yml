@@ -57,6 +57,8 @@ Layout/EmptyComment:
 Style/AccessModifierDeclarations:
   EnforcedStyle: group
 
-# A bare `return` from inside a search loop is how the resolver bails out early
+# A bare `return` from inside a search loop is how the resolver (and bin/grammar) bail out early
 Lint/NonLocalExitFromIterator:
-  Enabled: false
+  Exclude:
+    - lib/plume/analysis/resolver.rb
+    - bin/grammar
