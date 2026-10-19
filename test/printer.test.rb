@@ -15,6 +15,10 @@ test "literals keep their meaning" do
 		"SELECT 'it''s', X'00FF', 0x1F, 1e3, NULL, TRUE, CURRENT_DATE, -1, -(-1)"
 end
 
+test "a parenthesized NULL keeps its NULL" do
+	assert_equal parse_stmt("select (null), x in (), x in (null)").to_sql, "SELECT (NULL), x IN (), x IN (NULL)"
+end
+
 test "aliases always get their AS" do
 	assert_equal parse_stmt("select a x from t y").to_sql, "SELECT a AS x FROM t AS y"
 end

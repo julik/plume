@@ -327,11 +327,7 @@ module Plume
 
 		def print_collation_expression(node) = "#{operand(node.expression)} COLLATE #{identifier(node.sequence)}"
 
-		def print_parenthetical_expression(node)
-			return "()" if node.instance_variable_get(:@value).nil? # `x IN ()`
-
-			"(#{print(node.value)})"
-		end
+		def print_parenthetical_expression(node) = "(#{print(node.contents)})"
 
 		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
 

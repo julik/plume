@@ -10,7 +10,7 @@ module AstShape
 	def of(value)
 		case value
 		when Plume::ParentheticalExpression
-			inner = value.instance_variable_get(:@value)
+			inner = value.contents
 			Plume::Node === inner ? of(inner) : [:row, of(inner)]
 		when Plume::Node
 			klass = value.class
