@@ -12,6 +12,6 @@ group :development do
 	gem "rubocop", platform: :ruby
 	gem "ruby-lsp", platform: :ruby
 	gem "simplecov", platform: :ruby
-	gem "sqlite3"
+	gem "sqlite3", platforms: :ruby # a C extension, JRuby skips the tests that need it
 	gem "debug", ">= 1.0.0"
 end
