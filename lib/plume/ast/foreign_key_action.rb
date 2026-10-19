@@ -15,7 +15,7 @@ module Plume
 		token :action_kw
 
 		attr :trigger, Stringy
-		attr :action, _Union(TOKEN_TO_ACTION.values)
+		attr :action, _Union(*TOKEN_TO_ACTION.values)
 
 		def self.new(*, trigger:, action:, **) = super
 		def self.concrete(*, on_kw:, trigger_kw:, action_kw:, **) = super

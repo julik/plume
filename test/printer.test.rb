@@ -39,3 +39,7 @@ test "a parsed tree changed after the fact prints the change" do
 
 	assert_equal node.to_sql, "SELECT a FROM t WHERE (b = 1) AND (tenant_id = ?)"
 end
+
+test "a foreign key action built by hand prints" do
+	assert_equal Plume::ForeignKeyAction.new(trigger: :DELETE, action: :SET_NULL).to_sql, "ON DELETE SET NULL"
+end
