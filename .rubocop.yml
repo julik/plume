@@ -1,5 +1,5 @@
 inherit_from:
-  - "https://www.goodcop.style/tabs.yml"
+  - .rubocop/goodcop-tabs.yml
 
 AllCops:
   TargetRubyVersion: 3.2

@@ -1,0 +1,9 @@
+# Vendored from https://www.goodcop.style/tabs.yml on 2026-10-19
+---
+inherit_from:
+  - goodcop-base.yml
+Layout/IndentationStyle:
+  EnforcedStyle: tabs
+
+Layout/IndentationWidth:
+  Width: 1

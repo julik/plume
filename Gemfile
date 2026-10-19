@@ -9,7 +9,7 @@ gem "quickdraw", git: "https://github.com/joeldrapper/quickdraw.git", ref: "2c59
 
 group :development do
 	gem "solargraph", platform: :ruby
-	gem "rubocop", platform: :ruby
+	gem "rubocop", "1.70.0", platform: :ruby
 	gem "ruby-lsp", platform: :ruby
 	gem "simplecov", platform: :ruby
 	gem "sqlite3", platforms: :ruby # a C extension, JRuby skips the tests that need it

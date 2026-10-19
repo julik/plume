@@ -144,7 +144,7 @@ DEPENDENCIES
   plume!
   quickdraw!
   rake
-  rubocop
+  rubocop (= 1.70.0)
   ruby-lsp
   simplecov
   solargraph
