@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "plume/version"
-require "set"
 require "literal"
 require "plume/union"
 

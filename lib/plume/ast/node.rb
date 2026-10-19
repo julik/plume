@@ -132,7 +132,7 @@ module Plume
 
 		def self.concrete(*a, full_source:, **kw)
 			object = allocate
-			object.send(:initialize, *a, full_source: full_source, **kw)
+			object.__send__(:initialize, *a, full_source: full_source, **kw)
 			object
 		end
 

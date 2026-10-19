@@ -11,7 +11,7 @@ module AstShape
 		case value
 		when Plume::ParentheticalExpression
 			inner = value.instance_variable_get(:@value)
-			Plume::Node === inner ? of(inner) : [:row, of(inner)]
+			(Plume::Node === inner) ? of(inner) : [:row, of(inner)]
 		when Plume::Node
 			klass = value.class
 			names = (klass.literal_properties.map(&:name) - klass.token_names.to_a - SKIPPED) | klass.all_inspectable_props.to_a

@@ -23,7 +23,7 @@ module FixtureCorpus
 
 	def leading_keyword(path)
 		Plume.tokenize(read(path)).first || :EMPTY
-	rescue StandardError
+	rescue
 		:UNLEXABLE
 	end
 

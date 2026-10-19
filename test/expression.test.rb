@@ -2543,7 +2543,6 @@ test "c0 & 3 | 4" do
 	assert_equal actual.right.value, expected.right.value
 end
 
-
 # Expressions
 
 test "'foo' COLLATE NOCASE" do

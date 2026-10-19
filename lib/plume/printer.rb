@@ -10,12 +10,36 @@ module Plume
 		BARE_IDENTIFIER = /\A[A-Za-z_][A-Za-z0-9_]*\z/
 
 		BINARY_OPERATORS = {
-			ALL: "AND", ANY: "OR", CONCAT: "||", EXTRACT: "->", RETRIEVE: "->>",
-			MULTIPLY: "*", DIVIDE: "/", MODULO: "%", ADD: "+", SUB: "-",
-			BIT_AND: "&", BIT_OR: "|", BIT_LSHIFT: "<<", BIT_RSHIFT: ">>",
-			BELOW: "<", ABOVE: ">", ATMOST: "<=", ATLEAST: ">=", EQUALS: "=", NOT_EQUALS: "!=",
-			IS: "IS", IS_NOT: "IS NOT", GLOB: "GLOB", NOT_GLOB: "NOT GLOB", REGEXP: "REGEXP",
-			NOT_REGEXP: "NOT REGEXP", MATCH: "MATCH", NOT_MATCH: "NOT MATCH", IN: "IN", NOT_IN: "NOT IN",
+			ALL: "AND",
+			ANY: "OR",
+			CONCAT: "||",
+			EXTRACT: "->",
+			RETRIEVE: "->>",
+			MULTIPLY: "*",
+			DIVIDE: "/",
+			MODULO: "%",
+			ADD: "+",
+			SUB: "-",
+			BIT_AND: "&",
+			BIT_OR: "|",
+			BIT_LSHIFT: "<<",
+			BIT_RSHIFT: ">>",
+			BELOW: "<",
+			ABOVE: ">",
+			ATMOST: "<=",
+			ATLEAST: ">=",
+			EQUALS: "=",
+			NOT_EQUALS: "!=",
+			IS: "IS",
+			IS_NOT: "IS NOT",
+			GLOB: "GLOB",
+			NOT_GLOB: "NOT GLOB",
+			REGEXP: "REGEXP",
+			NOT_REGEXP: "NOT REGEXP",
+			MATCH: "MATCH",
+			NOT_MATCH: "NOT MATCH",
+			IN: "IN",
+			NOT_IN: "NOT IN",
 		}.freeze
 
 		COMPOUND_OPERATORS = { UNION: "UNION", UNION_ALL: "UNION ALL", INTERSECT: "INTERSECT", EXCEPT: "EXCEPT" }.freeze
@@ -31,7 +55,7 @@ module Plume
 			case node
 			when nil then nil
 			when Array then node.map { |n| print(n) }.join(", ")
-			when Node then send(:"print_#{underscore(node.class.name.split("::").last)}", node)
+			when Node then __send__(:"print_#{underscore(node.class.name.split("::").last)}", node)
 			else raise ArgumentError, "cannot print #{node.inspect}"
 			end
 		end
@@ -56,7 +80,7 @@ module Plume
 
 		def qualified(*names) = names.compact.map { |n| identifier(n) }.join(".")
 
-		def operand(node) = COMPOUND_EXPRESSIONS.any? { |klass| klass === node } ? "(#{print(node)})" : print(node)
+		def operand(node) = (COMPOUND_EXPRESSIONS.any? { |klass| klass === node }) ? "(#{print(node)})" : print(node)
 
 		def alias_of(node) = node.alias && "AS #{identifier(node.alias)}"
 
@@ -120,7 +144,7 @@ module Plume
 		end
 
 		def print_insert_statement(node)
-			verb = node.or_action ? (node.insert_kw_tok == :REPLACE ? "REPLACE" : "INSERT OR #{node.or_action}") : "INSERT"
+			verb = node.or_action ? ((node.insert_kw_tok == :REPLACE) ? "REPLACE" : "INSERT OR #{node.or_action}") : "INSERT"
 			join(
 				print(node.with_clause), verb, "INTO", print(node.table),
 				node.columns && "(#{list(node.columns)})",
@@ -160,7 +184,7 @@ module Plume
 		end
 
 		def print_assignment(node)
-			target = node.columns.size == 1 && !node.columns_lp? ? print(node.columns[0]) : "(#{list(node.columns)})"
+			target = (node.columns.size == 1 && !node.columns_lp?) ? print(node.columns[0]) : "(#{list(node.columns)})"
 			"#{target} = #{print(node.value)}"
 		end
 
@@ -230,9 +254,9 @@ module Plume
 			value =
 				case node.value
 				when Numeric then node.value.to_s
-				else node.value_tk_tok == :STRING ? string(node.value) : identifier(node.value)
+				else (node.value_tk_tok == :STRING) ? string(node.value) : identifier(node.value)
 				end
-			node.eq_tk_tok == :LP ? "PRAGMA #{name}(#{value})" : "PRAGMA #{name} = #{value}"
+			(node.eq_tk_tok == :LP) ? "PRAGMA #{name}(#{value})" : "PRAGMA #{name} = #{value}"
 		end
 
 		def print_attach_statement(node)
@@ -262,7 +286,7 @@ module Plume
 			node.joins.reduce(print(node.left)) do |sql, each|
 				operator = print(each.operator)
 				right = join(print(each.source), print(each.constraint))
-				operator == "," ? "#{sql}, #{right}" : "#{sql} #{operator} #{right}"
+				(operator == ",") ? "#{sql}, #{right}" : "#{sql} #{operator} #{right}"
 			end
 		end
 
@@ -285,7 +309,7 @@ module Plume
 			when Symbol then value.to_s
 			when Numeric then value.to_s
 			when String
-				value.encoding == Encoding::BINARY ? "X'#{value.unpack1("H*").upcase}'" : string(value)
+				(value.encoding == Encoding::BINARY) ? "X'#{value.unpack1("H*").upcase}'" : string(value)
 			end
 		end
 
@@ -313,12 +337,12 @@ module Plume
 		end
 
 		def print_ternary_expression(node)
-			operator = node.operator == :NOT_BETWEEN ? "NOT BETWEEN" : "BETWEEN"
+			operator = (node.operator == :NOT_BETWEEN) ? "NOT BETWEEN" : "BETWEEN"
 			"#{operand(node.left)} #{operator} #{operand(node.middle)} AND #{operand(node.right)}"
 		end
 
 		def print_like_expression(node)
-			operator = node.operator == :NOT_LIKE ? "NOT LIKE" : "LIKE"
+			operator = (node.operator == :NOT_LIKE) ? "NOT LIKE" : "LIKE"
 			join("#{operand(node.left)} #{operator} #{operand(node.right)}", node.escape && "ESCAPE #{operand(node.escape)}")
 		end
 		alias_method :print_not_like_expression, :print_like_expression
@@ -334,7 +358,7 @@ module Plume
 
 		# ParentheticalExpression#value unwraps literals into plain Ruby values
 		def print_value(value)
-			Node === value ? print(value) : print(LiteralExpression.new(value:))
+			(Node === value) ? print(value) : print(LiteralExpression.new(value:))
 		end
 
 		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
@@ -384,7 +408,7 @@ module Plume
 			return type if type == "CURRENT ROW"
 
 			value = node.value
-			join(Symbol === value || String === value ? value.to_s.upcase : print(value), type)
+			join((Symbol === value || String === value) ? value.to_s.upcase : print(value), type)
 		end
 
 		def print_subquery_expression(node) = "(#{print(node.select)})"

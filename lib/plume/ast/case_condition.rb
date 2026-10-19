@@ -15,7 +15,7 @@ module Plume
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @predicate.nil? && @predicate_tk.nil?
 				raise ArgumentError.new("missing either: :predicate, :predicate_tk")
 			elsif @consequence.nil? && @consequence_tk.nil?

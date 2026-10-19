@@ -52,3 +52,11 @@ Layout/CommentIndentation:
 Layout/EmptyComment:
   Exclude:
     - lib/plume/parser.rb
+
+# A `private` section reads better here than prefixing every helper
+Style/AccessModifierDeclarations:
+  EnforcedStyle: group
+
+# A bare `return` from inside a search loop is how the resolver bails out early
+Lint/NonLocalExitFromIterator:
+  Enabled: false

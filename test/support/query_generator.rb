@@ -54,7 +54,7 @@ class QueryGenerator
 		target = new_source
 		table = target[:table]
 		set = table.columns.sample(1 + @random.rand(2), random: @random)
-		value = ->(_) { @random.rand(2).zero? ? "?" : "#{quote(table.name)}.#{quote(table.columns.sample(random: @random))}" }
+		value = -> (_) { @random.rand(2).zero? ? "?" : "#{quote(table.name)}.#{quote(table.columns.sample(random: @random))}" }
 		sql = +"UPDATE #{quote(table.name)} SET #{set.map { |c| "#{quote(c)} = #{value.(c)}" }.join(", ")}"
 		if @random.rand(3).zero?
 			from = new_source
@@ -87,7 +87,7 @@ class QueryGenerator
 			when 2 then " JOIN #{table_ref(source)} ON #{column_ref(source)} = #{column_ref(left)}"
 			else
 				shared = (source[:table].columns & left[:table].columns).first
-				shared && sources[0...i].count { |s| s[:table].columns.include?(shared) } == 1 ?
+				(shared && sources[0...i].count { |s| s[:table].columns.include?(shared) } == 1) ?
 					" JOIN #{table_ref(source)} USING (#{shared})" :
 					" CROSS JOIN #{table_ref(source)}"
 			end
@@ -96,14 +96,14 @@ class QueryGenerator
 		visible = sources + outer
 		aliases = []
 		result = if columns
-			Array.new(columns) { column_ref(sources.sample(random: @random)) }
-		elsif @random.rand(8).zero?
-			["*"]
-		elsif @random.rand(6).zero?
-			["#{sources.first[:alias]}.*"]
-		else
-			Array.new(1 + @random.rand(3)) { result_column(sources, visible, aliases) }
-		end
+												Array.new(columns) { column_ref(sources.sample(random: @random)) }
+											elsif @random.rand(8).zero?
+												["*"]
+											elsif @random.rand(6).zero?
+												["#{sources.first[:alias]}.*"]
+											else
+												Array.new(1 + @random.rand(3)) { result_column(sources, visible, aliases) }
+											end
 
 		sql = +"SELECT #{result.join(", ")} FROM #{from}"
 		sql << " WHERE #{condition(sources, visible)}" if @random.rand(2).zero?
@@ -159,7 +159,7 @@ class QueryGenerator
 
 	def column_ref(source)
 		column = source[:table].columns.sample(random: @random)
-		@random.rand(5).zero? && source[:table].rowid? ? "#{source[:alias]}.rowid" : "#{source[:alias]}.#{quote(column)}"
+		(@random.rand(5).zero? && source[:table].rowid?) ? "#{source[:alias]}.rowid" : "#{source[:alias]}.#{quote(column)}"
 	end
 
 	def quote(name) = %("#{name}")

@@ -14,7 +14,7 @@ module Plume
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @expression.nil? && @expression_tk.nil?
 				raise ArgumentError.new("missing either: :expression, :expression_tk")
 			end

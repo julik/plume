@@ -56,7 +56,7 @@ module Plume
 
 		# Parser may pass either tokens or attributes, so
 		# require none in `concrete` signature but ensure presence here.
-		def after_initialize()
+		def after_initialize
 			if @left.nil? && @left_tk.nil?
 				raise ArgumentError.new("missing either: :left, :left_tk")
 			elsif @right.nil? && @right_tk.nil?
