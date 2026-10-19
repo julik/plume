@@ -192,6 +192,7 @@ module Plume
 			:WHERE,
 			:WINDOW,
 			:WITH,
+			:WITHIN,
 			:WITHOUT,
 			:TRUE,
 			:FALSE,

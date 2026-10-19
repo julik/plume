@@ -34,6 +34,7 @@ module Plume
 			:IF,
 			:TEMP,
 			:TEMPORARY,
+			:WITHIN,
 			:WITHOUT,
 			:ABORT,
 			:ACTION,
@@ -2506,9 +2507,7 @@ module Plume
 					arguments_lp = require :LP
 					arguments = function_arguments
 					arguments_rp = require :RP
-					# WITHIN is too new to be in our keyword list, so it arrives as an identifier
-					if current_token == :ID && peek == :GROUP && current_value.casecmp?("within")
-						within_group_kw = require_all_of :ID, :GROUP
+					if (within_group_kw = maybe_all_of :WITHIN, :GROUP)
 						within_lp = require :LP
 						require_all_of :ORDER, :BY
 						within_group = expression
