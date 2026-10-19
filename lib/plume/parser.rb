@@ -1500,7 +1500,6 @@ module Plume
 							name = identifier
 
 							if (arguments_lp = maybe :LP)
-								function_name = name
 								arguments = maybe_some(trailing_sep: :COMMA) { expression }
 								arguments_rp = require :RP
 
@@ -2739,7 +2738,6 @@ module Plume
 			# [description]
 			#
 			if current_token in :RANGE | :ROWS | :GROUPS
-				type = current_token
 				type_tk = require current_token
 				if (between_kw = maybe :BETWEEN)
 					if (unbounded_kw = maybe :UNBOUNDED)
@@ -4003,7 +4001,7 @@ module Plume
 			return buf[1][0] if n == 1 # symbol element of the 2nd token
 
 			[].tap do |a|
-				i, len = 1, buf.length
+				i = 1
 				while i <= n
 					tok, * = buf[i]
 					a << tok
