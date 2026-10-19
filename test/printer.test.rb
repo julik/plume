@@ -43,3 +43,13 @@ end
 test "a foreign key action built by hand prints" do
 	assert_equal Plume::ForeignKeyAction.new(trigger: :DELETE, action: :SET_NULL).to_sql, "ON DELETE SET NULL"
 end
+
+test "plain values in a tree built by hand print as literals" do
+	node = Plume::BinaryExpression.new(
+		operator: :ALL,
+		left: Plume::BinaryExpression.new(operator: :ABOVE, left: Plume::ColumnName.new(column: "age"), right: 21),
+		right: Plume::BinaryExpression.new(operator: :EQUALS, left: Plume::ColumnName.new(column: "name"), right: "o'hara"),
+	)
+
+	assert_equal node.to_sql, "(age > 21) AND (name = 'o''hara')"
+end

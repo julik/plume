@@ -32,6 +32,8 @@ module Plume
 			when nil then nil
 			when Array then node.map { |n| print(n) }.join(", ")
 			when Node then send(:"print_#{underscore(node.class.name.split("::").last)}", node)
+			# Expressions built by hand may hold plain values, which stand for the literal they spell
+			when LiteralValue then print(LiteralExpression.new(value: node))
 			else raise ArgumentError, "cannot print #{node.inspect}"
 			end
 		end
@@ -328,13 +330,7 @@ module Plume
 		def print_parenthetical_expression(node)
 			return "()" if node.instance_variable_get(:@value).nil? # `x IN ()`
 
-			value = node.value
-			"(#{value.is_a?(Array) ? list(value) : print_value(value)})"
-		end
-
-		# ParentheticalExpression#value unwraps literals into plain Ruby values
-		def print_value(value)
-			Node === value ? print(value) : print(LiteralExpression.new(value:))
+			"(#{print(node.value)})"
 		end
 
 		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
