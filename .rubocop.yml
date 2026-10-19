@@ -21,7 +21,7 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Layout/EndAlignment:
-  EnforcedStyleAlignWith: keyword
+  EnforcedStyleAlignWith: variable
 
 Layout/MultilineAssignmentLayout:
   Enabled: false

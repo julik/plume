@@ -96,14 +96,14 @@ class QueryGenerator
 		visible = sources + outer
 		aliases = []
 		result = if columns
-												Array.new(columns) { column_ref(sources.sample(random: @random)) }
-											elsif @random.rand(8).zero?
-												["*"]
-											elsif @random.rand(6).zero?
-												["#{sources.first[:alias]}.*"]
-											else
-												Array.new(1 + @random.rand(3)) { result_column(sources, visible, aliases) }
-											end
+			Array.new(columns) { column_ref(sources.sample(random: @random)) }
+		elsif @random.rand(8).zero?
+			["*"]
+		elsif @random.rand(6).zero?
+			["#{sources.first[:alias]}.*"]
+		else
+			Array.new(1 + @random.rand(3)) { result_column(sources, visible, aliases) }
+		end
 
 		sql = +"SELECT #{result.join(", ")} FROM #{from}"
 		sql << " WHERE #{condition(sources, visible)}" if @random.rand(2).zero?

@@ -3835,20 +3835,20 @@ module Plume
 				sep_tk = (Array === leading_sep) ? require_one_of(*leading_sep) : require(leading_sep)
 				val = yield(sep_tk)
 				insert = if Node === val
-														val.leading = Token::Punctuation(sep_tk)
-														val
-													else
-														[sep_tk, val]
-													end
+					val.leading = Token::Punctuation(sep_tk)
+					val
+				else
+					[sep_tk, val]
+				end
 			elsif trailing_sep
 				val = (given || yield)
 				sep_tk = (Array === trailing_sep) ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
 				insert = if Node === val
-														val.trailing = Token::Punctuation(sep_tk) if sep_tk
-														val
-													else
-														[val, sep_tk]
-													end
+					val.trailing = Token::Punctuation(sep_tk) if sep_tk
+					val
+				else
+					[val, sep_tk]
+				end
 			else
 				val = (given || yield)
 				insert = val
@@ -3871,22 +3871,22 @@ module Plume
 
 				val = yield(sep_tk)
 				insert = if Node === val
-														val.leading = Token::Punctuation(sep_tk)
-														val
-													else
-														[sep_tk, val]
-													end
+					val.leading = Token::Punctuation(sep_tk)
+					val
+				else
+					[sep_tk, val]
+				end
 			elsif trailing_sep
 				val = maybe { yield }
 				return a if val.nil?
 
 				sep_tk = (Array === trailing_sep) ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
 				insert = if Node === val
-														val.trailing = Token::Punctuation(sep_tk) if sep_tk
-														val
-													else
-														[val, sep_tk]
-													end
+					val.trailing = Token::Punctuation(sep_tk) if sep_tk
+					val
+				else
+					[val, sep_tk]
+				end
 			else
 				insert = maybe { yield }
 			end
@@ -3916,11 +3916,11 @@ module Plume
 					val = yield(sep_tk)
 
 					insert = if Node === val
-															val.leading = Token::Punctuation(sep_tk)
-															val
-														else
-															[sep_tk, val]
-														end
+						val.leading = Token::Punctuation(sep_tk)
+						val
+					else
+						[sep_tk, val]
+					end
 
 				elsif trailing_sep
 					val = maybe { yield }
@@ -3930,11 +3930,11 @@ module Plume
 					break_next = sep_tk.nil?
 
 					insert = if Node === val
-															val.trailing = Token::Punctuation(sep_tk) if sep_tk
-															val
-														else
-															[val, sep_tk]
-														end
+						val.trailing = Token::Punctuation(sep_tk) if sep_tk
+						val
+					else
+						[val, sep_tk]
+					end
 
 				else
 					val = maybe { yield }
