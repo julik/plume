@@ -48,7 +48,7 @@ module FixtureCorpus
 	SQLITE_SYNTAX_ERROR = Regexp.union(
 		"syntax error", "unrecognized token", "incomplete input", "clause should come after",
 		"is required before", "unknown join type", "unknown table option", "prohibited in PRIMARY KEY",
-		"unsupported frame specification", "DISTINCT aggregates must have exactly one argument",
+		"unsupported frame specification",
 	)
 
 	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
@@ -71,6 +71,8 @@ module FixtureCorpus
 			db = SQLite3::Database.new(":memory:") if db.equal?(sqlite)
 			retry if (tries += 1) < 8 && make_missing(db, e.message)
 			false
+		ensure
+			db.close unless db.equal?(sqlite)
 		end
 	end
 

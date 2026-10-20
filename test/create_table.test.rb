@@ -1316,3 +1316,13 @@ test "a foreign key's on and match clauses come in any order" do
 
 	assert_equal [clause.on_delete, clause.on_update, clause.match_type], [:CASCADE, :SET_NULL, :SIMPLE]
 end
+
+test "nulls first or last only follows the columns of a primary key or unique" do
+	["CREATE TABLE t(a REFERENCES u(b NULLS FIRST))", "CREATE TABLE t(a, FOREIGN KEY(a NULLS FIRST) REFERENCES u)", "WITH c(a NULLS FIRST) AS (SELECT 1) SELECT * FROM c"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+end
+
+test "create table t(a references u on insert cascade)" do
+	assert_equal parse_stmt("CREATE TABLE t(a REFERENCES u ON INSERT CASCADE)").columns.first.constraints.first.foreign_key_clause.actions.first.trigger, :INSERT
+end

@@ -362,7 +362,8 @@ module Plume
 		end
 
 		def print_function_arguments(node)
-			join(node.distinct && "DISTINCT", list(node.expressions), node.order_by && "ORDER BY #{list(node.order_by)}")
+			quantifier = node.distinct ? "DISTINCT" : (node.distinct_kw_tok == :ALL && "ALL")
+			join(quantifier, list(node.expressions), node.order_by && "ORDER BY #{list(node.order_by)}")
 		end
 
 		def print_star_function_argument(_node) = "*"
@@ -478,7 +479,7 @@ module Plume
 		def print_match_clause(node) = "MATCH #{node.type}"
 
 		def print_indexed_column(node)
-			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s, node.nulls && "NULLS #{node.nulls}")
+			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s, node.nulls && "NULLS #{node.nulls.to_s.upcase}")
 		end
 
 		def print_strict_table_option(_node) = "STRICT"

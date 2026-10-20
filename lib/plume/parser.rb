@@ -969,7 +969,7 @@ module Plume
 
 					if    (unique_kw      = maybe :UNIQUE)
 						unique_lp           = require :LP
-						unique_columns      = require_some(trailing_sep: :COMMA) { indexed_column }
+						unique_columns      = require_some(trailing_sep: :COMMA) { indexed_column(nulls: true) }
 						unique_rp           = require        :RP
 						on_conflict         = maybe        { conflict_clause }
 
@@ -987,7 +987,7 @@ module Plume
 						check_table_constraint(constraint_kw, constraint_name)
 					elsif (primary_key_kw = maybe_all_of   :PRIMARY, :KEY)
 						primary_key_lp      = require :LP
-						primary_key_columns = require_some(trailing_sep: :COMMA) { indexed_column }
+						primary_key_columns = require_some(trailing_sep: :COMMA) { indexed_column(nulls: true) }
 						autoincrement_kw    = maybe          :AUTOINCREMENT
 						primary_key_rp      = require        :RP
 						on_conflict         = maybe        { conflict_clause }
@@ -2301,7 +2301,7 @@ module Plume
 				next match_clause if current_token == :MATCH
 
 				on_kw      = require        :ON
-				trigger_kw = require_one_of :DELETE, :UPDATE
+				trigger_kw = require_one_of :DELETE, :UPDATE, :INSERT
 				action_kw  = require_one_of :CASCADE, :RESTRICT, [:SET, :NULL].freeze, [:SET, :DEFAULT].freeze, [:NO, :ACTION].freeze
 				ForeignKeyAction.concrete(
 					full_source: @lexer.sql,
@@ -2745,46 +2745,22 @@ module Plume
 				#
 				# [description]
 			#
-			if (distinct_kw = maybe_one_of :DISTINCT, :ALL)
-				expressions = require_some(trailing_sep: :COMMA) { expression }
-				if (order_by_kw = maybe_all_of :ORDER, :BY)
-					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
-				end
+			return StarFunctionArgument.new if maybe :STAR
 
-				FunctionArguments.concrete(
-					full_source: @lexer.sql,
-					distinct_kw: Token::Keyword(distinct_kw),
-					expressions: expressions,
-					order_by_kw: Token::Keyword(order_by_kw),
-					order_by: order_by,
-				)
-			elsif maybe :STAR
-				StarFunctionArgument.new
-			elsif (e = maybe { expression })
-				expressions = require_some(given: e, trailing_sep: :COMMA) { expression }
-				if (order_by_kw = maybe_all_of :ORDER, :BY)
-					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
-				end
-
-				FunctionArguments.concrete(
-					full_source: @lexer.sql,
-					expressions: expressions,
-					order_by_kw: Token::Keyword(order_by_kw),
-					order_by: order_by,
-				)
-			elsif (order_by_kw = maybe_all_of :ORDER, :BY)
-				# An aggregate ordered over no arguments, like `count(ORDER BY a)`
-				FunctionArguments.concrete(
-					full_source: @lexer.sql,
-					expressions: [],
-					order_by_kw: Token::Keyword(order_by_kw),
-					order_by: require_some(trailing_sep: :COMMA) { ordering_term },
-				)
-			elsif :RP == current_token
-				EmptyFunctionArgument.new
-			else
-				expected!(:DISTINCT, :STAR, :RP, "expr")
+			distinct_kw = maybe_one_of :DISTINCT, :ALL
+			expressions = maybe_some(trailing_sep: :COMMA) { expression }
+			if (order_by_kw = maybe_all_of :ORDER, :BY)
+				order_by = require_some(trailing_sep: :COMMA) { ordering_term }
 			end
+			return EmptyFunctionArgument.new unless distinct_kw || expressions.any? || order_by_kw
+
+			FunctionArguments.concrete(
+				full_source: @lexer.sql,
+				distinct_kw: Token::Keyword(distinct_kw),
+				expressions: expressions,
+				order_by_kw: Token::Keyword(order_by_kw),
+				order_by: order_by,
+			)
 		end
 
 		def frame_spec
@@ -3546,7 +3522,9 @@ module Plume
 			end
 		end
 
-		def indexed_column
+		# `nulls`: whether NULLS FIRST/LAST may follow, as in the sortlist of a PRIMARY KEY or UNIQUE -
+		# not in the eidlist of a foreign key, a view or a CTE
+		def indexed_column(nulls: false)
 			# Used by:
 			#   - ccons, tcons, creat-view, cte
 			#
@@ -3585,7 +3563,7 @@ module Plume
 				collation_tk = identifier_or_string(except: [:ASC, :DESC].freeze)
 			end
 			direction_tk = maybe_one_of :ASC, :DESC
-			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze
+			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze if nulls
 
 			IndexedColumn.concrete(
 				full_source: @lexer.sql,
