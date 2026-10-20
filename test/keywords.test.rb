@@ -38,13 +38,19 @@ test "a window is named the way SQLite names anything, a join keyword or a strin
 end
 
 test "the table after IN is any name, a join keyword or a string included" do
-	right = parse_stmt("SELECT 1 IN main.left").body.columns.first.result.right
-	assert_equal [right.schema, right.table], ["main", "left"]
-	assert_equal parse_stmt("SELECT 1 IN 't'").body.columns.first.result.right.table, "t"
-	assert_equal parse_stmt("SELECT 1 IN cross(2)").body.columns.first.result.right.function, "cross"
+	right = parse_stmt("SELECT 1 NOT IN 'main'.left").body.columns.first.result.right
+	assert_equal [right.schema, right.dot_tk_src, right.table], ["main", ".", "left"]
+	function = parse_stmt("SELECT 1 IN main.'cross'(2)").body.columns.first.result.right
+	assert_equal [function.schema, function.dot_tk_src, function.function], ["main", ".", "cross"]
+end
+
+test "each IN in a chain keeps its own schema" do
+	chain = parse_stmt("SELECT 1 IN main.t IN u").body.columns.first.result
+	assert_equal [chain.left.right.schema, chain.right.schema, chain.right.table], ["main", nil, "u"]
 end
 
 # SQLite reads STORED after a generated column's expression as a plain name it checks
 test "stored names tables and columns" do
-	assert_equal parse_stmt("SELECT stored FROM stored").body.columns.first.result.column, "stored"
+	select = parse_stmt("SELECT stored FROM stored").body
+	assert_equal [select.columns.first.result.column, select.source.table], ["stored", "stored"]
 end
