@@ -10,6 +10,7 @@ module Plume
 
 		attribute :name, Stringy
 		node :expression, Expression
+		node :conflict_clause, ConflictClause
 
 		def self.new(*, expression:, **) = super
 		def self.concrete(*, expression:, **) = super
