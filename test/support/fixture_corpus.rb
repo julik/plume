@@ -48,6 +48,7 @@ module FixtureCorpus
 	SQLITE_SYNTAX_ERROR = Regexp.union(
 		"syntax error", "unrecognized token", "incomplete input", "clause should come after",
 		"is required before", "unknown join type", "unknown table option", "prohibited in PRIMARY KEY",
+		"unsupported frame specification", "DISTINCT aggregates must have exactly one argument",
 	)
 
 	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
@@ -55,12 +56,40 @@ module FixtureCorpus
 	# at a time, since a "no such table" in one would otherwise stop us from checking the next
 	def sqlite_rejects?(path) = statements(read(path)).any? { |sql| sqlite_rejects_statement?(sql) }
 
+	# SQLite stops at a table or database it cannot find before reaching some errors of its parser -
+	# a DISTINCT aggregate's arguments, a syntax error in a trigger's body - so what is missing is
+	# made, in a database of its own, and the statement prepared again
 	def sqlite_rejects_statement?(sql)
-		sqlite.prepare(sql).close
+		db = sqlite
+		8.times do
+			db.prepare(sql).close
+			return false
+		rescue SQLite3::Exception => e
+			return true if e.message.match?(SQLITE_SYNTAX_ERROR)
+
+			db = SQLite3::Database.new(":memory:") if db.equal?(sqlite)
+			return false unless make_missing(db, e.message)
+		end
 		false
-	rescue SQLite3::Exception => e
-		e.message.match?(SQLITE_SYNTAX_ERROR)
 	end
+
+	# Makes the table or database an error says is missing, and whether it could
+	def make_missing(db, message)
+		if (name = message[/\Ano such table: (.+?):?$/, 1])
+			schema, table = name.include?(".") ? name.split(".", 2) : [nil, name]
+			make_missing(db, "unknown database #{schema}") if schema && !%w[main temp].include?(schema)
+			db.execute("CREATE TABLE #{[schema, table].compact.map { |part| quote(part) }.join(".")}(a)")
+		elsif (schema = message[/\Aunknown database (.+?):?$/, 1])
+			db.execute("ATTACH ':memory:' AS #{quote(schema)}")
+		else
+			return false
+		end
+		true
+	rescue SQLite3::Exception
+		false
+	end
+
+	def quote(name) = %("#{name.gsub('"', '""')}")
 
 	# sqlite3_complete knows that semicolons inside a trigger body do not end the statement
 	def statements(sql)
