@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "digest"
-
 # What kind of statement a piece of SQL is, so bin/trace-fixtures can keep one of each. The tree
 # drops names and values, collapses each list to the set of its element shapes, and keeps every
 # token's type - so a column named `window` is a different shape from one named `x`. SQL Plume
@@ -11,18 +9,17 @@ module FixtureShape
 
 	SKIPPED = %i[@full_source @leading @trailing].freeze
 
-	def key(sql)
-		Digest::SHA1.hexdigest(tree(Plume.parse(sql)).inspect)
+	# Pass the statements when they are already parsed
+	def of(sql, statements = nil)
+		tree(statements || Plume.parse(sql))
 	rescue
-		Digest::SHA1.hexdigest("tokens: #{tokens(sql).inspect}")
+		[:tokens, tokens(sql)]
 	end
 
 	def tree(value)
 		case value
 		when Plume::Node
-			parts = value.instance_variables.sort.filter_map do |ivar|
-				next if SKIPPED.include?(ivar)
-
+			parts = (value.instance_variables - SKIPPED).sort.filter_map do |ivar|
 				shape = tree(value.instance_variable_get(ivar))
 				[ivar, shape] unless shape.nil?
 			end

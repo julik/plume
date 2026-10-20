@@ -20,17 +20,14 @@ require "digest"
 require "etc"
 require "fileutils"
 require "plume"
-require "sqlite3"
 require "tmpdir"
 require_relative "../test/support/fixture_corpus"
 require_relative "../test/support/fixture_shape"
-require_relative "../test/support/ast_shape"
 
-TIMEOUT = 60
+CPU_LIMIT = 60
+WALL_LIMIT = 300
 FIXTURES = File.join(FixtureCorpus::ROOT, "fixtures/sqlite-traced")
 TESTER = File.join(FixtureCorpus::ROOT, "test/support/sqlite_tester.tcl")
-# SQLite failing to find a table or a function still parsed the statement
-LOOKUP_ERROR = /\Ano such (table|column|function|module|collation|index|view|savepoint)|\Aunknown database|does not exist/
 
 def checkout(dir)
 	return File.expand_path(ENV["SQLITE_SRC"]) if ENV["SQLITE_SRC"]
@@ -52,46 +49,21 @@ def traced_sql(path)
 	sqls
 end
 
-# Runs one test file, returning its trace - or nil when it stopped partway
+# Runs one test file, returning its trace - or nil when it stopped partway. The limit is on CPU
+# time, so a busy machine does not cut tests short; the wall-clock one catches a test left waiting
 def trace(run_dir, work_dir, name)
 	trace = File.join(work_dir, "#{name}.trace")
 	cwd = File.join(work_dir, name)
 	FileUtils.mkdir_p(cwd)
 	env = { "TRACE_OUT" => trace, "TRACE_DIR" => cwd }
-	pid = Process.spawn(env, "tclsh", File.join(run_dir, "#{name}.test"), out: File::NULL, err: File::NULL, pgroup: true)
-	deadline = Time.now + TIMEOUT
-	until (status = Process.wait2(pid, Process::WNOHANG)&.last)
-		if Time.now > deadline
-			Process.kill("KILL", -pid)
-			Process.wait(pid)
-			return nil
-		end
-		sleep 0.05
+	pid = Process.spawn(env, "tclsh", File.join(run_dir, "#{name}.test"), out: File::NULL, err: File::NULL, pgroup: true, rlimit_cpu: CPU_LIMIT)
+	waiter = Process.detach(pid)
+	unless waiter.join(WALL_LIMIT)
+		Process.kill("KILL", -pid)
+		waiter.join
 	end
 	FileUtils.rm_rf(cwd)
-	traced_sql(trace) if status.success? && File.exist?(trace)
-end
-
-def verdicts(db, sql)
-	sqlite = begin
-		db.prepare(sql).close
-		:accepts
-	rescue SQLite3::Exception => e
-		case e.message
-		when FixtureCorpus::SQLITE_SYNTAX_ERROR then :rejects
-		when LOOKUP_ERROR then :accepts
-		else :other
-		end
-	end
-	plume = begin
-		tree = Plume.parse(sql)
-		(AstShape.of(Plume.parse(tree.map(&:to_sql).join(";\n"))) == AstShape.of(tree)) ? :accepts : :differs
-	rescue Plume::SyntaxError
-		:rejects
-	rescue
-		:crashes
-	end
-	[sqlite, plume]
+	traced_sql(trace) if waiter.value.success? && File.exist?(trace)
 end
 
 def statements(sql)
@@ -100,7 +72,7 @@ rescue
 	[]
 end
 
-normalize = -> (sql) { sql.gsub(/\s+/, " ").strip }
+def normalize(sql) = sql.gsub(/\s+/, " ").strip
 
 Dir.mktmpdir do |tmp|
 	run_dir = File.join(tmp, "run")
@@ -108,7 +80,7 @@ Dir.mktmpdir do |tmp|
 	FileUtils.cp(TESTER, File.join(run_dir, "tester.tcl"))
 
 	names = ARGV.empty? ? Dir[File.join(run_dir, "*.test")].map { |path| File.basename(path, ".test") }.sort : ARGV
-	queue = Queue.new.tap { |q| names.each { |name| q << name } }.tap(&:close)
+	queue = Queue.new(names).tap(&:close)
 	traces = {}
 	workers = Array.new(Etc.nprocessors) do
 		Thread.new do
@@ -125,20 +97,20 @@ Dir.mktmpdir do |tmp|
 	shapes = Set.new
 	Dir[File.join(FixtureCorpus::ROOT, "fixtures/**/*.sql")].each do |path|
 		sql = File.read(path)
-		statements(sql).each { |statement| known << normalize.(statement) }
-		shapes << FixtureShape.key(sql) if path.start_with?(FIXTURES)
+		statements(sql).each { |statement| known << normalize(statement) }
+		shapes << FixtureShape.of(sql) if path.start_with?(FIXTURES)
 	end
 
-	db = SQLite3::Database.new(":memory:")
 	picked = {}
 	traces.sort.each do |name, sqls|
 		sqls.flat_map { |traced| statements(traced) }.each do |sql|
 			sql = sql.strip
-			next if sql.empty? || sql.bytesize > 100_000 || known.include?(normalize.(sql))
+			next if sql.empty? || sql.bytesize > 100_000 || !known.add?(normalize(sql))
 
-			known << normalize.(sql)
-			sqlite, plume = verdicts(db, sql)
-			picked[sql] = name if (sqlite != :other && sqlite != plume) || shapes.add?(FixtureShape.key(sql))
+			plume, parsed = FixtureCorpus.plume_verdict(sql)
+			agrees = FixtureCorpus.sqlite_rejects_statement?(sql) ? (plume == :reject) : (plume == :pass)
+			# A bug's statement does not take the place of its shape's example, which comes once fixed
+			picked[sql] = name if !agrees || shapes.add?(FixtureShape.of(sql, parsed))
 		end
 	end
 
