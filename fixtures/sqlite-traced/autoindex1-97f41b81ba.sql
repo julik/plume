@@ -1,0 +1,1 @@
+SELECT count(*) FROM t11 LEFT JOIN t12 WHERE t12.y IS t11.w;

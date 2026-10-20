@@ -1,0 +1,1 @@
+CREATE TABLE t2(a, b DEFAULT x'9e2e');

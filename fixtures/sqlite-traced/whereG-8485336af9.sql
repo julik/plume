@@ -1,0 +1,1 @@
+SELECT g = g FROM f GROUP BY h;

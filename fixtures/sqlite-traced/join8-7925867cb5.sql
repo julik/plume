@@ -1,0 +1,2 @@
+SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 
+      RIGHT JOIN rtree1 ON true INNER JOIN t3 ON (x NOTNULL)=+a;

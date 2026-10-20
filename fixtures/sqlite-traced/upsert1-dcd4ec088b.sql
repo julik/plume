@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX t1x ON t1(b+3);

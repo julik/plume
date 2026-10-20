@@ -1,0 +1,1 @@
+CREATE TABLE aux.g1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;

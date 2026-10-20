@@ -1,0 +1,1 @@
+UPDATE p2 SET a=a-1;

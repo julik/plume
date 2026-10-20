@@ -1,0 +1,1 @@
+INSERT INTO explain SELECT a FROM t1

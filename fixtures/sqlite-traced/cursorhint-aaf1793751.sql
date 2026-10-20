@@ -1,0 +1,1 @@
+CREATE VIEW t2 AS SELECT 0 FROM t1 WHERE x>='a' OR x='1';

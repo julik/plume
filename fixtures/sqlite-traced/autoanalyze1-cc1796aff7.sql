@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE d=45 AND a=45;

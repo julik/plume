@@ -1,0 +1,1 @@
+SELECT 1 FROM t1 WHERE NOT ('500' > n1)

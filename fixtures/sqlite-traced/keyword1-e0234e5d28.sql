@@ -1,0 +1,1 @@
+INSERT INTO temp VALUES(99)

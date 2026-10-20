@@ -1,0 +1,1 @@
+SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;

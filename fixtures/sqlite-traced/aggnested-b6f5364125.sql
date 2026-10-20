@@ -1,0 +1,6 @@
+SELECT ( 
+    SELECT min(y) + (SELECT (SELECT x)) FROM (
+      SELECT sum(a) AS x, b AS y FROM t2
+    )
+  )
+  FROM t1;

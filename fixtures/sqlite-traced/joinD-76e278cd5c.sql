@@ -1,0 +1,6 @@
+SELECT t1.*, t2.*, t3.*, t4.*
+  FROM t1 FULL JOIN t2 ON t2.x>0
+  INNER JOIN t3 ON t1.c IS NOT DISTINCT FROM t3.c AND t3.y>0
+  LEFT JOIN t4 ON t4.z>0
+  WHERE t1.b = t2.b AND t1.d IS NOT DISTINCT FROM t4.d
+  ORDER BY coalesce(t1.a,t2.b,t3.c,t4.d,0);

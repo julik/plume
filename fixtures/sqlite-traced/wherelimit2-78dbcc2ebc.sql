@@ -1,0 +1,1 @@
+DELETE FROM ft WHERE ft MATCH 'a' ORDER BY rowid LIMIT 3;

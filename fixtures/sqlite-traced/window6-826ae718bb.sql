@@ -1,0 +1,1 @@
+SELECT sum(x) OVER w FROM over WINDOW w AS (ORDER BY y)

@@ -1,0 +1,1 @@
+SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;

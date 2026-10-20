@@ -1,0 +1,1 @@
+UPDATE t1 SET b=100 WHERE (SELECT 'y') GLOB "y";

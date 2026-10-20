@@ -1,0 +1,2 @@
+explain query plan 
+  SELECT * FROM y1 WHERE EXISTS ( SELECT a+1 FROM y2 )

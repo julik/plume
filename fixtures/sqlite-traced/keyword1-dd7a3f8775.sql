@@ -1,0 +1,1 @@
+INSERT INTO before SELECT a FROM t1

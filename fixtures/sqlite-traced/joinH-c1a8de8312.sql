@@ -1,0 +1,1 @@
+INSERT INTO rt0(c3, c1) VALUES ('-1', -1e500);

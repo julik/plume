@@ -1,0 +1,2 @@
+SELECT c1, c2, ifnull(c3, 'NULL') FROM v0 
+  WHERE c2=10 ORDER BY c1, c3 NULLS LAST

@@ -1,0 +1,8 @@
+SELECT 3 IN (
+    SELECT 0 ORDER BY 1
+    INTERSECT
+    SELECT 1
+    INTERSECT 
+    SELECT 2
+    ORDER BY 1
+  );

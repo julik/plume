@@ -1,0 +1,1 @@
+CREATE TABLE c1('x y z' REFERENCES p1);

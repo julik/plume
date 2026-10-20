@@ -1,0 +1,1 @@
+SELECT * FROM t13 WHERE (1=2 AND a=3) OR a=4;

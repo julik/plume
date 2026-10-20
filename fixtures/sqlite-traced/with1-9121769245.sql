@@ -1,0 +1,5 @@
+WITH i AS (
+    WITH j AS (SELECT 5)
+    SELECT 5 FROM i UNION SELECT 8 FROM i
+  )
+  SELECT * FROM i;

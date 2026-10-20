@@ -1,0 +1,1 @@
+CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));

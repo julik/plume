@@ -1,0 +1,1 @@
+ALTER TABLE abc ADD CHECK (z>=0);

@@ -1,0 +1,1 @@
+SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN '11.5' AND '48.2';

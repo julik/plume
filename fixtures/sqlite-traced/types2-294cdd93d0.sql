@@ -1,0 +1,1 @@
+SELECT '10.0' IN (10, 20) FROM t1

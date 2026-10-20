@@ -1,0 +1,1 @@
+CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);

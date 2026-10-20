@@ -1,0 +1,1 @@
+CREATE TABLE t1(a CHECK(a<b) NOT NULL, b)

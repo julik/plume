@@ -1,0 +1,1 @@
+SELECT rowid FROM t3 WHERE x MATCH 'a*' ORDER BY docid DESC;

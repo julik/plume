@@ -1,0 +1,3 @@
+CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN
+    INSERT INTO log VALUES('update', old.a);
+  END;

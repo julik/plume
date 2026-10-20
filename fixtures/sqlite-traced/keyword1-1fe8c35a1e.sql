@@ -1,0 +1,1 @@
+INSERT INTO for VALUES(99)

@@ -1,0 +1,1 @@
+CREATE TABLE t(a REAL, b AS (a) VIRTUAL);

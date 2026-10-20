@@ -1,0 +1,3 @@
+SELECT * FROM t1 AS a0
+   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)
+   ORDER BY a0.b;

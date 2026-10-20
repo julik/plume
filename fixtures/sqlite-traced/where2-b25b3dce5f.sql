@@ -1,0 +1,1 @@
+SELECT * FROM t617 JOIN t617 USING(a,a,b) WHERE (b=0) OR a=10;

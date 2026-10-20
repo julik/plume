@@ -1,0 +1,1 @@
+SELECT f1 FROM test1 ORDER BY '8.4'

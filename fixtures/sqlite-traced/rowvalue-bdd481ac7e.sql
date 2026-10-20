@@ -1,0 +1,1 @@
+SELECT 21 FROM t0 RIGHT JOIN t1 ON (c0, x'') != (NULL, 0);

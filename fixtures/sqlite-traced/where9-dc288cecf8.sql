@@ -1,0 +1,4 @@
+SELECT a FROM t1
+     WHERE b>1000
+       AND (c=31031 OR d IS NULL)
+     ORDER BY +a

@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN 
+      SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;

@@ -1,0 +1,1 @@
+SELECT * FROM x1 LEFT JOIN x2 JOIN x3 WHERE x3.d = x2.b;

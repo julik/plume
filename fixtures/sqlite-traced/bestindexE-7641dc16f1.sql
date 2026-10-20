@@ -1,0 +1,1 @@
+INSERT INTO tcl VALUES('i', 'ii') RETURNING *;

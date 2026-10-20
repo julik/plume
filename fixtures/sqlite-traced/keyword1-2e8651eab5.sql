@@ -1,0 +1,1 @@
+INSERT INTO detach SELECT a FROM t1

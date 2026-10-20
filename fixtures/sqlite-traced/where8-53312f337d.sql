@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE 2643383279 <= a AND c = a

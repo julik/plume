@@ -1,0 +1,1 @@
+EXPLAIN UPDATE t1 SET rowid=5

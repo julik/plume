@@ -1,0 +1,1 @@
+CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;

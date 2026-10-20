@@ -1,0 +1,3 @@
+CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN
+        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);
+      END;

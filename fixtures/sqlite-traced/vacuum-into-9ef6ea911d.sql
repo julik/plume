@@ -1,0 +1,1 @@
+VACUUM main INTO (SELECT name FROM t2);

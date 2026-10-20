@@ -1,0 +1,1 @@
+SELECT b FROM t1 WHERE lower(a)='1234' ORDER BY +b;

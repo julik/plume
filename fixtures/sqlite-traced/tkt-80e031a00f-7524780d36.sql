@@ -1,0 +1,1 @@
+SELECT x'303132' NOT IN t1

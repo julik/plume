@@ -1,0 +1,1 @@
+SELECT json_object('a',2,'c',json_object('e',5));

@@ -1,0 +1,3 @@
+CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN
+        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);
+      END;

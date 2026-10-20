@@ -1,0 +1,3 @@
+SELECT id,x,y,z
+      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)
+     ORDER BY 1;

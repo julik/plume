@@ -1,0 +1,1 @@
+INSERT INTO reindex SELECT a FROM t1

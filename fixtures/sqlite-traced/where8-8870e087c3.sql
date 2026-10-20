@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE a = 'it' OR b = 6939937510

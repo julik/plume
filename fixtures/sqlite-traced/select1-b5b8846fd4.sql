@@ -1,0 +1,15 @@
+SELECT x FROM t2, t1 WHERE x BETWEEN c AND null OR x AND
+  x IN ((SELECT x FROM (SELECT x FROM t2, t1 
+  WHERE x BETWEEN (SELECT x FROM (SELECT x COLLATE rtrim 
+  FROM t2, t1 WHERE x BETWEEN c AND null
+  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null
+  OR x AND x IN (c)) AND null
+  OR NOT EXISTS(SELECT -4.81 FROM t1, t2 WHERE x BETWEEN c AND null
+  OR x AND x IN ((SELECT x FROM (SELECT x FROM t2, t1
+  WHERE x BETWEEN (SELECT x FROM (SELECT x BETWEEN c AND null
+  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null
+  OR x AND x IN (c)) AND null
+  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null
+  OR x AND x IN (c)))) AND x IN (c)
+  ), t1 WHERE x BETWEEN c AND null
+  OR x AND x IN (c)));

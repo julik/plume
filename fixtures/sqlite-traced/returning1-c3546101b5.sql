@@ -1,0 +1,3 @@
+CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN
+    INSERT INTO t1 VALUES(new.x+1, new.y);
+  END;

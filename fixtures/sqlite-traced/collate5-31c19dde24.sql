@@ -1,0 +1,4 @@
+CREATE VIEW v2 AS
+    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1
+    WHERE 'eT"3qRkL+oJMJjQ9z0'>=b
+    ORDER BY a,b,c;

@@ -1,0 +1,1 @@
+CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);

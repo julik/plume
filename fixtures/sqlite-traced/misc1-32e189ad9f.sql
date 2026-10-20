@@ -1,0 +1,1 @@
+CREATE TABLE t10 AS SELECT main.t9.c1;

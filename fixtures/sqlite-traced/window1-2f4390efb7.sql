@@ -1,0 +1,4 @@
+SELECT count() OVER (), rowid, max(b COLLATE nocase)
+  FROM t1 
+  GROUP BY rowid
+  ORDER BY max(b COLLATE nocase);

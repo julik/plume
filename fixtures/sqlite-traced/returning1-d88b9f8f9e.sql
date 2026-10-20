@@ -1,0 +1,3 @@
+CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN
+     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);
+  END;

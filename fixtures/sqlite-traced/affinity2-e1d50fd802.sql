@@ -1,0 +1,7 @@
+CREATE TABLE t1(
+    xi INTEGER,
+    xr REAL,
+    xb BLOB,
+    xn NUMERIC,
+    xt TEXT
+  );

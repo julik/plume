@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);

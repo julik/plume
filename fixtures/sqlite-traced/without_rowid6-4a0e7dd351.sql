@@ -1,0 +1,1 @@
+CREATE TABLE t6(a,b,c,PRIMARY KEY(a,rowid,b))WITHOUT ROWID;

@@ -1,0 +1,1 @@
+SELECT * FROM one WHERE (1, NULL, 3) >= (1, NULL, 3)

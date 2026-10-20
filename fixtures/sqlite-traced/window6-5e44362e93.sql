@@ -1,0 +1,4 @@
+SELECT y, group_concat(y, '.') OVER win FROM t3
+  WINDOW win AS (
+    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING
+  );

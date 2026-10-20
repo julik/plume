@@ -1,1 +1,0 @@
-select cast(3.14e-004 * 01.0E+8 AS integer)

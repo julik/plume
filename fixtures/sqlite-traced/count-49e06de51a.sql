@@ -1,0 +1,1 @@
+EXPLAIN SELECT count(*) FROM (SELECT 1)

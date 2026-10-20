@@ -1,0 +1,1 @@
+EXPLAIN SELECT count(*)+1 FROM t2

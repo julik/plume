@@ -1,0 +1,3 @@
+SELECT * FROM t1 WHERE EXISTS (
+    SELECT 1 FROM t2 WHERE (c=a OR d=a) AND (d+1)>0
+  )

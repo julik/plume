@@ -1,0 +1,1 @@
+CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);

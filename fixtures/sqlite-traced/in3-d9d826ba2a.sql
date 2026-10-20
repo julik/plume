@@ -1,0 +1,1 @@
+EXPLAIN  SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid+0 FROM t1);

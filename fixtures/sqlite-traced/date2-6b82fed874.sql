@@ -1,0 +1,1 @@
+INSERT INTO t600(a) VALUES(1.0);

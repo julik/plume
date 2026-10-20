@@ -1,0 +1,1 @@
+INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');

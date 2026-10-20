@@ -1,0 +1,4 @@
+explain query plan 
+  SELECT o FROM a2 WHERE EXISTS (
+    SELECT 1 FROM a1 WHERE c00 = o AND c01 = o AND c02 = o AND c03 = o AND c04 = o AND c05 = o AND c06 = o AND c07 = o AND c08 = o AND c09 = o AND c10 = o AND c11 = o AND c12 = o AND c13 = o AND c14 = o AND c15 = o AND c16 = o AND c17 = o AND c18 = o AND c19 = o AND c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o
+  )

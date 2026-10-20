@@ -1,0 +1,3 @@
+SELECT a,b,c FROM t1 
+  WHERE b IN (234, 345) AND c BETWEEN 6 AND 7 AND a='abc' 
+  ORDER BY a, b;

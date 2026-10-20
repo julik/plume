@@ -1,0 +1,3 @@
+CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN
+    INSERT INTO p2 VALUES(old.a, 'deleted!');
+  END;

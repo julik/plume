@@ -1,0 +1,1 @@
+CREATE TABLE aux.t3 AS SELECT * FROM t1;

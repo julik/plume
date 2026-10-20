@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE z>=-100 AND z<=0.0 ORDER BY +rowid

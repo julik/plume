@@ -1,0 +1,7 @@
+SELECT * FROM t0 WHERE 
+  EXISTS (
+    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0
+  ) >=1 AND 
+  EXISTS (
+    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0
+  ) <=1;

@@ -1,0 +1,1 @@
+CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);

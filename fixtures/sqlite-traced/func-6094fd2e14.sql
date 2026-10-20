@@ -1,0 +1,2 @@
+WITH c(x) AS (SELECT * FROM v33)
+  SELECT * FROM c;

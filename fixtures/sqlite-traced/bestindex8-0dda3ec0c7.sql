@@ -1,0 +1,1 @@
+explain SELECT DISTINCT b FROM vt1 ORDER BY a

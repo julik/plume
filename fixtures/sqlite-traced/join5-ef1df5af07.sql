@@ -1,0 +1,1 @@
+INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;

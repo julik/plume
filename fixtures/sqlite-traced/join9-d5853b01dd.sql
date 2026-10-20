@@ -1,0 +1,5 @@
+SELECT id, w, x, y, z
+      FROM t3 FULL JOIN t4 USING(id)
+              NATURAL FULL JOIN t5
+              FULL JOIN t6 USING(id)
+      ORDER BY 1;

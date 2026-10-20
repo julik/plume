@@ -1,0 +1,1 @@
+INSERT INTO savepoint SELECT a FROM t1

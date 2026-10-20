@@ -1,0 +1,1 @@
+SELECT null NOT IN (SELECT x+y FROM t1,t2)

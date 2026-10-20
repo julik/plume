@@ -1,0 +1,2 @@
+WITH RECURSIVE c(n) AS(VALUES(0) UNION ALL SELECT n+1 FROM c WHERE n<99)
+    INSERT INTO small(k,v) SELECT format('k%07d',n), n*1000 FROM c;

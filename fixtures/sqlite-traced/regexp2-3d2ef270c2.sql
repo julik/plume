@@ -1,0 +1,1 @@
+UPDATE t2 SET a=a+1 WHERE b REGEXP 'a.*' AND b REGEXP '.*1';

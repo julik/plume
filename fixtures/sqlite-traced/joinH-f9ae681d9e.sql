@@ -1,0 +1,1 @@
+SELECT t2.rowid FROM t1 JOIN (t2 JOIN t3);

@@ -1,0 +1,5 @@
+WITH i(x) AS (
+    WITH j AS (SELECT 10)
+    SELECT 5 FROM t0 UNION SELECT 8 FROM m
+  )
+  SELECT * FROM i;

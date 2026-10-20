@@ -1,0 +1,1 @@
+INSERT INTO row VALUES(99)

@@ -1,0 +1,1 @@
+DELETE FROM "x y" WHERE "c d"!='e' ORDER BY "c d" LIMIT 2 OFFSET 2;

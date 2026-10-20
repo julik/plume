@@ -1,0 +1,1 @@
+CREATE VIEW v1 AS SELECT a+b AS x FROM t1;

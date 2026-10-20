@@ -1,0 +1,2 @@
+INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)
+      ON CONFLICT DO UPDATE set b='x';

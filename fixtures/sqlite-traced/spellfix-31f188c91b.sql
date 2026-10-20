@@ -1,0 +1,1 @@
+UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;

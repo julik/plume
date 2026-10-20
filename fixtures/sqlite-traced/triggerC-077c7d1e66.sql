@@ -1,0 +1,5 @@
+CREATE TRIGGER t22b BEFORE INSERT ON t22 BEGIN
+      SELECT CASE WHEN (SELECT count(*) FROM t22) >= 500
+                  THEN RAISE(IGNORE)
+                  ELSE NULL END;
+    END;

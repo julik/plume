@@ -1,0 +1,1 @@
+SELECT 5 IN (SELECT a,b FROM t2);

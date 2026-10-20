@@ -1,0 +1,1 @@
+CREATE VIEW v1a(z,y) AS SELECT x IS NULL, x FROM t2;

@@ -1,0 +1,3 @@
+SELECT a, rank() OVER(ORDER BY b) FROM t1
+    UNION ALL
+  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;

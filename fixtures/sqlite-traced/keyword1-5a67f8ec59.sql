@@ -1,0 +1,1 @@
+CREATE TABLE current_timestamp(current_timestamp current_timestamp)

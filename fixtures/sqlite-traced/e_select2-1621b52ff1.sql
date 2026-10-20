@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT +y AS x FROM t5) JOIN t4 USING (x)

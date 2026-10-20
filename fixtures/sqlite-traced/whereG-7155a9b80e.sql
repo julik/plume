@@ -1,0 +1,1 @@
+SELECT * FROM t0 WHERE likelihood(t0.rowid, 0.5) <= '0';

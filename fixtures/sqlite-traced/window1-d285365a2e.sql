@@ -1,0 +1,1 @@
+SELECT max(c1 COLLATE nocase) IN (SELECT 'aBCd') FROM t1;

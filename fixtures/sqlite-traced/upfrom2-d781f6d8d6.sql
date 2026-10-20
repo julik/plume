@@ -1,0 +1,1 @@
+UPDATE x1 SET b=y FROM data1 WHERE a=x ORDER BY a LIMIT 3;

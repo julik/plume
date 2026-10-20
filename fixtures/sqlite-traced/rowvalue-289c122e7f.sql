@@ -1,0 +1,1 @@
+SELECT 2 FROM t1 LEFT JOIN t0 ON (c0, x'') != (NULL, 0);

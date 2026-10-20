@@ -1,0 +1,4 @@
+SELECT json_group_array(json(j)) OVER (
+      ORDER BY id RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+      EXCLUDE TIES
+    ) FROM testjson;

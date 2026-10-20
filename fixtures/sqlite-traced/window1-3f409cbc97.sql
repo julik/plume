@@ -1,0 +1,4 @@
+SELECT COUNT(*) FROM (
+      SELECT TOTAL(0) OVER (PARTITION BY t0.c0) FROM t0
+      )
+  WHERE ('1' IS NOT ('abcde' NOTNULL));

@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a=b AND c=b AND c='DEF';

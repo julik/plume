@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE a BETWEEN 'all' AND 'from' OR c > 346.0348610

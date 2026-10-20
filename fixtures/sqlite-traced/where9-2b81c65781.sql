@@ -1,0 +1,2 @@
+UPDATE t1 SET a=a+100
+     WHERE (b>=950 AND b<=1010) OR (b IS NULL AND c NOT NULL)

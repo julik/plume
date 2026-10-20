@@ -1,0 +1,1 @@
+CREATE VIEW v1 AS SELECT a, c, max(c) OVER (PARTITION BY a) FROM t1;

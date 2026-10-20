@@ -1,0 +1,8 @@
+SELECT EXISTS (
+    SELECT * FROM (
+      SELECT * FROM (
+        SELECT 1
+      ) WHERE Col0 = 1   GROUP BY 1
+    )   WHERE 0
+  )
+  FROM (SELECT 1 Col0)   GROUP BY 1

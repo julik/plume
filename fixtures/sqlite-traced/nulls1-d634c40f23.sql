@@ -1,0 +1,2 @@
+SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x
+   ORDER BY +d NULLS LAST, +c NULLS LAST;

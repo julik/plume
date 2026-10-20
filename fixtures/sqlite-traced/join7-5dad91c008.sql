@@ -1,0 +1,1 @@
+CREATE VIEW t2(c,d) AS VALUES(3,33),(4,44),(5,55);

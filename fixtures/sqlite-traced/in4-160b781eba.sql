@@ -1,0 +1,3 @@
+SELECT * FROM t1
+   WHERE (b = 1137 AND c IN (97, 98))
+      OR (b = 1119 AND c IN (1115, 1023));

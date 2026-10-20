@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');

@@ -1,0 +1,3 @@
+SELECT d IN (SELECT sum(c) OVER (PARTITION BY d ORDER BY e+c) FROM t3) FROM (
+    SELECT * FROM t2
+  );

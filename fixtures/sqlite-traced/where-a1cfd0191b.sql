@@ -1,0 +1,1 @@
+SELECT y FROM t1 WHERE y>=4 AND y<=25 ORDER BY oid;

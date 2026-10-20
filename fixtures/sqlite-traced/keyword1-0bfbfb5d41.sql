@@ -1,0 +1,1 @@
+INSERT INTO conflict SELECT a FROM t1

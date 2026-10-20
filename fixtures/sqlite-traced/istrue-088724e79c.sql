@@ -1,0 +1,7 @@
+CREATE TABLE t2(
+     a INTEGER PRIMARY KEY,
+     b BOOLEAN DEFAULT true,
+     c BOOLEAN DEFAULT(true),
+     d BOOLEAN DEFAULT false,
+     e BOOLEAN DEFAULT(false)
+  );

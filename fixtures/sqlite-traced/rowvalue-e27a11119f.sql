@@ -1,0 +1,1 @@
+SELECT (2, 4) IN (SELECT * FROM t1)

@@ -1,0 +1,1 @@
+SELECT y FROM t1 JOIN t1 USING (y,y);

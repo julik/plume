@@ -1,0 +1,1 @@
+SELECT c0 IN ('2.0625',2,3) FROM t0;

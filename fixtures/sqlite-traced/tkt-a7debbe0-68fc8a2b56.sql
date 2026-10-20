@@ -1,0 +1,2 @@
+CREATE VIEW v2(a, B) AS 
+        SELECT 'a', 'B' COLLATE NOCASE FROM t0;

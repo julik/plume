@@ -1,0 +1,1 @@
+SELECT * FROM t4 WHERE b='abc' ORDER BY b COLLATE binary

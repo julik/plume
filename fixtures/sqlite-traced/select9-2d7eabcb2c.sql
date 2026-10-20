@@ -1,0 +1,2 @@
+SELECT a, b FROM t1 UNION ALL SELECT d, e FROM t2 
+   LIMIT 0

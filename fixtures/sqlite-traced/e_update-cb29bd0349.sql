@@ -1,0 +1,1 @@
+INSERT INTO main.t1 VALUES(NULL, '');

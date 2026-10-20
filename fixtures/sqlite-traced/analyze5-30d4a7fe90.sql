@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 NOT INDEXED WHERE x IS NULL AND u='charlie' ORDER BY +rowid

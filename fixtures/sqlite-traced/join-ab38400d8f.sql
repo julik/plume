@@ -1,0 +1,3 @@
+SELECT a, b
+    FROM t1 LEFT JOIN t2 ON 0
+   WHERE (b IS NOT NULL)=0;

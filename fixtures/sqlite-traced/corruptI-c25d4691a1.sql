@@ -1,0 +1,1 @@
+SELECT * FROM r WHERE x >= 10.0

@@ -1,0 +1,7 @@
+SELECT *
+      FROM t3 FULL JOIN (
+                t4 FULL JOIN (
+                    t5 FULL JOIN t6 USING (id)
+                ) USING(id)
+           ) USING(id)
+    ORDER BY 1;

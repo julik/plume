@@ -1,0 +1,1 @@
+INSERT INTO glob VALUES(99)

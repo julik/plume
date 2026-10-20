@@ -1,0 +1,1 @@
+UPDATE t1 SET x=x'3530' WHERE x IS NULL;

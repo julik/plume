@@ -1,0 +1,4 @@
+SELECT * FROM (
+    SELECT * FROM (SELECT * FROM t1 LIMIT 1)
+    UNION ALL
+    SELECT * from t2);

@@ -1,0 +1,3 @@
+CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN
+      INSERT INTO log VALUES('fired!');
+    END;

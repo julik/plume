@@ -1,0 +1,4 @@
+SELECT x,y FROM (
+    SELECT a AS x, sum(b) AS y FROM t1 
+    GROUP BY a
+  ) WHERE x BETWEEN 2 AND 9999

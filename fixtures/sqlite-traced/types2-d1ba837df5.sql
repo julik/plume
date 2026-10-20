@@ -1,0 +1,1 @@
+SELECT '500' = t1 FROM t1

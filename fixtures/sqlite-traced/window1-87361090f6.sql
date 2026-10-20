@@ -1,0 +1,8 @@
+SELECT
+    count () OVER win1 NOT BETWEEN 'a' AND 'mmm',
+    count () OVER win3
+  FROM t1
+  WINDOW win1 AS (ORDER BY a GROUPS BETWEEN 4 PRECEDING AND 1 FOLLOWING
+                  EXCLUDE CURRENT ROW),
+         win2 AS (PARTITION BY b ORDER BY a),
+         win3 AS (win2 RANGE BETWEEN 5.2 PRECEDING AND true PRECEDING );

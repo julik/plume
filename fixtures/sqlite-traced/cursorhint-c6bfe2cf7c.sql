@@ -1,0 +1,2 @@
+EXPLAIN 
+    SELECT rowid FROM t1 WHERE b=22 AND c>=10 AND c<=20 ORDER BY b,c ASC;

@@ -1,0 +1,1 @@
+SELECT b,a,c FROM t1 ORDER BY b,c DESC,a;

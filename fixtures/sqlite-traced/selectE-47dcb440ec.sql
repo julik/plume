@@ -1,0 +1,6 @@
+WITH c AS MATERIALIZED (
+      SELECT a FROM t1
+      EXCEPT SELECT a FROM t2
+      ORDER BY a COLLATE nocase
+  )
+  SELECT * FROM c;

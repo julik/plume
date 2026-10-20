@@ -1,0 +1,1 @@
+SELECT (SELECT x||y FROM t2, t1 ORDER BY x, y);

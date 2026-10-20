@@ -1,0 +1,2 @@
+SELECT * FROM v74
+    WHERE (vout IN (SELECT t0.c1 FROM t0))

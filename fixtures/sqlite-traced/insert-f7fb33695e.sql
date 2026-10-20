@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX t3bpi ON t3(b) WHERE c<=d;

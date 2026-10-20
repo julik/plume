@@ -1,0 +1,1 @@
+WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;

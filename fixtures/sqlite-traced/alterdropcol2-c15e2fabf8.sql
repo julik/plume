@@ -1,0 +1,1 @@
+CREATE TABLE p1(x, y UNIQUE);

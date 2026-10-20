@@ -1,1 +1,0 @@
-SELECT typeof( 0xFF ), 0xFF

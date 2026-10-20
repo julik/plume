@@ -1,0 +1,1 @@
+SELECT x COLLATE binary AS x FROM d4 ORDER BY x

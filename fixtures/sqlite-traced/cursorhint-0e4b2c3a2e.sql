@@ -1,0 +1,2 @@
+EXPLAIN 
+    SELECT * FROM t3 WHERE a<15 AND b>22 AND id!=98

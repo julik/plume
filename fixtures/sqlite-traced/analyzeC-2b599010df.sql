@@ -1,0 +1,1 @@
+SELECT 0 FROM t44 WHERE a IN(1,2,3);

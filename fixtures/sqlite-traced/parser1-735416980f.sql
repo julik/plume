@@ -1,0 +1,1 @@
+SELECT max(x) AND 0 FROM t1;

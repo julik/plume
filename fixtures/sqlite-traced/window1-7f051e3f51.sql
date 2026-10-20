@@ -1,0 +1,2 @@
+SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 
+  WINDOW w AS (ORDER BY x)

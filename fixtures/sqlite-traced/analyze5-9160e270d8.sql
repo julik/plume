@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 NOT INDEXED WHERE +z>=1 AND +z<100 ORDER BY +rowid

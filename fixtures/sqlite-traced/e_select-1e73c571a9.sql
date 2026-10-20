@@ -1,0 +1,2 @@
+SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x 
+       CROSS JOIN t5 USING (a)

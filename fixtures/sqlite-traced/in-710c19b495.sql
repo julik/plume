@@ -1,0 +1,1 @@
+SELECT b FROM t4 WHERE a IN (3,null,8) ORDER BY +b;

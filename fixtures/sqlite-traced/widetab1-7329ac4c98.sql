@@ -1,0 +1,2 @@
+SELECT t1.b, t2.b FROM t1 JOIN t2 ON t2.c01=t1.c00+1 WHERE +t1.b<7000
+   ORDER BY +t1.b;

@@ -1,0 +1,1 @@
+SELECT * FROM ft3, ft2 WHERE y MATCH x AND x MATCH y;

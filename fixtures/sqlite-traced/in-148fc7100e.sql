@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE min(0,b IN (a,30))

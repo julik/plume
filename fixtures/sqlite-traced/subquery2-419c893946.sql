@@ -1,0 +1,6 @@
+SELECT id FROM (
+    SELECT id,data FROM (
+       SELECT * FROM t1 UNION ALL SELECT * FROM t2
+    )
+    WHERE id=10 ORDER BY data
+  );

@@ -1,0 +1,3 @@
+CREATE TABLE c1 (cid PRIMARY KEY,
+      pid REFERENCES p1(pid) ON UPDATE CASCADE
+  );

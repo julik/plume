@@ -1,0 +1,1 @@
+SELECT y, c FROM t1 RIGHT JOIN t2 ON y=a ORDER BY x;

@@ -1,0 +1,1 @@
+CREATE TEMP TABLE t3(a PRIMARY KEY, b, c);

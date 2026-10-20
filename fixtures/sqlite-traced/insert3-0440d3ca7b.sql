@@ -1,0 +1,4 @@
+CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN
+      UPDATE log SET y=y+1 WHERE x=new.a;
+      INSERT OR IGNORE INTO log VALUES(new.a, 1);
+    END;

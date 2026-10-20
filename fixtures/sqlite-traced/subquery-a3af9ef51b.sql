@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT (SELECT sum(a) FROM t1));

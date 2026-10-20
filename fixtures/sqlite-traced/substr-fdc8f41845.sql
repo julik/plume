@@ -1,0 +1,1 @@
+SELECT hex(substr(b, 1, 1)) FROM t1

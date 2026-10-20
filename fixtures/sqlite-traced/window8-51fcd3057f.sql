@@ -1,0 +1,7 @@
+SELECT max(c) OVER win,
+             min(c) OVER win,
+             count(a) OVER win
+      FROM t3
+      WINDOW win AS (  ORDER BY c NULLS LAST, b NULLS LAST, a NULLS LAST
+        ROWS BETWEEN 6 PRECEDING AND UNBOUNDED FOLLOWING   EXCLUDE NO OTHERS  )
+      ORDER BY 1 NULLS FIRST, 2 NULLS FIRST, 3 NULLS FIRST

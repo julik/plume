@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (b,c)=(45,45);

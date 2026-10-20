@@ -1,0 +1,1 @@
+SELECT *, '|' FROM t3 LEFT JOIN v2 ON a=x WHERE b=1;

@@ -1,0 +1,4 @@
+CREATE TABLE mimetypes(
+    _id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mimetype TEXT NOT NULL
+  );

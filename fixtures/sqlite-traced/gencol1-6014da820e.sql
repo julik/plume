@@ -1,0 +1,1 @@
+INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)

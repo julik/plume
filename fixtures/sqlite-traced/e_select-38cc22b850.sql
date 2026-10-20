@@ -1,0 +1,1 @@
+SELECT * FROM x1 , x2 LIMIT 1

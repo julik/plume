@@ -1,0 +1,3 @@
+WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)
+    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)
+    ORDER BY 1;

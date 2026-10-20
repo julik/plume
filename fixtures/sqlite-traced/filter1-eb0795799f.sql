@@ -1,0 +1,1 @@
+SELECT upper(a) FILTER (WHERE a=1) FROM t1

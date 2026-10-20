@@ -1,0 +1,1 @@
+SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;

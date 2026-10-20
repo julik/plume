@@ -1,0 +1,1 @@
+INSERT INTO query VALUES(99)

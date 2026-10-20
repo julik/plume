@@ -1,0 +1,1 @@
+SELECT * FROM t1 GROUP BY a HAVING sum(b) OVER ()

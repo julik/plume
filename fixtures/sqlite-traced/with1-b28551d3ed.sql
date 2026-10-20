@@ -1,0 +1,1 @@
+EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc

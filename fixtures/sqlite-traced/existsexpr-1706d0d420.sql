@@ -1,0 +1,5 @@
+SELECT 
+    EXISTS( SELECT 1 FROM t1 ) aaa
+  WHERE (
+    SELECT 1 FROM x1 WHERE aaa AND aaa
+  );

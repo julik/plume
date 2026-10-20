@@ -1,0 +1,3 @@
+SELECT 10+sum(a) OVER (ORDER BY a) 
+  FROM t8 
+  ORDER BY 10+sum(a) OVER (ORDER BY a) DESC;

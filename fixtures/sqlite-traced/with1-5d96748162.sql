@@ -1,0 +1,9 @@
+WITH RECURSIVE
+    ancest(id, mtime) AS
+      (VALUES(0, 0)
+       UNION
+       SELECT edge.xto, edge.seq FROM edge, ancest
+        WHERE edge.xfrom=ancest.id
+        ORDER BY 2
+      )
+  SELECT * FROM ancest;

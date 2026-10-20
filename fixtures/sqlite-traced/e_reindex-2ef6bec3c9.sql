@@ -1,0 +1,1 @@
+INSERT INTO aux.t1 SELECT x FROM main.t1;

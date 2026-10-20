@@ -1,0 +1,1 @@
+UPDATE t16c SET a=a WHERE a=3;

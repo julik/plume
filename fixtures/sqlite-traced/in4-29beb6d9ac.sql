@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT * FROM t6a, t6b WHERE a=3 AND b IN (c);

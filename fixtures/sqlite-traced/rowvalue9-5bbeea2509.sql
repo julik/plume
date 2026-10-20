@@ -1,0 +1,1 @@
+SELECT * FROM c1 WHERE (a, +b) IN (SELECT x, y FROM c2)

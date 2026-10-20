@@ -1,0 +1,1 @@
+CREATE INDEX t4a ON t4(a) WHERE f3(c);

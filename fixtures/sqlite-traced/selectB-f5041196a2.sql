@@ -1,0 +1,2 @@
+explain 
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)

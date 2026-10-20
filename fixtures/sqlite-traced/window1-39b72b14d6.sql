@@ -1,0 +1,4 @@
+SELECT a, b, c, quote(d), group_concat(b,'') OVER w1, '|' FROM t1
+    WINDOW w1 AS
+    (ORDER BY d DESC RANGE BETWEEN 7.0 PRECEDING AND 2.5 PRECEDING)
+    ORDER BY c, d, a;

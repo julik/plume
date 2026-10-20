@@ -1,0 +1,1 @@
+SELECT min(a) FROM t14 WHERE b='2' AND a>'50';

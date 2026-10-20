@@ -1,0 +1,1 @@
+SELECT t1 IN (5,n1,11) FROM t1

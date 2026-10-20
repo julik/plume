@@ -1,0 +1,1 @@
+CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;

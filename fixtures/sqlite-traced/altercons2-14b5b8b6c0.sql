@@ -1,0 +1,1 @@
+ALTER TABLE Test DROP CONSTRAINT BooleanZeroOrOne

@@ -1,0 +1,1 @@
+INSERT INTO vacuum SELECT a FROM t1

@@ -1,0 +1,1 @@
+CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)

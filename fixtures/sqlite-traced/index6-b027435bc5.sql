@@ -1,0 +1,1 @@
+SELECT count(*) FROM t3 WHERE t3.b BETWEEN 5 AND 10;

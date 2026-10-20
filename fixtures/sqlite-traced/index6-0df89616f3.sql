@@ -1,0 +1,1 @@
+UPDATE t9 SET b=c WHERE a in (10,12,20);

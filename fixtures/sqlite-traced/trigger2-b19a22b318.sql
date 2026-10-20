@@ -1,0 +1,1 @@
+CREATE TRIGGER the_trigger AFTER UPDATE  ON tbl BEGIN UPDATE tbl SET b = old.b; END;

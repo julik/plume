@@ -1,0 +1,4 @@
+CREATE TABLE t7(
+         a PRIMARY KEY ON CONFLICT FAIL, 
+         UNIQUE(a) ON CONFLICT IGNORE
+      );

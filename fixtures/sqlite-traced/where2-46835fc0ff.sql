@@ -1,0 +1,1 @@
+SELECT * FROM t10 WHERE a=1 AND (b=2 OR b=3)

@@ -1,0 +1,1 @@
+SELECT * FROM one WHERE NOT (1, 1, 3) < (1, 2, 3)

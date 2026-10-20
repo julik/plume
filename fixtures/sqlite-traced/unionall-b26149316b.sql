@@ -1,0 +1,1 @@
+SELECT a, b FROM i1, t1 WHERE a=x ORDER BY a

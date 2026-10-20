@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT (SELECT a), b FROM t1);

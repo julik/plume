@@ -1,0 +1,4 @@
+CREATE TRIGGER t1_after_update AFTER UPDATE ON t1 BEGIN 
+    INSERT INTO log VALUES('update');
+    DELETE FROM log;
+  END;

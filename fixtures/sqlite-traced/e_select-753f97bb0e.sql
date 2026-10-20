@@ -1,0 +1,1 @@
+SELECT k FROM x1 WHERE '1'||z

@@ -1,0 +1,3 @@
+WITH RECURSIVE
+    d(x) AS (VALUES(1) UNION ALL SELECT rowid+1 FROM d WHERE rowid<10)
+  SELECT x FROM d;

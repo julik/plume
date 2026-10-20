@@ -1,0 +1,1 @@
+SELECT round( exp(2), 7), round( exp(-2), 7), exp(0);

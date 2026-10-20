@@ -1,0 +1,2 @@
+WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)
+    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;

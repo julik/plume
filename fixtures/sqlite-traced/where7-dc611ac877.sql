@@ -1,0 +1,3 @@
+SELECT y FROM t1
+   WHERE (z=222 OR y=111)
+     AND (false OR EXISTS(SELECT 1 FROM t0 WHERE t1.y));

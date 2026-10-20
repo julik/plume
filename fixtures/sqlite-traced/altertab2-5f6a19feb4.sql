@@ -1,0 +1,4 @@
+CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN
+    UPDATE t2 SET a = new.d;
+    SELECT a, b, c FROM v1;
+  END;

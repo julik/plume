@@ -1,0 +1,3 @@
+WITH VVV AS 
+  ( VALUES('a', 'b'), ('c', 'd'), (123, NULL) )
+ SELECT * FROM VVV UNION ALL SELECT * FROM VVV

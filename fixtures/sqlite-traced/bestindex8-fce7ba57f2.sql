@@ -1,0 +1,1 @@
+explain SELECT DISTINCT a, b FROM vt1 WHERE +b='b'

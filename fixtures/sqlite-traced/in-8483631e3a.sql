@@ -1,0 +1,1 @@
+SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));

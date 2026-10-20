@@ -1,0 +1,1 @@
+SELECT * FROM t1 JOIN t3 ON (t1.b=t3.b)

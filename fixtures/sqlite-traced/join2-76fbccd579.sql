@@ -1,0 +1,1 @@
+SELECT * FROM t1 LEFT JOIN t3 ON y=z;

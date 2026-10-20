@@ -1,0 +1,3 @@
+SELECT DISTINCT a, b
+    FROM t1 RIGHT JOIN t2 ON a=b LEFT JOIN v5 ON false
+   WHERE x <= y;

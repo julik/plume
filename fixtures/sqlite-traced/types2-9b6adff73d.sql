@@ -1,0 +1,1 @@
+SELECT t1 > 500.0  FROM t1

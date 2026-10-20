@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three)

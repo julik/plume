@@ -1,0 +1,5 @@
+CREATE TABLE t7(
+      a INTEGER PRIMARY KEY,
+      b BOOLEAN DEFAULT false,
+      c BOOLEAN DEFAULT true
+    );

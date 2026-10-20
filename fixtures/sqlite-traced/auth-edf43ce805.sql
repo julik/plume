@@ -1,0 +1,1 @@
+SELECT ROWID,y,z FROM t3

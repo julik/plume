@@ -1,0 +1,1 @@
+CREATE VIEW v6(c0, c1, c2) AS SELECT 0, 0, 0;

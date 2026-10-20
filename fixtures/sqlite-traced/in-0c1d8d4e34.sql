@@ -1,0 +1,1 @@
+SELECT b FROM t4 WHERE a NOT IN (3,null,8);

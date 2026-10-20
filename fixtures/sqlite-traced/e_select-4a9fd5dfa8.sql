@@ -1,0 +1,1 @@
+INSERT INTO d1 VALUES(2, 5, -1);

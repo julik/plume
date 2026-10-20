@@ -1,0 +1,3 @@
+CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN
+     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);
+  END;

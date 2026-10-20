@@ -1,0 +1,1 @@
+INSERT INTO cross VALUES(0, 1, 0)

@@ -1,0 +1,3 @@
+SELECT * FROM t44 LEFT JOIN t46 ON a=c
+   WHERE d=4 OR d IS NULL
+   ORDER BY a;

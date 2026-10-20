@@ -1,0 +1,1 @@
+SELECT ('B' COLLATE NOCASE, 0)> (t0.c0, 0) FROM t0;

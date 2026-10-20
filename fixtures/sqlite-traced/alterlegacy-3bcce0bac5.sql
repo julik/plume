@@ -1,0 +1,1 @@
+CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;

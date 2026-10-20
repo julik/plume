@@ -1,0 +1,2 @@
+EXPLAIN 
+    SELECT * FROM t1 WHERE a=15 AND c=22 AND rowid!=98

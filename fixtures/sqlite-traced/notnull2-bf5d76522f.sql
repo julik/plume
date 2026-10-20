@@ -1,0 +1,1 @@
+SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;

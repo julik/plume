@@ -1,0 +1,3 @@
+CREATE TRIGGER xyz_tr BEFORE INSERT ON xyz BEGIN
+    SELECT new.x;
+  END;

@@ -1,0 +1,1 @@
+INSERT INTO end SELECT a FROM t1

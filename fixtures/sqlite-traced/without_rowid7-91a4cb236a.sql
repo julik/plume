@@ -1,0 +1,3 @@
+CREATE TABLE t1(
+      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2
+  ) WITHOUT ROWID;

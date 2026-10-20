@@ -1,0 +1,1 @@
+CREATE INDEX t1a ON t1(a) WHERE b = CAST(5 AS INT);

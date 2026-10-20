@@ -1,0 +1,1 @@
+SELECT a, avg(c) FILTER (WHERE b!=1) FROM t1 GROUP BY a ORDER BY 2

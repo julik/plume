@@ -1,0 +1,1 @@
+SELECT o1 IN (10.0, 20, '10') FROM t1

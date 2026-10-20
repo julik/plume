@@ -1,0 +1,1 @@
+UPDATE ft SET x='hello' ORDER BY rowid LIMIT 2 OFFSET 2;

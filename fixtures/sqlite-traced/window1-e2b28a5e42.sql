@@ -1,0 +1,1 @@
+SELECT * WINDOW f AS () ORDER BY name COLLATE nocase;

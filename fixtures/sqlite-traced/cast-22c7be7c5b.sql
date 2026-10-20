@@ -1,0 +1,1 @@
+SELECT x, typeof(x) FROM (SELECT CAST(4 AS NUMERIC) AS x) JOIN dual;

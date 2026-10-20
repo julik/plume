@@ -1,0 +1,1 @@
+INSERT INTO exclusive SELECT a FROM t1

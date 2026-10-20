@@ -1,0 +1,6 @@
+CREATE TRIGGER t4i AFTER INSERT ON t4 BEGIN
+    DELETE FROM t5;
+    INSERT INTO t5 
+      SELECT x, y, max(y) OVER xyz FROM t4
+      WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x);
+  END;

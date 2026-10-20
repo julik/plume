@@ -1,0 +1,1 @@
+EXPLAIN PRAGMA page_size

@@ -1,0 +1,1 @@
+UPDATE OR REPLACE Table0 SET Col0 = Table0.Col0 ;

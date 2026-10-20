@@ -1,0 +1,3 @@
+SELECT count(*)
+    FROM (SELECT 111 AS x UNION ALL SELECT 222)
+         LEFT JOIN (SELECT c+333 AS y FROM t1) ON x=y;

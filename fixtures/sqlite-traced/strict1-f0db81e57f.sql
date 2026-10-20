@@ -1,0 +1,1 @@
+INSERT INTO t1(c) VALUES(x'313233'), (NULL);

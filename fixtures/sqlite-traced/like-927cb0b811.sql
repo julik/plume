@@ -1,0 +1,1 @@
+SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;

@@ -1,0 +1,7 @@
+WITH flat(fid, depth, p) AS (
+        SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL
+        UNION ALL
+        SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid
+        ORDER BY  3 DESC
+    )
+    SELECT p FROM flat;

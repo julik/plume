@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO t1(a) VALUES(4),(5),(6);

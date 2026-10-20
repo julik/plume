@@ -1,0 +1,1 @@
+SELECT count(*), b FROM t1 GROUP BY 2 ORDER BY 2;

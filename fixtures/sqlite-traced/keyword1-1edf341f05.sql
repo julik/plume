@@ -1,0 +1,1 @@
+INSERT INTO savepoint VALUES(99)

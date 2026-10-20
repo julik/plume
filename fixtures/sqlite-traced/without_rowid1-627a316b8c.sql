@@ -1,0 +1,4 @@
+WITH r(x) AS (
+    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100
+  )
+  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;

@@ -1,0 +1,7 @@
+CREATE TABLE t1nn(
+    a INT NOT NULL,
+    b INTEGER NOT NULL,
+    c TEXT NOT NULL,
+    d REAL NOT NULL,
+    e BLOB NOT NULL
+  ) STRICT;

@@ -1,0 +1,6 @@
+CREATE TABLE C(
+    id INTEGER PRIMARY KEY,
+    xx INTEGER NOT NULL,
+    yy INTEGER,
+    zz INTEGER
+  );

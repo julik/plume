@@ -1,0 +1,1 @@
+SELECT count(*) FROM (SELECT x FROM t ORDER BY x COLLATE decimal);

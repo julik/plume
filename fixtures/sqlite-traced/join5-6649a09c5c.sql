@@ -1,0 +1,1 @@
+INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;

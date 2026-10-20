@@ -1,0 +1,1 @@
+DELETE FROM t2 WHERE a=1 AND b=2 AND c=3;

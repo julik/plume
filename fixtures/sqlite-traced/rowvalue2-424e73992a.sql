@@ -1,0 +1,1 @@
+SELECT * FROM r1, r2 WHERE (x > +a) OR (x == +a AND zY > iB) ORDER BY iB

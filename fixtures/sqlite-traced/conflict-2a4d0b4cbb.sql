@@ -1,0 +1,1 @@
+UPDATE OR FAIL t1 SET b=b*2;

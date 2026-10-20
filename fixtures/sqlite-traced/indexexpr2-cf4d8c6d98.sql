@@ -1,0 +1,1 @@
+SELECT (1  ||  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2

@@ -1,0 +1,1 @@
+SELECT (t0.c0, 0) < ('B' COLLATE NOCASE, 0) FROM t0;

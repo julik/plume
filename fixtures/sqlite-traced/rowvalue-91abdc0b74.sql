@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (a,b) BETWEEN (-2,99) AND (1,0);

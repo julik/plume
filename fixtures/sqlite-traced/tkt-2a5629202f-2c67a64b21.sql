@@ -1,0 +1,1 @@
+SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c

@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1

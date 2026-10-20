@@ -1,0 +1,1 @@
+SELECT * FROM v6 JOIN t5 ON false RIGHT JOIN t3 ON true;

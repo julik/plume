@@ -1,0 +1,1 @@
+INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);

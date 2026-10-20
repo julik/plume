@@ -1,0 +1,2 @@
+SELECT t1.*, t2.* FROM t1 FULL JOIN t2 ON (a,b)=(x,y)
+   ORDER BY coalesce(a,x);

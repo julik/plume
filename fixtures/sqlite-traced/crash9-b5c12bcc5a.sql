@@ -1,0 +1,4 @@
+WITH s(i) AS (
+    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10
+  )
+  INSERT INTO t1 SELECT i, randomblob(900) FROM s;

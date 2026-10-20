@@ -1,0 +1,1 @@
+SELECT * FROM t1 GROUP BY t1.a

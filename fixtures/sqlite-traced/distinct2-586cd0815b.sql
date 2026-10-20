@@ -1,0 +1,1 @@
+SELECT v4.e FROM t3 LEFT JOIN v4 ON true GROUP BY 1;

@@ -1,0 +1,5 @@
+SELECT (
+    SELECT count(a) OVER ( ORDER BY sum(a) )
+         + total(a) OVER() 
+  )
+  FROM t1

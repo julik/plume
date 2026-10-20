@@ -1,0 +1,1 @@
+SELECT d FROM x1 WHERE c=11 OR rowid = 2

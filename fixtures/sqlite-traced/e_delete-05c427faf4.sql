@@ -1,0 +1,1 @@
+DROP TRIGGER main.tr1;

@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 LEFT JOIN t2 ON c=b WHERE d IS NULL;

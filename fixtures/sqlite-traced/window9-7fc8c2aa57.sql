@@ -1,0 +1,2 @@
+SELECT sum(a) OVER () FROM t2
+   ORDER BY EXISTS(SELECT 1 FROM t2 ORDER BY sum(a) OVER ());

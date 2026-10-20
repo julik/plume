@@ -1,0 +1,1 @@
+SELECT a FROM t5 WHERE x='y' AND (b=913 OR c=27027) ORDER BY a;

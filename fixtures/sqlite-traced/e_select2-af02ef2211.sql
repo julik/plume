@@ -1,0 +1,1 @@
+SELECT * FROM t2, t1 ON (1.1-1.1)

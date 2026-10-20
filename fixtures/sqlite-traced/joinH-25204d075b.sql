@@ -1,0 +1,1 @@
+SELECT rowid FROM wo1 JOIN (x1 JOIN x2);

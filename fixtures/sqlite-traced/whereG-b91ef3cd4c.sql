@@ -1,0 +1,1 @@
+SELECT likely(a), x FROM t1, t2 ORDER BY 1, 2;

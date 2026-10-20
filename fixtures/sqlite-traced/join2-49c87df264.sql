@@ -1,0 +1,1 @@
+CREATE VIEW t3 AS SELECT z, (SELECT count(*) FROM t1) AS w FROM t2;

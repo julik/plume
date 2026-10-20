@@ -1,0 +1,5 @@
+SELECT * FROM ( 
+    SELECT sum(b) OVER() AS c FROM t1 
+      UNION
+    SELECT b AS c FROM t1
+  ) WHERE c>10;

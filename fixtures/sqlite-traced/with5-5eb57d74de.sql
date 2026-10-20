@@ -1,0 +1,10 @@
+WITH RECURSIVE closure(x) AS (
+     VALUES(1),(200),(300),(400)
+     UNION ALL
+     VALUES(2)
+     UNION
+     SELECT bb FROM closure, link WHERE link.aa=closure.x
+     UNION
+     SELECT aa FROM link, closure WHERE link.bb=closure.x
+  )
+  SELECT x FROM closure ORDER BY x;

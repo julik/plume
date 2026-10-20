@@ -1,0 +1,7 @@
+WITH c AS(SELECT a)
+    SELECT(SELECT(SELECT string_agg(b, b)
+          LIMIT(SELECT 0.100000 *
+            AVG(DISTINCT(SELECT 0 FROM a ORDER BY b, b, b))))
+        FROM a GROUP BY b,
+        b, b) FROM a EXCEPT SELECT b FROM a ORDER BY b,
+    b, b;

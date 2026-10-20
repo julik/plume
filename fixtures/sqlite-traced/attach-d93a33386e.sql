@@ -1,0 +1,3 @@
+CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN
+        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;
+      END;

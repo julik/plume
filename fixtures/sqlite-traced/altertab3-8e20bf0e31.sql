@@ -1,0 +1,6 @@
+CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN
+    SELECT a,b, a name FROM t1 
+      INTERSECT 
+    SELECT a,b,c FROM t1 WHERE b>='d' ORDER BY name;
+    SELECT new.c;
+  END;

@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE 53594.08128 = b AND c >= b

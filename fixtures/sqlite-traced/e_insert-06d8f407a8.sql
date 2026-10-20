@@ -1,0 +1,3 @@
+CREATE TRIGGER AFTER UPDATE ON a1 BEGIN
+    INSERT INTO main.a4 VALUES(new.a, new.b);
+  END;

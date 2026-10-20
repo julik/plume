@@ -1,0 +1,10 @@
+SELECT (
+    WITH RECURSIVE t2(y) AS (
+      SELECT 4
+      UNION
+      SELECT NULL
+      UNION
+      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1
+    )
+    SELECT 1 FROM t2 WHERE y=x
+  ) FROM t1;

@@ -1,0 +1,1 @@
+WITH x(a) AS ( SELECT * FROM t1) SELECT 10

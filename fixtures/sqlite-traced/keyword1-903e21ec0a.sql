@@ -1,0 +1,1 @@
+SELECT b FROM t1 INDEXED BY current_time WHERE a=2

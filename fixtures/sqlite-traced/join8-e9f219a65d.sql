@@ -1,0 +1,1 @@
+SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;

@@ -1,0 +1,1 @@
+SELECT ( SELECT total( (SELECT b FROM x1) ) ) FROM x2;

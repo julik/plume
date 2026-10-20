@@ -1,0 +1,1 @@
+SELECT x AS y FROM t3 ORDER BY +y;

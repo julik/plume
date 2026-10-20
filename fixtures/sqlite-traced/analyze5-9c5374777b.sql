@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 NOT INDEXED WHERE +z=3 OR +z=2 ORDER BY +rowid

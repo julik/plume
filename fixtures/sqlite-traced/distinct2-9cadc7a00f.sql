@@ -1,0 +1,7 @@
+CREATE TABLE t2 AS
+    SELECT DISTINCT * 
+    FROM t102 AS t0 
+    JOIN t102 AS t4 ON (t2.i0 IN t102)
+    NATURAL JOIN t102 AS t3
+    JOIN t102 AS t1 ON (t0.i0 IN t102)
+    JOIN t102 AS t2 ON (t2.i0=+t0.i0 OR (t0.i0<>500 AND t2.i0=t1.i0));

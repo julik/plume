@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;

@@ -1,0 +1,1 @@
+SELECT count(ORDER BY a) FROM t1;

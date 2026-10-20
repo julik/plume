@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX i2 ON t1(d COLLATE nocase);

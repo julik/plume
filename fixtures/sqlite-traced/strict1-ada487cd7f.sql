@@ -1,0 +1,5 @@
+CREATE TABLE t4(
+      a INT AS (b*2) VIRTUAL,
+      b INT AS (c*2) STORED,
+      c INT PRIMARY KEY
+    ) STRICT;

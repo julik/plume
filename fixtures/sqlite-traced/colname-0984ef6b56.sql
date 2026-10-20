@@ -1,0 +1,1 @@
+CREATE TABLE t3 AS SELECT "with space" FROM t1 GROUP BY 1;

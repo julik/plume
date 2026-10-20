@@ -1,0 +1,1 @@
+SELECT * FROM t2 RIGHT JOIN t1 ON true;

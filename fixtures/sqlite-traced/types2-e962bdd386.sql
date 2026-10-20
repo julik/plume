@@ -1,0 +1,1 @@
+SELECT 4 IN (4) FROM t1

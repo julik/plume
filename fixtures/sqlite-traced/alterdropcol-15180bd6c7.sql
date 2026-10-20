@@ -1,0 +1,3 @@
+CREATE TRIGGER tr AFTER INSERT ON c1 BEGIN
+    INSERT INTO p1 VALUES(new.y, new.xyz);
+  END;

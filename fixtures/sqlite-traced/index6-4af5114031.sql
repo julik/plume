@@ -1,0 +1,1 @@
+CREATE INDEX t11x ON t11(a) WHERE b<>99;

@@ -1,0 +1,1 @@
+SELECT 1, 2, z1.* FROM z1

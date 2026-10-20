@@ -1,0 +1,1 @@
+SELECT 0 FROM t4 WHERE x==6

@@ -1,0 +1,1 @@
+SELECT count(*) FILTER (WHERE a!=5) FROM t1

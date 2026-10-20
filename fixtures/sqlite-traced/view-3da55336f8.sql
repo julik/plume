@@ -1,0 +1,1 @@
+CREATE VIEW v13 AS SELECT y FROM two.t2;

@@ -1,0 +1,1 @@
+INSERT INTO t16a VALUES('abc',1.25,99);

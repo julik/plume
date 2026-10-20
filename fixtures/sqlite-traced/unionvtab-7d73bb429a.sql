@@ -1,0 +1,1 @@
+INSERT INTO s1 VALUES($S, 'one');

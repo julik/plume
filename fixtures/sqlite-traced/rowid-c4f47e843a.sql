@@ -1,0 +1,1 @@
+UPDATE t1 SET rowid=12345 WHERE x==1;

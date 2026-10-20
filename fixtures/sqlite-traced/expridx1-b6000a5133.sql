@@ -1,0 +1,1 @@
+UPDATE x1 SET b=21.0 WHERE rowid=20;

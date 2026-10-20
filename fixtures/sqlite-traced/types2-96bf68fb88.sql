@@ -1,0 +1,1 @@
+UPDATE t1 SET t1='10',n1=10

@@ -1,0 +1,1 @@
+INSERT INTO cast SELECT a FROM t1

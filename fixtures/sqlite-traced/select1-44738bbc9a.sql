@@ -1,0 +1,5 @@
+SELECT 1 FROM t1, t2 WHERE (
+    SELECT 3 FROM (
+      SELECT x FROM t2 WHERE x=c OR x=(SELECT x FROM (VALUES(0)))
+    ) WHERE x>c OR x=c
+  );

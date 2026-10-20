@@ -1,0 +1,1 @@
+CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);

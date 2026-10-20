@@ -1,0 +1,1 @@
+INSERT INTO without SELECT a FROM t1

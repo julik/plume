@@ -1,0 +1,1 @@
+SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;

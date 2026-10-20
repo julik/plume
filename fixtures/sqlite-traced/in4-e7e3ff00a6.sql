@@ -1,0 +1,1 @@
+SELECT d FROM t1 WHERE 0=a AND b IN (-17,-4,-3,1,5,25,7798);

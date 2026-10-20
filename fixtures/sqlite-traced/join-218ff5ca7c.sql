@@ -1,0 +1,1 @@
+SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);

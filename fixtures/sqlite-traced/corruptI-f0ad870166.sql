@@ -1,0 +1,1 @@
+UPDATE t1 SET x='d' AND y='D' WHERE rowid = 2

@@ -1,0 +1,1 @@
+SELECT * FROM r1, r2 WHERE (x,+zY) IS (a,iB) ORDER BY iB

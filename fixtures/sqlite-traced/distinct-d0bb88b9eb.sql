@@ -1,0 +1,1 @@
+EXPLAIN SELECT  t1.rowid FROM t1, t2

@@ -1,0 +1,4 @@
+SELECT SUM("value") OVER 
+  (ORDER BY "id" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) 
+    FROM "sample" 
+  ORDER BY "id"

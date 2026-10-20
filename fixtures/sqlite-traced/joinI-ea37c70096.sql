@@ -1,0 +1,1 @@
+SELECT c+d AS cd FROM t1 LEFT JOIN t2 ON (cd=5) CROSS JOIN t3;

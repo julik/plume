@@ -1,0 +1,1 @@
+SELECT rowid FROM (SELECT 123), t3;

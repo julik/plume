@@ -1,0 +1,1 @@
+SELECT a, count(DISTINCT b) FROM t1 GROUP BY a;

@@ -1,0 +1,1 @@
+INSERT INTO abc SELECT 10, 20, 30 FROM def;

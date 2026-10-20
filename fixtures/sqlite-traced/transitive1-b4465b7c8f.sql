@@ -1,0 +1,1 @@
+SELECT * FROM b1 WHERE (x=y COLLATE nocase) AND y='ABC';

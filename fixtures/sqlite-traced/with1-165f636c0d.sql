@@ -1,0 +1,6 @@
+WITH flat(fid, fpath) AS (
+    SELECT id, '' FROM f WHERE parentid IS NULL
+    UNION ALL
+    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid
+  )
+  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;

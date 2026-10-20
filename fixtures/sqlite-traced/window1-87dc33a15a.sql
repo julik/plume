@@ -1,0 +1,1 @@
+SELECT EXISTS(SELECT count(*) OVER() FROM t1 ORDER BY sum(x) OVER());

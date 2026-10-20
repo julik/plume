@@ -1,0 +1,1 @@
+SELECT sum(44) OVER ()

@@ -1,0 +1,1 @@
+SELECT typeof(b) FROM t1 INDEXED BY x2

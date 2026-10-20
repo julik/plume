@@ -1,0 +1,3 @@
+SELECT * FROM tx2 WHERE EXISTS (
+    SELECT 1 FROM tx1 WHERE x=(a COLLATE nocase) AND b=y
+  )

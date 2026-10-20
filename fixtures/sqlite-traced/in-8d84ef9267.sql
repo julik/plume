@@ -1,0 +1,3 @@
+SELECT * FROM t2 WHERE a IN (
+      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2
+    );

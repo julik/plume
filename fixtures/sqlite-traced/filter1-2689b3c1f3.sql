@@ -1,0 +1,1 @@
+SELECT count()FILTER(WHERE b IS NULL) FROM t1;

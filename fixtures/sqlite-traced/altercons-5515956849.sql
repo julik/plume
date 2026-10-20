@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b))

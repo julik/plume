@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS error3(
+    word TEXT UNIQUE,
+    cnt INTEGER
+  ) WITHOUT ROWID;

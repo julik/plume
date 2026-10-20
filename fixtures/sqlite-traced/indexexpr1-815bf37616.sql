@@ -1,0 +1,1 @@
+SELECT c FROM t1 WHERE b=1 AND substr(a,2,3)='nd_' ORDER BY c;

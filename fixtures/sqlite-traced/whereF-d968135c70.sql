@@ -1,0 +1,7 @@
+SELECT (
+    SELECT COUNT(*) FROM t2
+     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )
+        OR ( t2.bb < t1.b )
+        OR ( t1.b IS t2.bb AND t2.aa > t1.a )
+    )
+    FROM t1;

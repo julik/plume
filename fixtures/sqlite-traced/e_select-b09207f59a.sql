@@ -1,0 +1,1 @@
+SELECT * FROM t1 AS x, t1 AS y

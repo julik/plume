@@ -1,0 +1,5 @@
+CREATE TRIGGER AFTER INSERT ON t2 BEGIN
+    UPDATE t1 SET b=c1.b, c=c2.c
+      FROM dual, c1 NATURAL RIGHT JOIN c2
+     WHERE x=a;
+  END;

@@ -1,0 +1,10 @@
+CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN
+    SELECT a, b FROM t1
+    INTERSECT SELECT b,a FROM t1
+    ORDER BY b IN (
+        SELECT a UNION SELECT b
+        FROM t1
+        ORDER BY b COLLATE nocase
+        )
+    ;
+  END;

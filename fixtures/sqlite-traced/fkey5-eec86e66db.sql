@@ -1,0 +1,1 @@
+CREATE TABLE main.t2(x TEXT PRIMARY KEY, y INT);

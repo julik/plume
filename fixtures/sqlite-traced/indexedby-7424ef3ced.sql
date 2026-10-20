@@ -1,0 +1,1 @@
+SELECT t1.c FROM t0 JOIN (t1 INDEXED BY t1x JOIN t2 ON true) ON true;

@@ -1,0 +1,1 @@
+INSERT INTO recursive VALUES(99)

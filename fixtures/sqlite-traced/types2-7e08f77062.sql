@@ -1,0 +1,1 @@
+SELECT 3 IN ('3') FROM t1

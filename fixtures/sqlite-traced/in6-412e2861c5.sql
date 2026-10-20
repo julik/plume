@@ -1,0 +1,5 @@
+SELECT d FROM t1
+  WHERE a=100
+    AND b IN (200,201,202,204)
+    AND c IN (300,302,301,305)
+  ORDER BY +d;

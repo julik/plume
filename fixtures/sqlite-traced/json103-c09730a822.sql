@@ -1,0 +1,1 @@
+SELECT b, json_group_array(a) FROM t1 WHERE rowid<10 GROUP BY b ORDER BY b;

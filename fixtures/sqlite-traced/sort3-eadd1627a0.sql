@@ -1,0 +1,1 @@
+INSERT INTO t11 VALUES(randomblob(5000), NULL);

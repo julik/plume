@@ -1,0 +1,1 @@
+SELECT a FROM x1 ORDER BY a COLLATE """""""";

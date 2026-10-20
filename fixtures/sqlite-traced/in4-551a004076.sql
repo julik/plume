@@ -1,0 +1,3 @@
+SELECT *, '|' FROM t3 A, t3 B
+   WHERE A.x IN (10) AND A.y=10
+     AND B.x IN (1) AND B.y=1;

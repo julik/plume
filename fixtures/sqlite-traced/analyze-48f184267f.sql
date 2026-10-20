@@ -1,0 +1,1 @@
+INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;

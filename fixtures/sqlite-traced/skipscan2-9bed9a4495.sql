@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT name FROM people WHERE height>=180 ORDER BY +name;

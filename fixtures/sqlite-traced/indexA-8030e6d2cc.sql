@@ -1,0 +1,1 @@
+CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;

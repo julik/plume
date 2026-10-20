@@ -1,0 +1,1 @@
+SELECT (SELECT string_agg(a,d ORDER BY d DESC) FROM t3) FROM t1;

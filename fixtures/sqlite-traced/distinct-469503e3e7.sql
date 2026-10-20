@@ -1,0 +1,1 @@
+EXPLAIN SELECT  rowid FROM t1

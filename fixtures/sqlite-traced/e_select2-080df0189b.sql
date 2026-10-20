@@ -1,0 +1,1 @@
+CREATE TEMP TABLE '%ss%' AS SELECT count(*) AS y FROM t4

@@ -1,0 +1,1 @@
+INSERT INTO strict(k) VALUES(11);

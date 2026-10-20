@@ -1,0 +1,1 @@
+SELECT a FROM t3 WHERE CAST(a AS text)<='10' ORDER BY +a;

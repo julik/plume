@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');

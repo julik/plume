@@ -1,0 +1,1 @@
+INSERT INTO plan VALUES(99)

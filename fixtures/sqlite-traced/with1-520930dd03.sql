@@ -1,0 +1,6 @@
+/* This variant from chromium bug 922312 on 2019-01-16 */
+   WITH RECURSIVE t21(a,b) AS (
+    WITH t21(x) AS (VALUES(1))
+    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5
+  )
+  SELECT * FROM t21 AS tA, t21 AS tB

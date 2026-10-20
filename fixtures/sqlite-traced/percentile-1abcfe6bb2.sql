@@ -1,0 +1,1 @@
+UPDATE t1 SET x='50' WHERE x IS NULL;

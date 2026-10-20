@@ -1,0 +1,1 @@
+SELECT is_base85(NULL) IS NULL;

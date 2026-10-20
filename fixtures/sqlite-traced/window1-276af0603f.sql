@@ -1,0 +1,1 @@
+SELECT a, sum(a) OVER (PARTITION BY b) FROM t2 ORDER BY a;

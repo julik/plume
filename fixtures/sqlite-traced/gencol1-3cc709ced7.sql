@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS t1(aa, bb AS (aa+1));

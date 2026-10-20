@@ -1,0 +1,1 @@
+SELECT 1 FROM v0 WHERE c1<c0

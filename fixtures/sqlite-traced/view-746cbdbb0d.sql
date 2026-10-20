@@ -1,0 +1,1 @@
+SELECT 0 IN (c0) FROM t0;

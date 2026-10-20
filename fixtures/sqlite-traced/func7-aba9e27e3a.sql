@@ -1,0 +1,1 @@
+SELECT log(2,65536), log(10,100), quote(log(1,100)), quote(log(0,100));

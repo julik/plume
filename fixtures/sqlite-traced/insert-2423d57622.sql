@@ -1,0 +1,1 @@
+CREATE INDEX t13x1 ON t13(-b=b);

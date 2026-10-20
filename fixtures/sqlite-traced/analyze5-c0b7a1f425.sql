@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE z>1 AND z<3 ORDER BY +rowid

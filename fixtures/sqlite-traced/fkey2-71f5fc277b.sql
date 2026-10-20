@@ -1,0 +1,4 @@
+CREATE TABLE node(
+    nodeid PRIMARY KEY,
+    parent REFERENCES node DEFERRABLE INITIALLY DEFERRED
+  );

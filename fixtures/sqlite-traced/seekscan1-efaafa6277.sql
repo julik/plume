@@ -1,0 +1,2 @@
+WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)
+    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;

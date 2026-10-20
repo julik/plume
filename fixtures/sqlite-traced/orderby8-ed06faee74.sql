@@ -1,0 +1,1 @@
+SELECT x, x+1 FROM t1 ORDER BY x LIMIT -1

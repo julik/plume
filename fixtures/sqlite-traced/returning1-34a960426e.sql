@@ -1,0 +1,1 @@
+UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';

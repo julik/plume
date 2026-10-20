@@ -1,0 +1,1 @@
+CREATE TEMP TABLE '%ss%' AS SELECT * FROM t1, t2

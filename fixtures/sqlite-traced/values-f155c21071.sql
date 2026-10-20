@@ -1,0 +1,1 @@
+SELECT 12345 FROM t0 WHERE (t0.c1 IN (VALUES (1), (0.5 IS true)))

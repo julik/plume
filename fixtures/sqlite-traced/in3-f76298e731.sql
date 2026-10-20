@@ -1,0 +1,1 @@
+SELECT 'text' IN (SELECT b FROM t3)

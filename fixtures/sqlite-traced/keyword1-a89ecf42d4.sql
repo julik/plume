@@ -1,0 +1,1 @@
+INSERT INTO like SELECT a FROM t1

@@ -1,0 +1,1 @@
+CREATE INDEX ex1 ON t1(a) WHERE 4=b;

@@ -1,0 +1,2 @@
+ALTER TABLE t1 ADD CONSTRAINT c1 CHECK(a=b) --comment
+  ;

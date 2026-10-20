@@ -1,0 +1,16 @@
+SELECT EXISTS (
+    WITH RECURSIVE Table0 AS (
+      WITH RECURSIVE Table0(Col0) AS (SELECT ALL 1  ) 
+      SELECT ALL (
+        WITH RECURSIVE Table0 AS (
+          WITH RECURSIVE Table0 AS (
+            WITH RECURSIVE Table0 AS (SELECT DISTINCT 1  GROUP BY 1  ) 
+            SELECT DISTINCT * FROM Table0 NATURAL INNER JOIN Table0
+            WHERE Col0 = 1  
+          )
+          SELECT ALL (SELECT DISTINCT * FROM Table0) FROM Table0 WHERE Col0 = 1
+        ) 
+        SELECT ALL * FROM Table0  NATURAL INNER JOIN  Table0      
+      ) FROM Table0 ) 
+      SELECT DISTINCT * FROM Table0  NATURAL INNER JOIN  Table0      
+    );

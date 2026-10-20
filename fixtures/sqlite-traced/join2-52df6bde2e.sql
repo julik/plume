@@ -1,0 +1,2 @@
+SELECT * FROM t0 LEFT JOIN t1 
+  WHERE (t1.c0 BETWEEN 0 AND 0) > ('' AND t0.c0);

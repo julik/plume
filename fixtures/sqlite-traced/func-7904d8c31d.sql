@@ -1,0 +1,1 @@
+SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;

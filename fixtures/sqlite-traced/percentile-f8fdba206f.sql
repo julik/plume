@@ -1,0 +1,5 @@
+WITH RECURSIVE t1(n,x) AS (
+    VALUES(1,1.0)
+    UNION ALL
+    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000
+  ) SELECT median(x) FROM t1;

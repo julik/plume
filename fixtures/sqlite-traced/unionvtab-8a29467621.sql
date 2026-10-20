@@ -1,0 +1,1 @@
+INSERT INTO l1 VALUES($L-1, 'five');

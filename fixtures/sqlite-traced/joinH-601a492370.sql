@@ -1,0 +1,1 @@
+SELECT * FROM t3 LEFT JOIN t2 ON (0);

@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (SELECT sum(a) OVER(ORDER BY a));

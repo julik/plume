@@ -1,0 +1,1 @@
+SELECT * FROM t0(55) ORDER BY x;

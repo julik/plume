@@ -1,0 +1,1 @@
+SELECT * FROM t1, t2 WHERE b=1 AND z=c AND y=5;

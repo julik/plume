@@ -1,0 +1,1 @@
+select c from t2 union all select f from t3 limit 1 offset 1

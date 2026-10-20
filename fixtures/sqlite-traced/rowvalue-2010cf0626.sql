@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,4);

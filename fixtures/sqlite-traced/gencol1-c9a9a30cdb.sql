@@ -1,0 +1,1 @@
+CREATE TABLE t1(aa , bb AS (17) UNIQUE);

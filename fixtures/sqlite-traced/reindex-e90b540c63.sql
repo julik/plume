@@ -1,0 +1,4 @@
+CREATE TABLE t0 (
+        c0 INTEGER PRIMARY KEY DESC, 
+        c1 UNIQUE DEFAULT NULL
+      )  ;

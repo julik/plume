@@ -1,0 +1,6 @@
+SELECT cnt, xyz, 
+         CASE WHEN (SELECT y FROM t2 WHERE w=cnt)=='two'
+              THEN 'aaa' ELSE 'bbb'
+          END, '|'
+    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)
+   ORDER BY +cnt;

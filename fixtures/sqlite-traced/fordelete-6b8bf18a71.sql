@@ -1,0 +1,1 @@
+EXPLAIN  DELETE FROM t2 WHERE a=? OR b=?

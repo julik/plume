@@ -1,0 +1,1 @@
+SELECT 500.0 = t1 FROM t1

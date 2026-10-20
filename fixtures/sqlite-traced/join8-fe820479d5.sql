@@ -1,0 +1,2 @@
+WITH t7(x, y) AS (SELECT 100, 200 FROM t5)
+    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);

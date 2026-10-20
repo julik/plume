@@ -1,0 +1,1 @@
+CREATE INDEX key ON t1(a)

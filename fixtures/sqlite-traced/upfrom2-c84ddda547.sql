@@ -1,0 +1,1 @@
+CREATE VIEW t2(b,c) AS SELECT a, COUNT(*) OVER () FROM t1;

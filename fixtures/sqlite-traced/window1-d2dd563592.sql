@@ -1,0 +1,3 @@
+SELECT * FROM (
+      SELECT sum (a) OVER() FROM t1 UNION ALL SELECT x FROM t0
+  );

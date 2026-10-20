@@ -1,0 +1,1 @@
+SELECT 1 FROM t1 WHERE NOT (o1 IN (10.0, 20, '10'))

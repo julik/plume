@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS aux.t1(a, b);

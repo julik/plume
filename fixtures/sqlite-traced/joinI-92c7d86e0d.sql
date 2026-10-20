@@ -1,0 +1,1 @@
+SELECT * FROM t1 RIGHT JOIN t2 ON ( a=d ) WHERE (t2.e+1)!=4;

@@ -1,0 +1,1 @@
+DELETE FROM ft ORDER BY rowid LIMIT 3;

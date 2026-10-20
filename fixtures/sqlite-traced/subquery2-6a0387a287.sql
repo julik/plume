@@ -1,0 +1,5 @@
+SELECT data FROM (
+     SELECT 'dummy', data FROM (
+       SELECT data FROM t1 UNION ALL SELECT data FROM t1
+     ) ORDER BY data
+  );

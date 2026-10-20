@@ -1,0 +1,3 @@
+SELECT a, b
+  FROM t1 FULL JOIN t2 ON true
+  ORDER BY coalesce(a,b,3);

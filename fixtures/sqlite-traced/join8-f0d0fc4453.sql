@@ -1,0 +1,3 @@
+SELECT *
+    FROM t3 LEFT JOIN t2 ON true
+            JOIN t1 ON (t3.e IS NOT DISTINCT FROM t2.c);

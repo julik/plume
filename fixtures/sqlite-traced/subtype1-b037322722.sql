@@ -1,0 +1,1 @@
+CREATE VIEW t2(b) AS SELECT json(TRUE);

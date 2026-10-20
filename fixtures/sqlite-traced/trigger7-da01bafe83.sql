@@ -1,0 +1,3 @@
+CREATE TEMP TRIGGER main.r1 AFTER INSERT ON t1 BEGIN
+      SELECT 'no nothing';
+    END

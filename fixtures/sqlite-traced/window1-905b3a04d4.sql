@@ -1,0 +1,9 @@
+SELECT
+      (SELECT b FROM a
+        GROUP BY b
+        HAVING (SELECT COUNT()OVER() + lead(b)OVER(ORDER BY SUM(DISTINCT b) + b))
+      ) 
+    FROM a
+  UNION
+   SELECT 99
+    ORDER BY 1;

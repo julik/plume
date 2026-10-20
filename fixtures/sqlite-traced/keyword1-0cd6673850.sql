@@ -1,0 +1,1 @@
+INSERT INTO exclusive VALUES(99)

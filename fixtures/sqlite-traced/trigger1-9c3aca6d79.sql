@@ -1,0 +1,3 @@
+CREATE TRIGGER main.t16err3 AFTER INSERT ON tA BEGIN
+      DELETE FROM main.t16;
+    END;

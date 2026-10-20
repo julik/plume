@@ -1,0 +1,1 @@
+INSERT INTO analyze SELECT a FROM t1

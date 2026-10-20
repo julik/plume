@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);

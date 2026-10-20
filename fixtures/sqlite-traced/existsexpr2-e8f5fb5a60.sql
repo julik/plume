@@ -1,0 +1,3 @@
+SELECT x, y FROM t2 WHERE EXISTS (
+    SELECT 1 FROM t1 WHERE b=x
+  )

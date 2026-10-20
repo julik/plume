@@ -1,0 +1,1 @@
+SELECT t5.* FROM t3, t4;

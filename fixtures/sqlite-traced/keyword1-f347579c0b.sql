@@ -1,0 +1,1 @@
+INSERT INTO recursive SELECT a FROM t1

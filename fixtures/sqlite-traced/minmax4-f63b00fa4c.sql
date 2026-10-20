@@ -1,0 +1,1 @@
+SELECT MIN(t0.c1), t0.c0 FROM t0 WHERE t0.c1 ISNULL;

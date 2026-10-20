@@ -1,0 +1,1 @@
+UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;

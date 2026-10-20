@@ -1,0 +1,1 @@
+WITH c(a) AS (SELECT x'32' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;

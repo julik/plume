@@ -1,0 +1,1 @@
+SELECT a,b,c,d,'|' FROM t2 WHERE d<>99 AND b=345 ORDER BY a;

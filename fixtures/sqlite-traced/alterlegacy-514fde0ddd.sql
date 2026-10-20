@@ -1,0 +1,3 @@
+CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN
+    INSERT INTO t1(a) VALUES(new.w);
+  END;

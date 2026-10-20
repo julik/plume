@@ -1,0 +1,1 @@
+CREATE VIEW v3 AS SELECT * FROM main.t1;

@@ -1,0 +1,1 @@
+SELECT max(x) OVER abc FROM t1 WINDOW def AS (ORDER BY y);

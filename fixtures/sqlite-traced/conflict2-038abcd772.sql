@@ -1,0 +1,1 @@
+SELECT x,y FROM t1 INDEXED BY t1xy;

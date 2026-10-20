@@ -1,1 +1,0 @@
-SELECT * FROM t1 WHERE a LIKE '日本語';

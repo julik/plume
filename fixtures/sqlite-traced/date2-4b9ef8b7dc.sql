@@ -1,0 +1,2 @@
+CREATE INDEX t4b1 ON t4(b)
+    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';

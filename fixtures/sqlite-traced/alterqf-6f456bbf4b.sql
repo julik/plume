@@ -1,0 +1,1 @@
+ALTER TABLE x1 RENAME two TO 'four';

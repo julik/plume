@@ -1,0 +1,3 @@
+CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN
+    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;
+  END;

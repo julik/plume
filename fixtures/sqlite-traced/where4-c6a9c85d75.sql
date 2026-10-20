@@ -1,0 +1,1 @@
+SELECT * FROM u9 WHERE a IS $null

@@ -1,0 +1,2 @@
+WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<5000)
+    INSERT INTO t SELECT printf('%*s', 8, ''), randomblob(2000) FROM c;

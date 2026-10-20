@@ -1,0 +1,3 @@
+SELECT min(b), (
+    SELECT x FROM t2 WHERE a=2 GROUP BY y HAVING 0
+  ) FROM t1;

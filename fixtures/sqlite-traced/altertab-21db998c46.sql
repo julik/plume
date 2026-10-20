@@ -1,0 +1,7 @@
+CREATE VIEW v3 AS 
+    WITH RECURSIVE t3(x,y,z) AS (
+        SELECT b,c,NULL FROM t4
+        UNION
+        SELECT x,y,NULL FROM t3, t2
+    )
+  SELECT * FROM t3 AS xyz;

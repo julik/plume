@@ -1,0 +1,1 @@
+CREATE INDEX row ON t1(a)

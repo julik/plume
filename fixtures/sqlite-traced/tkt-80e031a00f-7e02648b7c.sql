@@ -1,0 +1,1 @@
+SELECT 1.23 NOT IN t1

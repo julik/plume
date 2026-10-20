@@ -1,0 +1,1 @@
+SELECT *, '|' FROM t200, t201 WHERE x=b ORDER BY y LIMIT 3;

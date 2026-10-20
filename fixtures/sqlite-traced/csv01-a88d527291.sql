@@ -1,0 +1,1 @@
+SELECT a FROM t3 WHERE +b=6 OR c=7 OR d=12 ORDER BY +a;

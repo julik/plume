@@ -1,0 +1,3 @@
+SELECT sum(value) OVER (
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) FROM json_each('[1,2,3,4,5]')

@@ -1,0 +1,1 @@
+CREATE INDEX each ON t1(a)

@@ -1,0 +1,8 @@
+SELECT a, c, d, e, f, g
+  FROM t1
+  INNER JOIN t2 USING(a,b)
+  LEFT JOIN t3 USING(a,b)
+  FULL JOIN t4 USING(a,b)
+  INNER JOIN t5 USING(a,b)
+  WHERE a<>13
+  ORDER BY 1 NULLS FIRST;

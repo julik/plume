@@ -1,0 +1,1 @@
+SELECT (1, 2, NULL) IS NOT (1, 2, 3)

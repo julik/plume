@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;

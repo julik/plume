@@ -1,0 +1,1 @@
+UPDATE sqlite_stat1 SET stat='10000 5000 2000 10' WHERE idx NOT NULL;

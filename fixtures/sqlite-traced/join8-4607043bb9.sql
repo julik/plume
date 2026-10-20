@@ -1,0 +1,1 @@
+SELECT * FROM t4 LEFT JOIN t5 ON x=y LEFT JOIN t6 ON (x=z) ORDER BY +x;

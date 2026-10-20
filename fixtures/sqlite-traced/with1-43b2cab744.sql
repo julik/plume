@@ -1,0 +1,4 @@
+WITH t(a) AS (
+    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a
+  ) 
+  SELECT * FROM t

@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (a,b)>=(0,0) ORDER BY a;

@@ -1,0 +1,1 @@
+UPDATE t1 SET d=3.1415926 WHERE a='journal';

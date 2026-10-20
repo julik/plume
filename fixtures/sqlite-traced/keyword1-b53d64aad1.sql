@@ -1,0 +1,1 @@
+INSERT INTO after SELECT a FROM t1

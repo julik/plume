@@ -1,0 +1,1 @@
+SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c

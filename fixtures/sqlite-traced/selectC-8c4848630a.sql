@@ -1,0 +1,1 @@
+CREATE VIEW v42b AS SELECT DISTINCT a, b FROM t_distinct_bug;

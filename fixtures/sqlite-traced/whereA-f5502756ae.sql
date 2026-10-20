@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE b=-99 OR b>1;

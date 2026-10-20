@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE w=85 ORDER BY random();

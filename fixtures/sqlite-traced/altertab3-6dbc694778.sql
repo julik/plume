@@ -1,0 +1,1 @@
+SELECT rr FROM t1 LIMIT 1

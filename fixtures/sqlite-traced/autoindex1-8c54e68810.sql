@@ -1,0 +1,1 @@
+SELECT * FROM t1 LEFT JOIN t2 ON (t2.c=+t1.a) LEFT JOIN t3 ON (t2.d IS NULL);

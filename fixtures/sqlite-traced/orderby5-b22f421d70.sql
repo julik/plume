@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT * FROM t1 WHERE likelihood(a=0, 0.03) ORDER BY a, b, c;

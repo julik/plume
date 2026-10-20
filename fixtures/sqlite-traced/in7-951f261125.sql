@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a IN (SELECT count(*) FROM t2)

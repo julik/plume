@@ -1,1 +1,0 @@
-SELECT x FROM t1 WHERE y REGEXP 'r{3}' ORDER BY x;

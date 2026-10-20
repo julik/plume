@@ -1,0 +1,13 @@
+SELECT *
+   FROM (
+        SELECT *
+        FROM tableA
+        WHERE RunYearMonth = 202004
+    ) AS A
+    INNER JOIN (
+        SELECT *
+        FROM tableB
+        WHERE RunYearMonth = 202004
+    ) AS B
+    ON A.ID = B.ID
+    AND A.RunYearMonth = B.RunYearMonth;

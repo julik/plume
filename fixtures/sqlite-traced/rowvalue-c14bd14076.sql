@@ -1,0 +1,3 @@
+SELECT a FROM t3
+    WHERE (c,d) IN (SELECT 'c','d' FROM dual)
+    AND (a,b,e) IN (SELECT 'a','b','d' FROM dual);

@@ -1,0 +1,1 @@
+SELECT i FROM t1 WHERE (i%2)==0

@@ -1,0 +1,1 @@
+SELECT (t0.c0, TRUE) > (CAST(0 AS REAL), FALSE) FROM t0;

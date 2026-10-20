@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE even(b,?) LIMIT 10

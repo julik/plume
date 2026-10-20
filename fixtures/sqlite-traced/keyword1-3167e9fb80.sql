@@ -1,0 +1,1 @@
+INSERT INTO immediate VALUES(99)

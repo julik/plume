@@ -1,0 +1,1 @@
+SELECT count(DISTINCT) FROM t6 GROUP BY x;

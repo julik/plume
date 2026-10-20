@@ -1,0 +1,1 @@
+SELECT (SELECT 3, 5) == (SELECT x,y FROM t1 ORDER BY x DESC, y)

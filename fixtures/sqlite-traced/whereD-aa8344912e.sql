@@ -1,0 +1,1 @@
+SELECT rowid FROM x1 WHERE a=1 OR b=6 OR c=11

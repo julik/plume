@@ -1,0 +1,1 @@
+EXPLAIN SELECT  a, b, c COLLATE nocase FROM t1

@@ -1,0 +1,3 @@
+SELECT t0.c2
+  FROM v0 RIGHT JOIN t0 ON (0)
+  WHERE (t0.c2 IS ( SELECT count(*) FROM e1 WHERE v0.c0=555 ))

@@ -1,0 +1,1 @@
+SELECT (SELECT c FROM t2 ORDER BY coalesce(d,a) LIMIT 1) FROM t1;

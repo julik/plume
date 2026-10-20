@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a==11 AND b=='hello' AND c IS NOT NULL;

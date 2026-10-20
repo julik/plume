@@ -1,0 +1,1 @@
+SELECT count(*) FROM a1 WHERE 0

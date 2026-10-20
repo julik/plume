@@ -1,0 +1,2 @@
+SELECT json_array_length(json_group_array(a)) FROM t1
+   WHERE rowid BETWEEN 31 AND 39;

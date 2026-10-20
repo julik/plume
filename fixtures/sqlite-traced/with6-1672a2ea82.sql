@@ -1,0 +1,2 @@
+WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))
+  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;

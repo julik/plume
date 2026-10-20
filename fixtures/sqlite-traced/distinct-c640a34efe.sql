@@ -1,0 +1,1 @@
+EXPLAIN SELECT DISTINCT rowid/2, b FROM t1 WHERE c = ?

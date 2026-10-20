@@ -1,0 +1,1 @@
+SELECT DISTINCT t0.c0, t1._rowid_, t0.c1 FROM t1 CROSS JOIN t0 ORDER BY t0.c0;

@@ -1,0 +1,1 @@
+INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);

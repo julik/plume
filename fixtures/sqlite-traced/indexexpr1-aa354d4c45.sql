@@ -1,0 +1,1 @@
+SELECT CAST(+ t0.c0 AS BLOB) LIKE '0.0' FROM t0;

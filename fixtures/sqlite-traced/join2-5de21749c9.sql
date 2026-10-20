@@ -1,0 +1,1 @@
+CREATE VIEW v2(ccc) AS SELECT bbb IS 1234 FROM t2;

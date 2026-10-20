@@ -1,0 +1,1 @@
+SELECT NOT (0 IS FALSE OR (t0.c0 = 1)) FROM t0

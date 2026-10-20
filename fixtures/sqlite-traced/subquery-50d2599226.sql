@@ -1,0 +1,1 @@
+SELECT (y*2)>b FROM t1, t2 WHERE a=x;

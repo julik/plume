@@ -1,0 +1,1 @@
+INSERT INTO rename SELECT a FROM t1

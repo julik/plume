@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE (b=8 AND c>7) OR 8<b ORDER BY +a;

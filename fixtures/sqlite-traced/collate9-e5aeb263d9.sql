@@ -1,0 +1,1 @@
+SELECT y AS aaa FROM xy ORDER BY aaa

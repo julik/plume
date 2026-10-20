@@ -1,0 +1,1 @@
+INSERT INTO release SELECT a FROM t1

@@ -1,0 +1,1 @@
+SELECT a=10, a = '10.0', a LIKE '10.0' FROM t1;

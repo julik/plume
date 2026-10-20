@@ -1,0 +1,3 @@
+CREATE TEMP TRIGGER trd0 BEFORE DELETE ON db0.tbl BEGIN
+        DELETE FROM db1.tbl;
+      END;

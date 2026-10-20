@@ -1,0 +1,1 @@
+DELETE FROM collate3t1 WHERE 1;

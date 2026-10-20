@@ -1,0 +1,1 @@
+INSERT INTO database SELECT a FROM t1

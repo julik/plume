@@ -1,0 +1,3 @@
+select count(*) from (
+    select c from t2 union all select f from t3
+  )

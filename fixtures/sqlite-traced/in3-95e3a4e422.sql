@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE rowid+0 IN (SELECT rowid FROM t1);

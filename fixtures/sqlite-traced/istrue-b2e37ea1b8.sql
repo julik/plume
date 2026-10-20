@@ -1,0 +1,1 @@
+SELECT x FROM t1 WHERE y IS FALSE OR (8==$X)

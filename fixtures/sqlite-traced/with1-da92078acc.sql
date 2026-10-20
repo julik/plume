@@ -1,0 +1,2 @@
+WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)
+  SELECT quote(x) FROM xyz;

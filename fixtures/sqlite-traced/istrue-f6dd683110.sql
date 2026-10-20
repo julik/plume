@@ -1,0 +1,1 @@
+SELECT x IS TRUE FROM t1;

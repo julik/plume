@@ -1,4 +1,0 @@
-/*
-       CREATE TABLE
-       multiple lines
-       of text;

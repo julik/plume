@@ -1,0 +1,1 @@
+SELECT round(b,2.0) FROM t1 ORDER BY b

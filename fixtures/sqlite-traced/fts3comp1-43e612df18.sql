@@ -1,0 +1,3 @@
+CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN
+    INSERT INTO t2 VALUES( myfunc(new.x) );
+  END;

@@ -1,0 +1,1 @@
+SELECT count(*) FROM j1 ORDER BY 1 UNION SELECT max(e) FROM j2

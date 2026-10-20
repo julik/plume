@@ -1,1 +1,0 @@
-SELECT x FROM t1 WHERE y REGEXP 'ma\w' ORDER BY x;

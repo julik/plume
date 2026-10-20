@@ -1,0 +1,1 @@
+INSERT INTO t4 SELECT x FROM t1 WHERE rowid>$i

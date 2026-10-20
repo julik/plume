@@ -1,0 +1,3 @@
+SELECT * FROM t3 AS a0
+   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)
+   GROUP BY b;

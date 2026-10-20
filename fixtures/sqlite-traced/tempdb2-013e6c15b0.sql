@@ -1,0 +1,2 @@
+WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) 
+    INSERT INTO t2 SELECT x, int2str(x) FROM c;

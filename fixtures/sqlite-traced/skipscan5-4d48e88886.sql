@@ -1,0 +1,1 @@
+INSERT INTO t3 VALUES(4 % 2, -9567, 4)

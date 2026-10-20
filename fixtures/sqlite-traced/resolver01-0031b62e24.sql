@@ -1,0 +1,1 @@
+SELECT x AS yy FROM t3 ORDER BY 1 COLLATE nocase;

@@ -1,0 +1,5 @@
+CREATE TABLE t1 (
+      c1 PRIMARY KEY,
+      c2 NUMERIC,
+      FOREIGN KEY(c1) REFERENCES t1(c2)
+      ) WITHOUT ROWID ;

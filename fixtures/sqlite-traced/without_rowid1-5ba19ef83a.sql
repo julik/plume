@@ -1,0 +1,3 @@
+CREATE TABLE t6 (
+    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)
+  ) WITHOUT ROWID;

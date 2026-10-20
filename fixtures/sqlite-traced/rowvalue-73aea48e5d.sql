@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (5,0)>(a,b) ORDER BY a DESC;

@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE (d=5 AND b=3) OR c==100 ORDER BY a;

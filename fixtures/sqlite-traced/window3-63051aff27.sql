@@ -1,0 +1,3 @@
+SELECT count(*) OVER win, group_concat(CAST(b AS TEXT), '.') 
+    FILTER (WHERE 0=1) OVER win FROM t2
+    WINDOW win AS (ORDER BY a ROWS BETWEEN 2 FOLLOWING    AND 4 FOLLOWING)

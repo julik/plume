@@ -1,0 +1,3 @@
+SELECT (SELECT GROUP_CONCAT(CASE WHEN a1=1 THEN'A' ELSE 'B' END) FROM t2),
+            t1.* 
+    FROM t1;

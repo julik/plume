@@ -1,0 +1,1 @@
+SELECT *, '|' FROM t1 LEFT JOIN t2 ON a=234 AND x=555;

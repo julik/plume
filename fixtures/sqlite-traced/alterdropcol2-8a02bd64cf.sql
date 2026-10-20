@@ -1,0 +1,1 @@
+CREATE INDEX i1 ON x1234(b) WHERE ((a+5) % 10)==0;

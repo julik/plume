@@ -1,0 +1,3 @@
+SELECT group_concat(y) OVER (
+        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING
+    ) FROM x1

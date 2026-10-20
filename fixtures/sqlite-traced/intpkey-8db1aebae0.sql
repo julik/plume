@@ -1,0 +1,1 @@
+DELETE FROM t17 WHERE abs(x) IS NULL OR abs(x)<130;

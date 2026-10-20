@@ -1,0 +1,1 @@
+SELECT count(*) FILTER (WHERE b>2) FROM (SELECT * FROM t1)

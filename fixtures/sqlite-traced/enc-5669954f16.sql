@@ -1,0 +1,2 @@
+SELECT 'match' FROM t1 JOIN t2
+   WHERE CAST(t1.b AS TEXT)=CAST(t2.b AS TEXT);

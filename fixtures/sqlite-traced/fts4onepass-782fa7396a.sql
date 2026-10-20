@@ -1,0 +1,3 @@
+CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN
+    DELETE FROM ft WHERE rowid=new.x;
+  END;

@@ -1,0 +1,1 @@
+SELECT id FROM t1 WHERE x LIKE 'abc%%' ESCAPE '%';

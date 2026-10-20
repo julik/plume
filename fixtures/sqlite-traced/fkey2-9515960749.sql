@@ -1,0 +1,1 @@
+CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c));

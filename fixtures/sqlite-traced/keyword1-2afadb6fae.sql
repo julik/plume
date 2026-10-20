@@ -1,0 +1,1 @@
+INSERT INTO rename VALUES(99)

@@ -1,0 +1,1 @@
+INSERT INTO begin VALUES(99)

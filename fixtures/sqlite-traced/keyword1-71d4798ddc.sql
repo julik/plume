@@ -1,0 +1,1 @@
+INSERT INTO attach SELECT a FROM t1

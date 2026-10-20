@@ -1,0 +1,5 @@
+SELECT a FROM t1
+     WHERE +b IS NULL
+        OR c IS NULL
+        OR d IS NULL
+    ORDER BY a

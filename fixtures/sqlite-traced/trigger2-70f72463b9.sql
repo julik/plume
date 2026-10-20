@@ -1,0 +1,1 @@
+CREATE TRIGGER the_trigger BEFORE INSERT  ON tbl BEGIN UPDATE tbl SET b = ''; END;

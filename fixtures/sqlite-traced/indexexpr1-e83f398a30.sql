@@ -1,0 +1,1 @@
+CREATE INDEX t1x2 ON t1(a+0);

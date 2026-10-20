@@ -1,0 +1,3 @@
+SELECT (
+      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5
+  );

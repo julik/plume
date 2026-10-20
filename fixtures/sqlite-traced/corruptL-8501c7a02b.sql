@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]␅6␚xz]';

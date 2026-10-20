@@ -1,0 +1,3 @@
+SELECT group_concat('-', x)
+    OVER ( ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING )
+  FROM seps;

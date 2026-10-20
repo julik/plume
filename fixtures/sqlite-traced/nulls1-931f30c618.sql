@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a = 1.5 AND b IS NULL;

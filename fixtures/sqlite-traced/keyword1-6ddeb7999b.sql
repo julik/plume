@@ -1,0 +1,1 @@
+INSERT INTO asc SELECT a FROM t1

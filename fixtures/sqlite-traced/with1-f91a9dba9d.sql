@@ -1,0 +1,6 @@
+WITH x(i) AS (
+    SELECT 1
+    UNION ALL
+    SELECT i+1 FROM x WHERE i<10
+  )
+  SELECT count(*) FROM x

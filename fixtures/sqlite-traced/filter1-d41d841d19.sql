@@ -1,0 +1,1 @@
+SELECT sum(a) FILTER( WHERE a<5 ) FROM t1;

@@ -1,0 +1,1 @@
+SELECT 'abc' IN (SELECT 'ABC' COLLATE nocase);

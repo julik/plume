@@ -1,0 +1,5 @@
+CREATE TABLE t1(
+    a TEXT PRIMARY KEY,
+    b TEXT,
+    FOREIGN KEY(b) REFERENCES t1(a)
+  );

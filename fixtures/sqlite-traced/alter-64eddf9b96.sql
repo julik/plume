@@ -1,0 +1,1 @@
+SELECT * FROM t16a ORDER BY a;

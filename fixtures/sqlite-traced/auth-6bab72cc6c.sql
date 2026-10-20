@@ -1,0 +1,1 @@
+REINDEX t3_idx1;

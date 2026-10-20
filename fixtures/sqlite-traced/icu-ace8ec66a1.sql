@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE x LIKE CAST(x'C19F' AS TEXT) || 'bcdefg';

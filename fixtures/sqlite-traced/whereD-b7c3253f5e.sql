@@ -1,0 +1,1 @@
+SELECT k FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2);

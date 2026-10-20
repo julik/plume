@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO t4(rowid, word) SELECT i, w FROM t5

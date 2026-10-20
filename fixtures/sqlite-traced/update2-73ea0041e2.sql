@@ -1,0 +1,2 @@
+WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )
+  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;

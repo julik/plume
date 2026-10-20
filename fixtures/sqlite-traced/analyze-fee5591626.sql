@@ -1,0 +1,1 @@
+INSERT INTO t4 SELECT a,b,c FROM t3;

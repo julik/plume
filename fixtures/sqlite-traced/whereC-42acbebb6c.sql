@@ -1,0 +1,1 @@
+SELECT i FROM t1 WHERE a=2 AND b=2 AND i>=NULL

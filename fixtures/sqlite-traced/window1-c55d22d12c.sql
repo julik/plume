@@ -1,0 +1,4 @@
+SELECT COUNT() OVER () LIKE lead(102030) OVER(
+      ORDER BY sum('abcdef' COLLATE nocase) IN (SELECT 54321) 
+  )
+  FROM t1;

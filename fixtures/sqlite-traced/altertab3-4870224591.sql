@@ -1,0 +1,1 @@
+CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));

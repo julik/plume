@@ -1,0 +1,5 @@
+EXPLAIN QUERY PLAN 
+  SELECT 
+    sum(c) OVER (ORDER BY a, b),
+    sum(c) OVER (PARTITION BY a ORDER BY b)
+  FROM t5

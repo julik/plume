@@ -1,0 +1,1 @@
+SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER BY +a;

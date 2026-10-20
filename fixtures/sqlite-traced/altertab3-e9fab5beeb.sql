@@ -1,0 +1,3 @@
+CREATE VIEW v AS SELECT ( 
+    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) 
+  ) IN() ;
