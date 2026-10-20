@@ -1851,7 +1851,7 @@ module Plume
 							default_rp:    Token::Punctuation(default_rp),
 							**value_attr,
 						)
-					elsif (number       = maybe      { signed_numeric })
+					elsif (number       = maybe      { signed_number })
 						DefaultColumnConstraint.concrete(
 							full_source:   @lexer.sql,
 							constraint_kw: Token::Keyword(constraint_kw),
@@ -3630,40 +3630,6 @@ module Plume
 				# A signed number is a numeric literal with an optional sign.
 			#
 			sign_tk  = maybe_one_of   :PLUS, :MINUS
-			value_tk = require_one_of :INTEGER, :FLOAT
-
-			return value_tk unless sign_tk
-
-			sign_tk, beg, _fin = sign_tk
-			value_tk, _beg, fin = value_tk
-
-			[[sign_tk, value_tk], beg, fin]
-		end
-
-		def signed_numeric
-			#
-				# Used by:
-				#   - column_constraint
-				#
-				# Relevant `parse.y` grammar rules:
-				#   ccons ::= DEFAULT PLUS term | DEFAULT MINUS term
-				#   expr ::= expr PLUS|MINUS expr | term
-				#   term ::= NULL | FLOAT | BLOB | STRING | INTEGER | CTIME_KW | QNUMBER
-				#
-				# Syntax diagram:
-				#   ◯─┬───▶────┬─▶{ numeric-literal }─▶◯
-				#     ├─▶{ + }─┤
-				#     └─▶{ - }─┘
-				#
-				# Simplified grammar:
-				#   [PLUS | MINUS] INTEGER | FLOAT | QNUMBER
-				#
-				# Relevant SQLite documentation:
-				#   - https://www.sqlite.org/syntax/signed-number.html
-				#
-				# A signed number is a numeric literal with an optional sign.
-			#
-			sign_tk = maybe_one_of :PLUS, :MINUS
 			value_tk = require_one_of :INTEGER, :FLOAT
 
 			return value_tk unless sign_tk
