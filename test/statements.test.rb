@@ -72,7 +72,7 @@ end
 test "alter table constraint and not null forms" do
 	add = parse_stmt("alter table t add constraint positive check (a > 0) on conflict ignore")
 	assert_equal [add.action, add.constraint.name, add.constraint.conflict_clause.resolution], [:ADD_CONSTRAINT, "positive", :IGNORE]
-	assert_equal parse_stmt("alter table t add check (a > 0)").constraint.name, nil
+	assert_equal [add.constraint_name, parse_stmt("alter table t add check (a > 0)").constraint_name], ["positive", nil]
 
 	drop = parse_stmt("alter table t drop constraint positive")
 	assert_equal [drop.action, drop.constraint_name], [:DROP_CONSTRAINT, "positive"]

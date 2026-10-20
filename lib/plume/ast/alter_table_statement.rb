@@ -34,6 +34,7 @@ module Plume
 		def action = @action
 		def column = (@column == LiteralNil) ? column_tk_val : @column
 		def new_name = (@new_name == LiteralNil) ? new_name_tk_val : @new_name
-		def constraint_name = (@constraint_name == LiteralNil) ? constraint_name_tk_val : @constraint_name
+		# The constraint dropped, or added - which keeps its name on `constraint`
+		def constraint_name = (@constraint_name == LiteralNil) ? (constraint_name_tk_val || constraint&.name) : @constraint_name
 	end
 end

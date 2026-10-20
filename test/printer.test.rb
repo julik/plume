@@ -64,3 +64,14 @@ test "plain values in a tree built by hand print as literals" do
 
 	assert_equal node.to_sql, "(age > 21) AND (name = 'o''hara')"
 end
+
+test "alter table's constraint and not null forms print back as they parsed" do
+	[
+		"ALTER TABLE t ADD CONSTRAINT positive CHECK (a > 0) ON CONFLICT IGNORE",
+		"ALTER TABLE t ADD CHECK (a > 0)",
+		"ALTER TABLE t DROP CONSTRAINT positive",
+		"ALTER TABLE t ALTER COLUMN a SET NOT NULL ON CONFLICT ABORT",
+		"ALTER TABLE t ALTER COLUMN a DROP NOT NULL",
+		"CREATE TABLE t (a INT, CHECK (a != 5) ON CONFLICT IGNORE)",
+	].each { |sql| assert_equal parse_stmt(sql).to_sql, sql }
+end

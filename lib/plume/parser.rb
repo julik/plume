@@ -696,8 +696,9 @@ module Plume
 				column_tk = name
 			elsif (action_kw = maybe_one_of [:ALTER, :COLUMN].freeze, :ALTER)
 				column_tk = name
-				if (not_null_kw = maybe_all_of :DROP, :NOT, :NULL)
+				if current_token == :DROP
 					action = :DROP_NOT_NULL
+					not_null_kw = require_all_of :DROP, :NOT, :NULL
 				else
 					action = :SET_NOT_NULL
 					not_null_kw = require_all_of :SET, :NOT, :NULL
