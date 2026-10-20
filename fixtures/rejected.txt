@@ -33,11 +33,9 @@ fixtures/sqlite-traced/colname-ba38fbdfdf.sql
 fixtures/sqlite-traced/conflict-c04cc7e4af.sql
 fixtures/sqlite-traced/corrupt-0d06522b4c.sql
 fixtures/sqlite-traced/count-371d987c41.sql
-fixtures/sqlite-traced/count-8b9103f750.sql
 fixtures/sqlite-traced/ctime-123106daa9.sql
 fixtures/sqlite-traced/ctime-69ee224179.sql
 fixtures/sqlite-traced/ctime-f876c79145.sql
-fixtures/sqlite-traced/distinctagg-32e795988e.sql
 fixtures/sqlite-traced/e_select-066a81dbbb.sql
 fixtures/sqlite-traced/e_select-0ef2287615.sql
 fixtures/sqlite-traced/e_select-1527548518.sql
