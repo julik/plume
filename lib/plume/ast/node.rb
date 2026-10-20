@@ -70,12 +70,16 @@ module Plume
 		end
 
 		# Yields every node in the subtree depth-first, parents before their children,
-		# along with the parent (nil for the receiver)
-		def walk(parent = nil, &block)
-			return enum_for(:walk, parent) unless block
+		# along with the parent (nil for the receiver). Without recursing, so a tree as
+		# deep as SQLite allows does not run out of stack
+		def walk(parent = nil)
+			return enum_for(:walk, parent) unless block_given?
 
-			yield self, parent
-			children.each { |child| child.walk(self, &block) }
+			stack = [[self, parent]]
+			while (node, up = stack.pop)
+				yield node, up
+				node.children.reverse_each { |child| stack << [child, node] }
+			end
 			self
 		end
 
