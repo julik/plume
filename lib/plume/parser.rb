@@ -20,6 +20,12 @@ module Plume
 
 		# see: https://github.com/sqlite/sqlite/blob/master/src/parse.y#L255-L283
 		TOKEN_FALLBACKS = Set[
+			# SQLite has no TRUE or FALSE keyword, and lets the CURRENT_* ones (CTIME_KW) fall back too
+			:TRUE,
+			:FALSE,
+			:CURRENT_DATE,
+			:CURRENT_TIME,
+			:CURRENT_TIMESTAMP,
 			:EXPLAIN,
 			:QUERY,
 			:PLAN,
@@ -2494,7 +2500,9 @@ module Plume
 					select_rp: Token::Punctuation(select_rp),
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
-			elsif !(current_token == :STRING && peek == :DOT) && (literal_tk = maybe { literal_value })
+			# A literal-looking word before a dot names a table: `'t'.x`, `false.false`, `current_date.x`
+			elsif !((current_token in :STRING | :TRUE | :FALSE | :CURRENT_DATE | :CURRENT_TIME | :CURRENT_TIMESTAMP) && peek == :DOT) &&
+					(literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
 					value_tk: literal_tk,
@@ -3719,6 +3727,7 @@ module Plume
 				start_buffer = @peek_buffer.dup
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
+				start_last_consumed = @last_consumed_token
 
 				result = catch(:ERROR) { yield }
 
@@ -3726,6 +3735,7 @@ module Plume
 					@peek_buffer = start_buffer
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
+					@last_consumed_token = start_last_consumed
 					nil
 				else
 					result
@@ -3996,6 +4006,7 @@ module Plume
 			ensure_buffer
 			token = @peek_buffer.shift
 			@last_consumed_fin = token[2]
+			@last_consumed_token = token[0]
 			token
 		end
 
@@ -4005,9 +4016,38 @@ module Plume
 			lexer = @lexer
 			@peek_buffer.tap do |buf|
 				while buf.size < size
-					buf << [lexer.next_token, lexer.anchor, lexer.cursor].freeze
+					previous = buf.empty? ? @last_consumed_token : buf.last[0]
+					buf << [contextual_keyword(lexer.next_token, previous), lexer.anchor, lexer.cursor].freeze
 				end
 			end
+		end
+
+		# Like SQLite's tokenize.c, decide from the tokens around them whether WINDOW, OVER and FILTER are
+		# keywords here or names: WINDOW only before `name AS`, OVER only after `)` and before `(` or a
+		# name, FILTER only after `)` and before `(`
+		def contextual_keyword(token, previous)
+			case token
+			when :WINDOW then (name_token?(lex_ahead(1)) && lex_ahead(2) == :AS) ? :WINDOW : :ID
+			when :OVER then (previous == :RP && (lex_ahead(1) == :LP || name_token?(lex_ahead(1)))) ? :OVER : :ID
+			when :FILTER then (previous == :RP && lex_ahead(1) == :LP) ? :FILTER : :ID
+			else token
+			end
+		end
+
+		# The type of the `n`th token after the one just lexed, leaving the lexer where it was
+		def lex_ahead(n)
+			cursor, anchor = @lexer.cursor, @lexer.anchor
+			token = nil
+			n.times { token = @lexer.next_token }
+			token
+		ensure
+			@lexer.cursor, @lexer.anchor = cursor, anchor
+		end
+
+		# What SQLite's tokenize.c counts as a name when looking around WINDOW and OVER
+		def name_token?(token)
+			(token in :ID | :STRING | :WINDOW | :OVER | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT) ||
+				TOKEN_FALLBACKS.include?(token)
 		end
 
 		def expected!(*expected)
