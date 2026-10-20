@@ -10,6 +10,10 @@ module Plume
 		prop :leading, _Nilable(Token)
 		prop :trailing, _Nilable(Token)
 
+		# A collation's name, upcased as a symbol. A symbol cannot hold bytes that
+		# are not valid UTF-8, so a name with those stays the string it was
+		def self.collation_name(name) = name&.valid_encoding? ? name.to_sym.upcase : name
+
 		def self.inspectable(*props)
 			@inspectable_props ||= Set.new
 			@inspectable_props.merge(props)

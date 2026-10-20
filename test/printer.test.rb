@@ -94,3 +94,14 @@ test "a name that is not valid UTF-8 prints quoted" do
 	assert_equal Plume.parse(sql).first.to_sql, (+"SELECT \"\xFFa\" FROM t").force_encoding(Encoding::UTF_8)
 	round_trip(sql)
 end
+
+test "a collation whose name is not valid UTF-8 prints back" do
+	[
+		"SELECT a COLLATE n\xFF FROM t",
+		"SELECT a FROM t ORDER BY a COLLATE n\xFF",
+		"CREATE TABLE t (a COLLATE n\xFF)",
+		"CREATE INDEX i ON t (a COLLATE n\xFF)",
+	].each do |sql|
+		round_trip(sql.dup.force_encoding(Encoding::UTF_8))
+	end
+end
