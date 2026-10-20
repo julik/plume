@@ -12,6 +12,7 @@ module Plume
 		def self.new(*, expressions:, **) = super
 		def self.concrete(*, expressions:, **) = super
 
-		def distinct = (@distinct == LiteralNil) ? distinct_kw? : @distinct
+		# ALL is the default, written out - only DISTINCT makes the aggregate distinct
+		def distinct = (@distinct == LiteralNil) ? (distinct_kw_tok == :DISTINCT) : @distinct
 	end
 end

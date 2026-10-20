@@ -229,10 +229,17 @@ fixtures/sqlite-traced/tokenize-b2c9bb021b.sql
 fixtures/sqlite-traced/tokenize-c8c609d321.sql
 fixtures/sqlite-traced/tokenize-f5301e7ff1.sql
 fixtures/sqlite-traced/tokenize-f62b32ee6c.sql
+fixtures/sqlite-traced/trigger1-457cedf8c2.sql
 fixtures/sqlite-traced/trigger1-45e7df0ac7.sql
+fixtures/sqlite-traced/trigger1-cd0fddf0c8.sql
+fixtures/sqlite-traced/trigger1-fbb0a25132.sql
 fixtures/sqlite-traced/wherelimit-91d4e9a727.sql
 fixtures/sqlite-traced/wherelimit-ae00b0f6f7.sql
+fixtures/sqlite-traced/window6-1db87ac963.sql
+fixtures/sqlite-traced/window6-343fc90061.sql
+fixtures/sqlite-traced/window6-3c82c3735a.sql
 fixtures/sqlite-traced/window6-7b25bc9777.sql
+fixtures/sqlite-traced/window6-a80c9064ea.sql
 fixtures/sqlite-traced/window6-da146ca623.sql
 fixtures/sqlite-traced/window6-de493387f1.sql
 fixtures/sqlite-traced/window9-9d6e6d9de6.sql

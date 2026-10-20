@@ -33,6 +33,7 @@ module Plume
 	autoload :CreateTableStatement, "plume/ast/create_table_statement"
 	autoload :CreateViewStatement, "plume/ast/create_view_statement"
 	autoload :DefaultColumnConstraint, "plume/ast/default_column_constraint"
+	autoload :DeferrableColumnConstraint, "plume/ast/deferrable_column_constraint"
 	autoload :EmptyFunctionArgument, "plume/ast/empty_function_argument"
 	autoload :Expression, "plume/ast/expression"
 	autoload :ForeignKeyAction, "plume/ast/foreign_key_action"

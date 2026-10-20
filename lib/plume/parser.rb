@@ -969,7 +969,7 @@ module Plume
 
 					if    (unique_kw      = maybe :UNIQUE)
 						unique_lp           = require :LP
-						unique_columns      = require_some(trailing_sep: :COMMA) { indexed_column }
+						unique_columns      = require_some(trailing_sep: :COMMA) { indexed_column(nulls: true) }
 						unique_rp           = require        :RP
 						on_conflict         = maybe        { conflict_clause }
 
@@ -987,7 +987,7 @@ module Plume
 						check_table_constraint(constraint_kw, constraint_name)
 					elsif (primary_key_kw = maybe_all_of   :PRIMARY, :KEY)
 						primary_key_lp      = require :LP
-						primary_key_columns = require_some(trailing_sep: :COMMA) { indexed_column }
+						primary_key_columns = require_some(trailing_sep: :COMMA) { indexed_column(nulls: true) }
 						autoincrement_kw    = maybe          :AUTOINCREMENT
 						primary_key_rp      = require        :RP
 						on_conflict         = maybe        { conflict_clause }
@@ -1845,6 +1845,13 @@ module Plume
 						not_null_kw:     Token::Keyword(not_null_kw),
 						conflict_clause: on_conflict,
 					)
+				elsif current_token == :DEFERRABLE || (current_token == :NOT && peek == :DEFERRABLE)
+					DeferrableColumnConstraint.concrete(
+						full_source:     @lexer.sql,
+						constraint_kw:   Token::Keyword(constraint_kw),
+						name_tk:         Token::Identifier(constraint_name),
+						deferrable_span: Token::Keyword(defer_subclause),
+					)
 				elsif (null_kw        = maybe        :NULL)
 					on_conflict         = maybe      { conflict_clause }
 
@@ -2289,9 +2296,12 @@ module Plume
 				columns = require_some(trailing_sep: :COMMA) { indexed_column }
 				columns_rp = require :RP
 			end
-			foreign_key_actions = maybe_some(trailing_sep: nil) do
+			# refargs ::= refargs refarg, so ON and MATCH clauses come in any order
+			refargs = maybe_some(trailing_sep: nil) do
+				next match_clause if current_token == :MATCH
+
 				on_kw      = require        :ON
-				trigger_kw = require_one_of :DELETE, :UPDATE
+				trigger_kw = require_one_of :DELETE, :UPDATE, :INSERT
 				action_kw  = require_one_of :CASCADE, :RESTRICT, [:SET, :NULL].freeze, [:SET, :DEFAULT].freeze, [:NO, :ACTION].freeze
 				ForeignKeyAction.concrete(
 					full_source: @lexer.sql,
@@ -2300,24 +2310,9 @@ module Plume
 					action_kw:   Token::Keyword(action_kw),
 				)
 			end
-			match_clauses = maybe_some(trailing_sep: nil) do
-				match_kw = require :MATCH
-				type_tk  = name(except: [:ON, :MATCH, :DEFERRABLE, :NOT])
-				MatchClause.concrete(
-					full_source: @lexer.sql,
-					match_kw:    Token::Keyword(match_kw),
-					type_tk:     Token::Identifier(type_tk),
-				)
-			end
-
-			deferrable_span = maybe_one_of(
-				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:NOT, :DEFERRABLE].freeze,
-				:DEFERRABLE,
-			)
+			foreign_key_actions = refargs.grep(ForeignKeyAction)
+			match_clauses = refargs.grep(MatchClause)
+			deferrable_span = defer_subclause
 
 			ForeignKeyClause.concrete(
 				full_source: @lexer.sql,
@@ -2329,6 +2324,28 @@ module Plume
 				actions: foreign_key_actions,
 				match_clauses: match_clauses,
 				deferrable_span: Token::Keyword(deferrable_span),
+			)
+		end
+
+		def match_clause
+			match_kw = require :MATCH
+			type_tk  = name(except: [:ON, :MATCH, :DEFERRABLE, :NOT])
+			MatchClause.concrete(
+				full_source: @lexer.sql,
+				match_kw:    Token::Keyword(match_kw),
+				type_tk:     Token::Identifier(type_tk),
+			)
+		end
+
+		# defer_subclause ::= NOT DEFERRABLE init_deferred_pred_opt | DEFERRABLE init_deferred_pred_opt
+		def defer_subclause
+			maybe_one_of(
+				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+				[:NOT, :DEFERRABLE].freeze,
+				:DEFERRABLE,
 			)
 		end
 
@@ -2447,7 +2464,7 @@ module Plume
 				expression_lp = require :LP
 				e = expression
 				as_kw = require :AS
-				t = type_name
+				t = type_name unless current_token == :RP # typetoken ::= .
 				expression_rp = require :RP
 
 				CastExpression.concrete(
@@ -2728,38 +2745,22 @@ module Plume
 				#
 				# [description]
 			#
-			if (distinct_kw = maybe_one_of :DISTINCT, :ALL)
-				expressions = require_some(trailing_sep: :COMMA) { expression }
-				if (order_by_kw = maybe_all_of :ORDER, :BY)
-					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
-				end
+			return StarFunctionArgument.new if maybe :STAR
 
-				FunctionArguments.concrete(
-					full_source: @lexer.sql,
-					distinct_kw: Token::Keyword(distinct_kw),
-					expressions: expressions,
-					order_by_kw: Token::Keyword(order_by_kw),
-					order_by: order_by,
-				)
-			elsif maybe :STAR
-				StarFunctionArgument.new
-			elsif (e = maybe { expression })
-				expressions = require_some(given: e, trailing_sep: :COMMA) { expression }
-				if (order_by_kw = maybe_all_of :ORDER, :BY)
-					order_by = require_some(trailing_sep: :COMMA) { ordering_term }
-				end
-
-				FunctionArguments.concrete(
-					full_source: @lexer.sql,
-					expressions: expressions,
-					order_by_kw: Token::Keyword(order_by_kw),
-					order_by: order_by,
-				)
-			elsif :RP == current_token
-				EmptyFunctionArgument.new
-			else
-				expected!(:DISTINCT, :STAR, :RP, "expr")
+			distinct_kw = maybe_one_of :DISTINCT, :ALL
+			expressions = maybe_some(trailing_sep: :COMMA) { expression }
+			if (order_by_kw = maybe_all_of :ORDER, :BY)
+				order_by = require_some(trailing_sep: :COMMA) { ordering_term }
 			end
+			return EmptyFunctionArgument.new unless distinct_kw || expressions.any? || order_by_kw
+
+			FunctionArguments.concrete(
+				full_source: @lexer.sql,
+				distinct_kw: Token::Keyword(distinct_kw),
+				expressions: expressions,
+				order_by_kw: Token::Keyword(order_by_kw),
+				order_by: order_by,
+			)
 		end
 
 		def frame_spec
@@ -3521,7 +3522,9 @@ module Plume
 			end
 		end
 
-		def indexed_column
+		# `nulls`: whether NULLS FIRST/LAST may follow, as in the sortlist of a PRIMARY KEY or UNIQUE -
+		# not in the eidlist of a foreign key, a view or a CTE
+		def indexed_column(nulls: false)
 			# Used by:
 			#   - ccons, tcons, creat-view, cte
 			#
@@ -3530,6 +3533,7 @@ module Plume
 			#   collate ::= . | COLLATE ids.
 			#   sortorder ::= . | ASC | DESC
 			#   nm ::= idj | STRING
+			#   (PRIMARY KEY and UNIQUE take a sortlist, whose items may also end NULLS FIRST or NULLS LAST)
 			#
 			# Syntax diagram:
 			#   ◯──▶{ column-name }─┬─▶───────────────────────────────┬┬────────▶───┬──▶◯
@@ -3537,7 +3541,7 @@ module Plume
 			#                                                          └─▶{ DESC }──┘
 			#
 			# Simplified grammar:
-			#   name [COLLATE identifier] [ASC | DESC]
+			#   name [COLLATE identifier] [ASC | DESC] [NULLS FIRST | NULLS LAST]
 			#
 			# Relevant SQLite documentation:
 			#   - https://www.sqlite.org/syntax/indexed-column.html
@@ -3559,49 +3563,15 @@ module Plume
 				collation_tk = identifier_or_string(except: [:ASC, :DESC].freeze)
 			end
 			direction_tk = maybe_one_of :ASC, :DESC
+			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze if nulls
 
 			IndexedColumn.concrete(
 				full_source: @lexer.sql,
 				name_tk:      Token::Identifier(column_name),
 				collate_kw:   Token::Keyword(collate_kw),
 				collation_tk: Token::Keyword(collation_tk),
-				direction_tk: Token::Keyword(direction_tk)
-			)
-		end
-
-		def indexed_expression
-			# Used by:
-			#   - tcons, upsert, expr (ORDER BY), create-index, window
-			#
-			# Relevant `parse.y` grammar rules:
-			#   sortlist  ::= sortlist COMMA expr sortorder nulls | expr sortorder nulls
-			#   sortorder ::= . | ASC | DESC
-			#   nulls     ::= . | NULLS FIRST | NULLS LAST
-			#
-			# Syntax diagram:
-			#   ◯─▶[ expr ]─┬────────▶───┬─┬────────────▶────────────┬───▶◯
-			#               ├─▶{ ASC }─▶─┤ ├─▶{ NULLS }─▶{ FIRST }─▶─┤
-			#               └─▶{ DESC }──┘ └─▶{ NULLS }─▶{ LAST }────┘
-			#
-			# Simplified grammar:
-			#   expression [ASC | DESC] [NULLS FIRST | NULLS LAST]
-			#
-			# Relevant SQLite documentation:
-			#   - https://www.sqlite.org/syntax/indexed-column.html
-			#   - https://www.sqlite.org/expridx.html
-			#
-			# the sortlist non-terminal stores a list of expression where each
-			# expression is optionally followed by ASC or DESC to indicate the
-			# sort order.
-			#
-			expr         = expression
-			direction_tk = maybe_one_of :ASC, :DESC
-			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze
-
-			IndexedExpression.new(
-				expression: expr,
 				direction_tk: Token::Keyword(direction_tk),
-				nulls_tk: Token::Keyword(nulls_tk)
+				nulls_tk:     Token::Keyword(nulls_tk),
 			)
 		end
 

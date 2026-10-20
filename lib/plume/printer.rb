@@ -342,7 +342,7 @@ module Plume
 
 		def print_parenthetical_expression(node) = "(#{print(node.contents)})"
 
-		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
+		def print_cast_expression(node) = "CAST(#{join(print(node.expression), "AS", print(node.as))})"
 
 		def print_case_expression(node)
 			join("CASE", node.predicate && print(node.predicate), list_of(node.conditions), node.else_clause && "ELSE #{print(node.else_clause)}", "END")
@@ -362,7 +362,8 @@ module Plume
 		end
 
 		def print_function_arguments(node)
-			join(node.distinct && "DISTINCT", list(node.expressions), node.order_by && "ORDER BY #{list(node.order_by)}")
+			quantifier = node.distinct ? "DISTINCT" : (node.distinct_kw_tok == :ALL && "ALL")
+			join(quantifier, list(node.expressions), node.order_by && "ORDER BY #{list(node.order_by)}")
 		end
 
 		def print_star_function_argument(_node) = "*"
@@ -453,16 +454,24 @@ module Plume
 		def print_check_table_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_no_op_table_constraint(node) = constraint_name(node)
 
+		def print_deferrable_column_constraint(node) = join(constraint_name(node), deferrable(node) || "DEFERRABLE")
+
+		# The words as written, or else what `deferred` says
+		def deferrable(node)
+			return Array(node.deferrable_span_tok).join(" ") if node.deferrable_span?
+
+			"DEFERRABLE INITIALLY DEFERRED" if node.deferred
+		end
+
 		def print_foreign_key_table_constraint(node)
 			join(constraint_name(node), "FOREIGN KEY (#{list(node.columns)})", print(node.foreign_key_clause))
 		end
 
 		def print_foreign_key_clause(node)
-			deferrable = node.deferrable_span? ? node.deferrable_span_tok : (node.deferred && "DEFERRABLE INITIALLY DEFERRED")
 			join(
 				"REFERENCES", identifier(node.table), node.columns && "(#{list(node.columns)})",
 				list_of(Array(node.actions)), list_of(Array(node.match_clauses)),
-				deferrable && Array(deferrable).join(" "),
+				deferrable(node),
 			)
 		end
 
@@ -470,7 +479,7 @@ module Plume
 		def print_match_clause(node) = "MATCH #{node.type}"
 
 		def print_indexed_column(node)
-			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s)
+			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s, node.nulls && "NULLS #{node.nulls.to_s.upcase}")
 		end
 
 		def print_strict_table_option(_node) = "STRICT"

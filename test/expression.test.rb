@@ -2673,3 +2673,15 @@ test "numeric literals take the values SQLite gives them" do
 		assert_equal parse_stmt("SELECT #{sql}").body.columns.first.result.value, value
 	end
 end
+
+test "cast to no type, and an aggregate ordered over no arguments" do
+	assert_equal parse_stmt("SELECT CAST(x AS)").body.columns.first.result.as, nil
+	assert_equal parse_stmt("SELECT count(ORDER BY a)").body.columns.first.result.arguments.order_by.size, 1
+	assert_equal parse_stmt("SELECT CAST(x AS), count(ORDER BY a)").to_sql, "SELECT CAST(x AS), count(ORDER BY a)"
+end
+
+test "an aggregate's argument list may be empty after DISTINCT or ALL, and ALL is not DISTINCT" do
+	assert_equal parse_stmt("SELECT count(ALL), count(ALL x)").to_sql, "SELECT count(ALL), count(ALL x)"
+	assert_equal parse_stmt("SELECT count(ALL x)").body.columns.first.result.arguments.distinct, false
+	assert_equal parse_stmt("SELECT count(DISTINCT)").body.columns.first.result.arguments.distinct, true
+end
