@@ -708,13 +708,13 @@ module Plume
 			end
 
 			AlterTableStatement.concrete(
-				full_source:       @lexer.sql,
-				alter_table_kw:    Token::Keyword(alter_table_kw),
-				table:             table,
-				action:            action,
-				action_kw:         Token::Keyword(action_kw),
-				column_tk:         Token::Identifier(column_tk),
-				to_kw:             Token::Keyword(to_kw),
+				full_source:        @lexer.sql,
+				alter_table_kw:     Token::Keyword(alter_table_kw),
+				table:              table,
+				action:             action,
+				action_kw:          Token::Keyword(action_kw),
+				column_tk:          Token::Identifier(column_tk),
+				to_kw:              Token::Keyword(to_kw),
 				new_name_tk:        Token::Identifier(new_name_tk),
 				column_definition:  column_definition,
 				constraint:         constraint,
@@ -930,7 +930,7 @@ module Plume
 				columns         = require_some(given: column_def, trailing_sep: :COMMA) do
 					column_def unless current_token in :CONSTRAINT | :PRIMARY | :UNIQUE | :CHECK | :FOREIGN
 				end
-				# inlined `table_constraint`
+				# inlined `table_constraint`, but for CHECK, which ALTER TABLE shares through check_table_constraint
 				constraints     = maybe_some(trailing_sep: [:COMMA, nil].freeze) do
 					#
 						# Relevant `parse.y` grammar rules:
@@ -950,7 +950,7 @@ module Plume
 						#      │                               └───────{ , }◀──────┘└────────▶─────────┘                              │
 						#      ├─▶{ UNIQUE }──▶{ ( }┬▶[ indexed-column ]┬▶{ ) }─▶[ conflict-clause ]────────────────────────────────▶─┤
 						#      │                    └───────{ , }◀──────┘                                                             │
-						#      ├─▶{ CHECK }─▶{ ( }─▶[ expr ]─▶{ ) }─────────────────────────────────────────────────────────────────▶─┤
+						#      ├─▶{ CHECK }─▶{ ( }─▶[ expr ]─▶{ ) }─▶[ conflict-clause ]────────────────────────────────────────────▶─┤
 						#      └─▶{ FOREIGN }─▶{ KEY }─▶{ ( }┬▶[ indexed-column ]┬▶{ ) }─▶[ foreign-key-clause ]────────────────────▶─┘
 						#                                    └──────{ , }◀───────┘
 						#
