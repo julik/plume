@@ -477,7 +477,7 @@ module Plume
 		end
 
 		def pragma_value
-			if current_token in :PLUS | :MINUS | :INTEGER | :FLOAT | :QNUMBER
+			if current_token in :PLUS | :MINUS | :INTEGER | :FLOAT
 				Token::Numeric(signed_number)
 			elsif (keyword_tk = maybe_one_of :ON, :DELETE, :DEFAULT, :TRUE, :FALSE)
 				Token::Keyword(keyword_tk)
@@ -2561,10 +2561,10 @@ module Plume
 				raise_function
 			# SQLite lexes "#9" as a variable too, but "#" and a digit only ever names a register
 			# inside its own nested parses, so as a parameter it is a syntax error
-			elsif :VARIABLE == current_token && !current_value.match?(/\A#\d/) && (variable_tk = maybe :VARIABLE)
+			elsif :VARIABLE == current_token && !current_value.match?(/\A#\d/)
 				Variable.concrete(
 					full_source: @lexer.sql,
-					name_tk: Token::Variable(variable_tk),
+					name_tk: Token::Variable(require(:VARIABLE)),
 				)
 			else
 				expected!("<basic expression>")
@@ -3664,7 +3664,7 @@ module Plume
 				# A signed number is a numeric literal with an optional sign.
 			#
 			sign_tk = maybe_one_of :PLUS, :MINUS
-			value_tk = (:QNUMBER == current_token) ? require_qnumber : require_one_of(:INTEGER, :FLOAT)
+			value_tk = require_one_of :INTEGER, :FLOAT
 
 			return value_tk unless sign_tk
 
@@ -3978,11 +3978,12 @@ module Plume
 			buf[0][0]
 		end
 
-		# SQLite lexes any number holding a "_" as a QNUMBER, and accepts it only if every "_" sits
-		# between two digits - hex digits after 0x
+		# SQLite lexes any number holding a "_" as a QNUMBER, and accepts it as a term only if every
+		# "_" sits between two digits - hex digits after 0x
 		def require_qnumber
-			misplaced = current_value.match?(/\A0x/i) ? /(?<!\h)_|_(?!\h)/ : /(?<!\d)_|_(?!\d)/
-			expected!(:INTEGER, :FLOAT) if current_value.match?(misplaced)
+			value = current_value
+			misplaced = value.match?(/\A0x/i) ? /(?<!\h)_|_(?!\h)/ : /(?<!\d)_|_(?!\d)/
+			expected!(:INTEGER, :FLOAT) if value.match?(misplaced)
 			require :QNUMBER
 		end
 
