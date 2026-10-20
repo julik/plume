@@ -4,8 +4,9 @@ module Plume
 	# Turns an AST back into SQL. It works from the nodes' readers rather than from the tokens
 	# they were parsed from, so trees built by hand, or changed after parsing, print too. The
 	# output is canonical rather than a copy of the input: keywords come out in upper case,
-	# identifiers are quoted only when they have to be, and every compound operand gets
-	# parentheses so precedence never has to be second-guessed.
+	# identifiers are quoted only when they have to be, and a compound operand gets parentheses
+	# unless it is the left operand of an operator at its own precedence, where SQLite's
+	# left-associativity already groups it.
 	class Printer
 		BARE_IDENTIFIER = /\A[A-Za-z_][A-Za-z0-9_]*\z/
 
@@ -20,6 +21,18 @@ module Plume
 
 		# Names that would read back as the start of an expression
 		EXPRESSION_KEYWORDS = (Parser::LITERAL_KEYWORDS + [:CAST, :RAISE]).freeze
+
+		# Levels Plume's parser and SQLite agree on: SQLite also puts = and IS with IN, LIKE and the rest
+		PRECEDENCE = {
+			ANY: 1, ALL: 2,
+			IN: 3, NOT_IN: 3, MATCH: 3, NOT_MATCH: 3, GLOB: 3, NOT_GLOB: 3, REGEXP: 3, NOT_REGEXP: 3,
+			EQUALS: 4, NOT_EQUALS: 4, IS: 4, IS_NOT: 4,
+			BELOW: 5, ABOVE: 5, ATMOST: 5, ATLEAST: 5,
+			BIT_AND: 6, BIT_OR: 6, BIT_LSHIFT: 6, BIT_RSHIFT: 6,
+			ADD: 7, SUB: 7,
+			MULTIPLY: 8, DIVIDE: 8, MODULO: 8,
+			CONCAT: 9, EXTRACT: 9, RETRIEVE: 9,
+		}.freeze
 
 		COMPOUND_OPERATORS = { UNION: "UNION", UNION_ALL: "UNION ALL", INTERSECT: "INTERSECT", EXCEPT: "EXCEPT" }.freeze
 		JOIN_KINDS = { COMMA: ",", INNER: "JOIN", LEFT: "LEFT JOIN", RIGHT: "RIGHT JOIN", FULL: "FULL JOIN", CROSS: "CROSS JOIN" }.freeze
@@ -306,8 +319,18 @@ module Plume
 
 		def print_variable(node) = node.name
 
+		# Every binary operator associates to the left, so a left operand at the same precedence needs no
+		# parentheses: `a - b + c`, `a OR b OR c`. A long chain then prints flat rather than nesting a pair
+		# per term, and the left spine is walked in a loop, so its length costs no stack
 		def print_binary_expression(node)
-			"#{operand(node.left)} #{BINARY_OPERATORS.fetch(node.operator)} #{operand(node.right)}"
+			chain = [node]
+			while BinaryExpression === (left = chain.last.left) && PRECEDENCE[left.operator] == PRECEDENCE[node.operator]
+				chain << left
+			end
+
+			chain.reverse_each.reduce(+operand(chain.last.left)) do |sql, link|
+				sql << " " << BINARY_OPERATORS.fetch(link.operator) << " " << operand(link.right)
+			end
 		end
 
 		def print_unary_expression(node)

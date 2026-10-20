@@ -7218,6 +7218,7 @@ fixtures/sqlite-traced/select6-b93e2fcbaf.sql
 fixtures/sqlite-traced/select6-c0880888d9.sql
 fixtures/sqlite-traced/select6-dd261a3e17.sql
 fixtures/sqlite-traced/select6-feb71d231c.sql
+fixtures/sqlite-traced/select7-15eeb27c64.sql
 fixtures/sqlite-traced/select7-1641955c80.sql
 fixtures/sqlite-traced/select7-3f83b0b3a3.sql
 fixtures/sqlite-traced/select7-633d48c3c8.sql
@@ -7225,6 +7226,7 @@ fixtures/sqlite-traced/select7-8677393431.sql
 fixtures/sqlite-traced/select7-930e3fd531.sql
 fixtures/sqlite-traced/select7-b1c66626f2.sql
 fixtures/sqlite-traced/select7-b2f18020b3.sql
+fixtures/sqlite-traced/select7-c67af59572.sql
 fixtures/sqlite-traced/select7-d958b2557f.sql
 fixtures/sqlite-traced/select7-eb2581df9c.sql
 fixtures/sqlite-traced/select8-981dd3ab15.sql
@@ -9133,6 +9135,7 @@ fixtures/sqlite-traced/where7-286bd02044.sql
 fixtures/sqlite-traced/where7-28a54519ec.sql
 fixtures/sqlite-traced/where7-29c03ed54e.sql
 fixtures/sqlite-traced/where7-29dab5c620.sql
+fixtures/sqlite-traced/where7-2a916a9373.sql
 fixtures/sqlite-traced/where7-2abacbad12.sql
 fixtures/sqlite-traced/where7-2ac2f1db31.sql
 fixtures/sqlite-traced/where7-2ace4ad37d.sql
@@ -9150,8 +9153,10 @@ fixtures/sqlite-traced/where7-2f2d211a27.sql
 fixtures/sqlite-traced/where7-2f2f87fdd3.sql
 fixtures/sqlite-traced/where7-2f55272c07.sql
 fixtures/sqlite-traced/where7-2fb2b85e60.sql
+fixtures/sqlite-traced/where7-3005dd4497.sql
 fixtures/sqlite-traced/where7-3008101f97.sql
 fixtures/sqlite-traced/where7-303e99bbff.sql
+fixtures/sqlite-traced/where7-306671342d.sql
 fixtures/sqlite-traced/where7-309c7b5205.sql
 fixtures/sqlite-traced/where7-309c9b1c42.sql
 fixtures/sqlite-traced/where7-30cb45c9a7.sql
@@ -9328,6 +9333,7 @@ fixtures/sqlite-traced/where7-63151b0377.sql
 fixtures/sqlite-traced/where7-633000528c.sql
 fixtures/sqlite-traced/where7-637b4bdfa8.sql
 fixtures/sqlite-traced/where7-63aeb97b20.sql
+fixtures/sqlite-traced/where7-64182397a4.sql
 fixtures/sqlite-traced/where7-641c8d5438.sql
 fixtures/sqlite-traced/where7-64689be8a3.sql
 fixtures/sqlite-traced/where7-64aff5e4a8.sql
@@ -9353,6 +9359,7 @@ fixtures/sqlite-traced/where7-6940f5f9c1.sql
 fixtures/sqlite-traced/where7-697637b8a4.sql
 fixtures/sqlite-traced/where7-6979eb4b43.sql
 fixtures/sqlite-traced/where7-6a4e3427c9.sql
+fixtures/sqlite-traced/where7-6a76a8efdc.sql
 fixtures/sqlite-traced/where7-6ab2967d94.sql
 fixtures/sqlite-traced/where7-6b01cad7be.sql
 fixtures/sqlite-traced/where7-6ba555768e.sql
@@ -9382,6 +9389,7 @@ fixtures/sqlite-traced/where7-71dec8690b.sql
 fixtures/sqlite-traced/where7-72500603fe.sql
 fixtures/sqlite-traced/where7-7291d1cfe4.sql
 fixtures/sqlite-traced/where7-72eb340b88.sql
+fixtures/sqlite-traced/where7-7344f96d81.sql
 fixtures/sqlite-traced/where7-73de226e5a.sql
 fixtures/sqlite-traced/where7-742e28ce15.sql
 fixtures/sqlite-traced/where7-74514718d2.sql
