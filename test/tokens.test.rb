@@ -282,3 +282,7 @@ test "a byte order mark before a name or keyword is a space" do
 	assert_equal lex("\u{feff}SELECT \u{feff}true", with_values: true), [[:SPACE, "\u{feff}"], [:SELECT, "SELECT"], [:SPACE, " "], [:SPACE, "\u{feff}"], [:TRUE, "true"]]
 	assert_equal lex("a\u{feff}", with_values: true), [[:ID, "a\u{feff}"]]
 end
+
+test "a NUL right after a keyword's first letter is an illegal token" do
+	assert_equal lex("a\0b", with_values: true), [[:ID, "a"], [:ILLEGAL, "\0"], [:ID, "b"]]
+end
