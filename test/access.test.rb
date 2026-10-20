@@ -145,3 +145,10 @@ test "a statement too deep for the resolver's stack is an analysis error" do
 
 	assert([Plume::Analysis::Error, Plume::SyntaxError, Plume::Analysis::Access].any? { |kind| kind === result }) { result.inspect[0, 200] }
 end
+
+test "a join may have 64 tables, as in SQLite" do
+	access("SELECT 1 FROM users#{(2..64).map { |i| " JOIN users AS u#{i} ON u#{i}.id = users.id" }.join}")
+
+	error = assert_raises(Plume::Analysis::Error) { access("SELECT 1 FROM users, (#{(["teams"] * 64).join(", ")})") }
+	assert_equal error.message, "at most 64 tables in a join"
+end

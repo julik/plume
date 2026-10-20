@@ -58,6 +58,9 @@ module Plume
 
 			STATEMENTS = [SelectStatement, InsertStatement, UpdateStatement, DeleteStatement].freeze
 
+			# SQLite's own limit, which also keeps resolving names across a join from going quadratic
+			MAX_JOIN_TABLES = 64
+
 			def initialize(catalog: nil)
 				@catalog = catalog
 			end
@@ -135,7 +138,7 @@ module Plume
 				outer = with_scope(statement.with_clause, nil)
 				scope = Scope.new(sources: [], parent: outer, ctes: {}, aliases: {})
 				target = add_target(statement.table, scope)
-				add_source(statement.source, scope, :projected) if statement.source
+				add_from(statement.source, scope, :projected) if statement.source
 
 				assign(statement.assignments, target, scope)
 				expression(statement.condition, scope, :referenced)
@@ -249,7 +252,7 @@ module Plume
 					return [Array.new(width) { |i| "column#{i + 1}" }, scope]
 				end
 
-				add_source(core.source, scope, usage) if core.source
+				add_from(core.source, scope, usage) if core.source
 
 				core.columns.each do |column|
 					scope.aliases[column.alias.downcase(:ascii)] = column.result if ResultColumn === column && column.alias
@@ -287,6 +290,14 @@ module Plume
 			end
 
 			# -- FROM
+
+			def add_from(source, scope, usage)
+				add_source(source, scope, usage)
+				tables = scope.sources.sum { |s| join_tables(s) }
+				raise Error, "at most #{MAX_JOIN_TABLES} tables in a join" if tables > MAX_JOIN_TABLES
+			end
+
+			def join_tables(source) = (source.kind == :group) ? source.inner_sources.sum { |s| join_tables(s) } : 1
 
 			def add_source(source, scope, usage)
 				case source
