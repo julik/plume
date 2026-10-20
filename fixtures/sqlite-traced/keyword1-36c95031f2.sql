@@ -1,0 +1,1 @@
+INSERT INTO view SELECT a FROM t1

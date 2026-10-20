@@ -1,0 +1,3 @@
+SELECT *
+    FROM t1 CROSS JOIN (VALUES(11,22),(33,44)) FULL JOIN t3 ON a=d
+   ORDER BY +d, +column1;

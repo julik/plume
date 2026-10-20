@@ -1,0 +1,2 @@
+INSERT INTO t11(a,b) VALUES(2,3),(5,6),(4,3),(1,2)
+    ON CONFLICT(b) DO UPDATE SET a=a+1000;

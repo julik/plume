@@ -1,0 +1,1 @@
+SELECT percentile(0,1) WITHIN GROUP(ORDER BY x) FROM t1

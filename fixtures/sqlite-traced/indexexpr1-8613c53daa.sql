@@ -1,0 +1,1 @@
+CREATE INDEX t1500ab ON t1500(a*b);

@@ -1,0 +1,3 @@
+SELECT a FROM t2
+      WHERE ((a BETWEEN 47 AND 49) AND a!=48)
+         OR (d>=48.0 AND d<49.0 AND d NOT NULL)

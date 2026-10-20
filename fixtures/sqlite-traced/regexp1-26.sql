@@ -1,1 +1,0 @@
-SELECT x FROM t1 WHERE y REGEXP '[^Aa]dam' ORDER BY x;

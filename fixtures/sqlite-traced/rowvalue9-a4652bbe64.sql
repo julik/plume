@@ -1,0 +1,1 @@
+SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);

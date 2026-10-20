@@ -1,0 +1,1 @@
+CREATE INDEX i7 ON t7(a, b+1);

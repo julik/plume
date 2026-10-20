@@ -1,0 +1,6 @@
+SELECT * FROM (SELECT * FROM t1, t3), (
+    SELECT max(a) OVER () FROM t1
+      UNION ALL
+    SELECT min(a) OVER () FROM t1
+  )
+  ORDER BY k;

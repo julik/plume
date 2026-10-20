@@ -1,0 +1,1 @@
+INSERT INTO t1(x,y) VALUES(NULL,-2),(NULL,1),('0',2);

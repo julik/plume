@@ -1,0 +1,1 @@
+SELECT x FROM aux.t1 ORDER BY x COLLATE collA

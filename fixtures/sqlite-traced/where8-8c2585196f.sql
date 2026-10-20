@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE 0938446095 > b OR g <= a OR h > b

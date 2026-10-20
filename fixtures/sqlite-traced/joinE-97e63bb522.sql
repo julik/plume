@@ -1,0 +1,3 @@
+SELECT a, b
+  FROM t1 INNER JOIN t2 ON true
+  ORDER BY coalesce(a,b,3);

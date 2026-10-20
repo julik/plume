@@ -1,0 +1,2 @@
+SELECT emp, region, sum(total) OVER win FROM sales
+  WINDOW win AS (PARTITION BY region ORDER BY total)

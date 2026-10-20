@@ -1,0 +1,1 @@
+SELECT DISTINCT x, x FROM t6a, t6b;

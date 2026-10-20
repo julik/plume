@@ -1,0 +1,1 @@
+ANALYZE no_such_table

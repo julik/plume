@@ -1,0 +1,3 @@
+SELECT a FROM t1 WHERE a IN (
+        SELECT a FROM t1 UNION ALL SELECT a FROM t1
+      )

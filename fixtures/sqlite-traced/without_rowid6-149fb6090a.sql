@@ -1,0 +1,6 @@
+CREATE TABLE t1(
+    a UNIQUE,
+    b PRIMARY KEY,
+    c UNIQUE,
+    UNIQUE(b)
+  ) WITHOUT ROWID;

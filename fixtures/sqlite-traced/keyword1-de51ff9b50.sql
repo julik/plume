@@ -1,0 +1,1 @@
+INSERT INTO abort SELECT a FROM t1

@@ -1,0 +1,6 @@
+WITH t(id, path) AS (
+    SELECT i, '' FROM tree WHERE p IS NULL
+    UNION ALL
+    SELECT i, path || '/' || i FROM tree, t WHERE p = id
+  ) 
+  SELECT path FROM t;

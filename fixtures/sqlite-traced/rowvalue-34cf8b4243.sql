@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a

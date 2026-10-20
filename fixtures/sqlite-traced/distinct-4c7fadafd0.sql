@@ -1,0 +1,1 @@
+EXPLAIN SELECT  rowid/2, b FROM t1 WHERE c = ?

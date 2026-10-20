@@ -1,0 +1,3 @@
+SELECT a,b,quote(x),'|'
+    FROM t1 LEFT JOIN (SELECT x FROM t2) AS s1 ON t1.b=s1.x
+   ORDER BY a,EXISTS(SELECT 1 FROM t1 LEFT JOIN (SELECT x AS y FROM t2) AS s2 ON t1.b=s2.y),x;

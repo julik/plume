@@ -1,0 +1,1 @@
+SELECT * FROM ttt WHERE CAST(c0 AS NUMERIC) > c1 GROUP BY rowid;

@@ -1,0 +1,3 @@
+SELECT * FROM t1 NATURAL JOIN t1
+    WHERE a=1
+    OR ((SELECT sum(a)OVER(ORDER BY a)) AND a<=10)

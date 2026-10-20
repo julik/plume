@@ -1,0 +1,1 @@
+SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;

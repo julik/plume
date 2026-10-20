@@ -1,0 +1,1 @@
+SELECT a, sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY abc

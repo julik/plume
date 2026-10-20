@@ -1,0 +1,1 @@
+CREATE TABLE t2(a TEXT, b TEXT DEFAULT(abs(:xyz)));

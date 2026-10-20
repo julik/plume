@@ -1,0 +1,3 @@
+CREATE TRIGGER aux.ttt AFTER INSERT ON t1 BEGIN
+    UPDATE t1 SET b=y FROM mmm WHERE x=new.a AND a=new.a;
+  END;

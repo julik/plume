@@ -1,0 +1,6 @@
+WITH xyz(x) AS (
+    SELECT printf('%d', 5) * NULL
+    UNION SELECT round(1<1+x) 
+    FROM xyz ORDER BY 1
+  )
+  SELECT 1 FROM xyz;

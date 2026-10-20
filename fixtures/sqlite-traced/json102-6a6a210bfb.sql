@@ -1,0 +1,4 @@
+SELECT big.rowid, fullkey, atom
+    FROM big, json_tree(big.json)
+   WHERE atom IS NOT NULL
+   ORDER BY +big.rowid, +json_tree.id

@@ -1,0 +1,5 @@
+SELECT 
+    row_number() OVER win,
+    lead(x) OVER win
+  FROM t1
+  WINDOW win AS (ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)

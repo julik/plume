@@ -1,0 +1,3 @@
+CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN
+     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);
+  END;

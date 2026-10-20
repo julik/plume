@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE c < 53594.08128 OR c <= b

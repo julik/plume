@@ -1,0 +1,3 @@
+SELECT * FROM (SELECT * FROM t1, t3) AS o, (
+    SELECT * FROM t1 LEFT JOIN t3 ON a=k
+  );

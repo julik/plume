@@ -1,0 +1,4 @@
+SELECT DISTINCT 1, log FROM t1
+    UNION ALL
+    SELECT 2, n FROM t1 WHERE log=3
+    ORDER BY n, 1;

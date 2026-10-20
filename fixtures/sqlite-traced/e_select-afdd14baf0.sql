@@ -1,0 +1,2 @@
+SELECT t1.b, t2.b 
+        FROM t1 , t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END)

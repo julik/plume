@@ -1,0 +1,1 @@
+SELECT quote(X'310032003300')==quote(substr(X'310032003300', 1))

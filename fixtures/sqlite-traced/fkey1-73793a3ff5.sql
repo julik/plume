@@ -1,0 +1,1 @@
+CREATE TABLE c1(a REFERENCES p1(x));

@@ -1,0 +1,1 @@
+SELECT * FROM x2 CROSS JOIN x3 ORDER BY +c, +f

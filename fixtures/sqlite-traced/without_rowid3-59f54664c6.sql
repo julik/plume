@@ -1,0 +1,2 @@
+CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))
+             WITHOUT rowid

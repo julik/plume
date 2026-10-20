@@ -1,0 +1,1 @@
+SELECT '1-row' FROM t401 LEFT JOIN t402 ON b IS a JOIN t403 ON c IS a;

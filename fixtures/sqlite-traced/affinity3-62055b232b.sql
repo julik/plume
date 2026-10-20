@@ -1,0 +1,1 @@
+CREATE TABLE mzed AS SELECT * FROM idmap;

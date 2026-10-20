@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE h = a OR 66.59334461 <= f

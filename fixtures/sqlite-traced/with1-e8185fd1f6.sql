@@ -1,0 +1,5 @@
+WITH x(a) AS (
+    WITH y(b) AS (SELECT 10)
+    SELECT 9 UNION ALL SELECT * FROM y
+  )
+  SELECT * FROM x

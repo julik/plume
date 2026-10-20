@@ -1,0 +1,1 @@
+INSERT INTO instead SELECT a FROM t1

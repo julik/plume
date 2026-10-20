@@ -1,0 +1,1 @@
+SELECT window('hello world');

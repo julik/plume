@@ -1,0 +1,1 @@
+INSERT INTO t3 VALUES(randomblob(500 + 1024*248));

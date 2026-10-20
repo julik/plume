@@ -1,0 +1,4 @@
+WITH s(i) AS (
+    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1900
+  )
+  INSERT INTO t(y) SELECT $big FROM s;

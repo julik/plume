@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX t2idx ON t2(c, d DESC);

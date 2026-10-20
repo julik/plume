@@ -1,0 +1,1 @@
+SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORDER BY a, b DESC;

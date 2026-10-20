@@ -1,0 +1,1 @@
+INSERT INTO restrict VALUES(99)

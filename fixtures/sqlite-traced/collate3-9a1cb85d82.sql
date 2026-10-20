@@ -1,0 +1,1 @@
+SELECT DISTINCT c1 COLLATE garbage FROM collate3t1;

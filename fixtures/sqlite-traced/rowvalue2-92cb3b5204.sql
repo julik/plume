@@ -1,0 +1,1 @@
+SELECT rowid FROM t4 WHERE (a IS 0) AND (b IS NULL) AND (c IS 0) ORDER BY +rowid

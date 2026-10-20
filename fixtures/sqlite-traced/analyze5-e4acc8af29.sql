@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 NOT INDEXED WHERE +z>1.5 AND +z<3.0 ORDER BY +rowid

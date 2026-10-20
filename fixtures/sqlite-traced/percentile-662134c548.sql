@@ -1,0 +1,1 @@
+UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;

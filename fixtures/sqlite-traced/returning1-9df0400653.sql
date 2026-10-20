@@ -1,0 +1,1 @@
+INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;

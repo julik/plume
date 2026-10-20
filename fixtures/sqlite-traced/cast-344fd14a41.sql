@@ -1,0 +1,1 @@
+SELECT v1.c0 FROM v1, t0 WHERE v1.c0=0;

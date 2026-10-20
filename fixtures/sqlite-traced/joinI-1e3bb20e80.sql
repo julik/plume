@@ -1,0 +1,5 @@
+SELECT *, NOT EXISTS (
+      SELECT 1 
+        EXCEPT 
+      SELECT 11 FROM t7 RIGHT JOIN t8 ON (t6.a) CROSS JOIN t6
+  ) FROM t5;

@@ -1,0 +1,3 @@
+SELECT a FROM t1
+     WHERE (b>=950 AND b<=1010) OR (b IS NULL AND c NOT NULL)
+    ORDER BY a

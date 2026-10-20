@@ -1,0 +1,1 @@
+SELECT count(*) FROM u NOT INDEXED WHERE c = (SELECT c FROM u WHERE id=1);

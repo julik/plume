@@ -1,0 +1,8 @@
+WITH RECURSIVE bigval(i,vtxt) AS (
+    SELECT 0, '18446744073709550000'
+    UNION ALL
+    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval
+     WHERE i+1<=9999
+  )
+  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval
+   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';

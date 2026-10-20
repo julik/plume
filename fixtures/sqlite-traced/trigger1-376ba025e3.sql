@@ -1,0 +1,3 @@
+CREATE TRIGGER main.t16err4 AFTER INSERT ON tA BEGIN
+      UPDATE t16 NOT INDEXED SET rowid=rowid+1;
+    END;

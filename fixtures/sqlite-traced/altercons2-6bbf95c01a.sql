@@ -1,0 +1,1 @@
+CREATE TABLE abc(a, b GENERATED ALWAYS AS (a+1));

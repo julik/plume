@@ -1,0 +1,1 @@
+CREATE VIEW v1(a, b, c, d) AS SELECT 1, 2, TRUE, FALSE FROM t1;

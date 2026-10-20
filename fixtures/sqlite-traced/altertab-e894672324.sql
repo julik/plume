@@ -1,0 +1,1 @@
+CREATE VIEW t2 AS SELECT 1 FROM t1, (t1 AS a0, t1);

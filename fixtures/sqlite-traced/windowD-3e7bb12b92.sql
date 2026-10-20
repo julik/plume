@@ -1,0 +1,1 @@
+SELECT 500 IS a, 500 IS b, 500 IS c, 500 IS d FROM v1

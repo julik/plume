@@ -1,0 +1,1 @@
+UPDATE x1 SET b=b||b ORDER BY b;

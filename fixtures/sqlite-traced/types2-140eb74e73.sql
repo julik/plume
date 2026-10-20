@@ -1,0 +1,1 @@
+SELECT rowid FROM t2 WHERE o IN (20.0, 30.0)

@@ -1,0 +1,1 @@
+SELECT ALL "AAAAAA" . * GROUP BY LIMIT round(1), #12

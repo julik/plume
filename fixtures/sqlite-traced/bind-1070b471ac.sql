@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES($abc:123,?,:abc)

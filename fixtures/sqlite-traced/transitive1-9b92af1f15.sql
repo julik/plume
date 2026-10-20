@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT * FROM c1 WHERE x=y AND y=z AND z='abc';

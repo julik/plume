@@ -1,0 +1,1 @@
+SELECT 1 FROM t0 WHERE c0 IN ('2.0625');

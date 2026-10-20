@@ -1,0 +1,1 @@
+CREATE TABLE y1(a COLLATE rtrim REFERENCES x1(a));

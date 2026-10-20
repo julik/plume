@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE a < 'of' OR b > 346 AND c IS NULL

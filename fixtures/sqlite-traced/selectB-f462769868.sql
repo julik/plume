@@ -1,0 +1,4 @@
+SELECT a FROM t1 WHERE a>10 
+      UNION ALL 
+    SELECT d FROM t2 WHERE d>10 
+    ORDER BY a

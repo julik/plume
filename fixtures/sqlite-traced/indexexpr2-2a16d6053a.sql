@@ -1,0 +1,1 @@
+CREATE INDEX i4 ON t4( substr(a, 2) COLLATE NOCASE, b );

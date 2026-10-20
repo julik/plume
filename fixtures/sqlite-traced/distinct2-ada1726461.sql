@@ -1,0 +1,1 @@
+SELECT DISTINCT a, b+1 FROM t7;

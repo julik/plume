@@ -1,0 +1,1 @@
+SELECT (1) UNION ALL SELECT (0.5 IS true);

@@ -1,0 +1,1 @@
+SELECT length(a) FROM t1 ORDER BY length(a) DESC;

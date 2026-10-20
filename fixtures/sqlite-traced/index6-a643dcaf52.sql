@@ -1,0 +1,1 @@
+CREATE INDEX t6b ON t6(b) WHERE b=1;

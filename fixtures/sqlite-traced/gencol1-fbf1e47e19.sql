@@ -1,0 +1,1 @@
+CREATE TABLE t0(c0 AS(TYPEOF(c1)), c1);

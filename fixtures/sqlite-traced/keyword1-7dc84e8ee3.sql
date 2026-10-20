@@ -1,0 +1,1 @@
+INSERT INTO query SELECT a FROM t1

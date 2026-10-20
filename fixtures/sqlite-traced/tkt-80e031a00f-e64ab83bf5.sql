@@ -1,0 +1,1 @@
+SELECT null NOT IN t1

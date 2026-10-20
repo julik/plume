@@ -1,0 +1,1 @@
+INSERT INTO match SELECT a FROM t1

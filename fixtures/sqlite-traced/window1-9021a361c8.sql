@@ -1,0 +1,1 @@
+SELECT count() OVER() AS m FROM t1 ORDER BY (SELECT m);

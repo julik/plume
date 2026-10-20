@@ -1,0 +1,3 @@
+SELECT * FROM (
+      SELECT a, b FROM t1 UNION ALL SELECT c, d FROM t2
+  ) WHERE b='BbB';

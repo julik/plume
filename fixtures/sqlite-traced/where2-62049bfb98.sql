@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();

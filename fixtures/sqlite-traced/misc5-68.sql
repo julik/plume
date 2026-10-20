@@ -1,1 +1,0 @@
-CREATE TABLE logs(msg TEXT, timestamp INTEGER, dbtime TEXT);

@@ -1,0 +1,1 @@
+CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);

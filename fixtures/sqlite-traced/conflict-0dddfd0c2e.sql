@@ -1,0 +1,1 @@
+UPDATE OR FAIL t3 SET x=1;

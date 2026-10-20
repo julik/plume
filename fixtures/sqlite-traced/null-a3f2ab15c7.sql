@@ -1,0 +1,1 @@
+SELECT * FROM t5 WHERE a IS NULL AND b = 'x';

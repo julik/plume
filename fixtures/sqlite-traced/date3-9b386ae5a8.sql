@@ -1,0 +1,1 @@
+SELECT coalesce(date('2022-01-29','auto')==date('2022-01-29'),'NULL')

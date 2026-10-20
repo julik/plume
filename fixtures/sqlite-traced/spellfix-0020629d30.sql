@@ -1,0 +1,1 @@
+INSERT OR ROLLBACK INTO t4(rowid, word) SELECT i, w FROM t5

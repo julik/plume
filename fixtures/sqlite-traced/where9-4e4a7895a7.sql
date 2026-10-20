@@ -1,0 +1,3 @@
+SELECT a FROM t1
+     WHERE (b=1012 OR (d IS NULL AND e IS NOT NULL))
+       AND f!=g

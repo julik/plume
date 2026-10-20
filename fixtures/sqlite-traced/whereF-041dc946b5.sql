@@ -1,0 +1,27 @@
+SELECT cdid
+    FROM cd me
+  WHERE 2 > (
+    SELECT COUNT( * )
+      FROM cd rownum__emulation
+    WHERE
+      (
+        me.genreid IS NOT NULL
+          AND
+        rownum__emulation.genreid IS NULL
+      )
+        OR
+      (
+        me.genreid IS NOT NULL
+          AND
+        rownum__emulation.genreid IS NOT NULL
+          AND
+        rownum__emulation.genreid < me.genreid
+      )
+        OR
+      (
+        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL
+  AND rownum__emulation.genreid IS NULL ) )
+          AND
+        rownum__emulation.cdid > me.cdid
+      )
+  );

@@ -1,0 +1,1 @@
+EXPLAIN SELECT min(1.0+'2.0',4*11)

@@ -1,0 +1,2 @@
+SELECT a FROM t1 WHERE (b=8 AND c>7) OR (b>8 AND c NOT IN (4,5,6))
+   ORDER BY +a;

@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE (d=8 OR c=6 OR b=4) AND +a>0

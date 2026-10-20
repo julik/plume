@@ -1,0 +1,4 @@
+SELECT DISTINCT x
+   FROM (SELECT x FROM t4 GROUP BY x)
+   WHERE x='right'
+   ORDER BY x;

@@ -1,0 +1,1 @@
+CREATE TRIGGER the_trigger AFTER UPDATE  ON tbl BEGIN INSERT INTO log VALUES(new.c, 2, 3); END;

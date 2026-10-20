@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1))

@@ -1,0 +1,2 @@
+SELECT a FROM collate4t3 
+            ORDER BY a COLLATE text DESC, b COLLATE nocase

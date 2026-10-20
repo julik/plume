@@ -1,0 +1,1 @@
+CREATE TABLE without(x INTEGER PRIMARY KEY, without TEXT);

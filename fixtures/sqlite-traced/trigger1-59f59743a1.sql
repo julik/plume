@@ -1,0 +1,3 @@
+CREATE TRIGGER tr1 DELETE ON t1 BEGIN
+            SELECT * FROM sqlite_master;
+         END

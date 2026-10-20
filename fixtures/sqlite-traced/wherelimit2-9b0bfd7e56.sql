@@ -1,0 +1,3 @@
+CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN
+    INSERT INTO log VALUES('delete', old.a);
+  END;

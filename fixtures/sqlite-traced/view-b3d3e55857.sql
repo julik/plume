@@ -1,0 +1,2 @@
+WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )
+    SELECT count(*) FROM x1 WHERE a IN c;

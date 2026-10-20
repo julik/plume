@@ -1,0 +1,1 @@
+SELECT 'one', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);

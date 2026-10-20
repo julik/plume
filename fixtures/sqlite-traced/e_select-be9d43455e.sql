@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 CROSS JOIN t2 USING (a)

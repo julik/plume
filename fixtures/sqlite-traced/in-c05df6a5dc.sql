@@ -1,0 +1,3 @@
+SELECT * FROM x1 
+  WHERE a IN (SELECT a FROM x1 WHERE (a%2)==0) 
+  ORDER BY a DESC, b;

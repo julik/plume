@@ -1,0 +1,1 @@
+SELECT rowid FROM xt1 WHERE a IS NOT NULL;

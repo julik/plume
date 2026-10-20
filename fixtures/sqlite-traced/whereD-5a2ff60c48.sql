@@ -1,0 +1,1 @@
+SELECT rowid FROM x1 WHERE a=1 OR b=10;

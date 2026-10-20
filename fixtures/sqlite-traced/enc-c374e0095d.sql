@@ -1,0 +1,2 @@
+WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)
+    SELECT rtreecheck('t3') FROM t1;

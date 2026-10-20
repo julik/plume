@@ -1,0 +1,3 @@
+SELECT * FROM t6 LIMIT 3
+      UNION
+      SELECT * FROM t7 LIMIT 3

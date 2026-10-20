@@ -1,0 +1,1 @@
+SELECT count(*) FROM e1 GROUP BY b HAVING a=?

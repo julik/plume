@@ -1,0 +1,1 @@
+SELECT 'abc' REGEXP, 1

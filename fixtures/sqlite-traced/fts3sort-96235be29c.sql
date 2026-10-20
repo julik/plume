@@ -1,0 +1,1 @@
+SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*' ORDER BY docid DESC

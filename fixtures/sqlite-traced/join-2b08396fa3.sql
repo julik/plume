@@ -1,0 +1,1 @@
+SELECT * FROM t1 JOIN v2 ON false FULL OUTER JOIN t0 ON true;

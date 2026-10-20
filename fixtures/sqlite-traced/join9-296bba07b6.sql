@@ -1,0 +1,3 @@
+SELECT *, t4.id, t5.id, t6.id
+      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6
+     ORDER BY id;

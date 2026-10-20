@@ -1,0 +1,1 @@
+UPDATE t3 SET f=e+100 RETURNING 'U', e, f;

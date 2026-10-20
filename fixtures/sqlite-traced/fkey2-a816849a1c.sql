@@ -1,0 +1,1 @@
+CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));

@@ -1,0 +1,1 @@
+SELECT a,b,c FROM t1 WHERE b=2 ORDER BY a

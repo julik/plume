@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE 346.0348610 = a AND c = b

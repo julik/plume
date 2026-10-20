@@ -1,27 +1,41 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Runs test files from SQLite's own suite under a stand-in for its Tcl harness, and writes each
-# SQL statement they hand to SQLite to fixtures/sqlite-traced/<test>-<n>.sql. That catches the
-# statements Tcl builds at runtime, which bin/fixtures cannot see in the source. Then run
-# `bin/fixture-report --write` to hold Plume to them.
+# Runs SQLite's own test files under a stand-in for its Tcl harness, records every SQL statement
+# they hand to SQLite - including the ones Tcl builds at runtime, which bin/fixtures cannot see -
+# and adds to fixtures/sqlite-traced/:
+#   - every statement where Plume and SQLite disagree (a bug, until it is fixed), and
+#   - one statement of each shape the traced fixtures do not have yet (see FixtureShape).
+# Existing fixtures are never removed, so a bug's statements stay once it is fixed. Each file is
+# named after its test and a hash of its SQL. Then run `bin/fixture-report --write`.
 #
-# Needs a tclsh with the sqlite3 package: macOS ships one, on Debian `apt install tcl libsqlite3-tcl`.
+# Test files that need SQLite's C test hooks (fault injection, test VFSes...) do not run here and
+# are skipped. Needs git, and a tclsh with the sqlite3 package: macOS ships one, on Debian
+# `apt install tcl libsqlite3-tcl`. SQLITE_SRC may point at a checkout of SQLite to skip the clone.
 #
-# Usage: bin/trace-fixtures main blob literal normalize regexp1 misc5
+# Usage: bin/trace-fixtures [TEST...]   (no tests: the whole suite)
 
 require "bundler/setup"
+require "digest"
+require "etc"
 require "fileutils"
-require "net/http"
-require "open3"
+require "plume"
 require "tmpdir"
 require_relative "../test/support/fixture_corpus"
+require_relative "../test/support/fixture_shape"
 
-abort "usage: bin/trace-fixtures TEST..." if ARGV.empty?
+CPU_LIMIT = 60
+WALL_LIMIT = 300
+FIXTURES = File.join(FixtureCorpus::ROOT, "fixtures/sqlite-traced")
+TESTER = File.join(FixtureCorpus::ROOT, "test/support/sqlite_tester.tcl")
 
-fixtures_path = File.join(FixtureCorpus::ROOT, "fixtures/sqlite-traced")
-tester = File.join(FixtureCorpus::ROOT, "test/support/sqlite_tester.tcl")
-FileUtils.mkdir_p(fixtures_path)
+def checkout(dir)
+	return File.expand_path(ENV["SQLITE_SRC"]) if ENV["SQLITE_SRC"]
+
+	system("git", "clone", "--quiet", "--depth", "1", "--filter=blob:none", "--sparse", "https://github.com/sqlite/sqlite.git", dir, exception: true)
+	system("git", "-C", dir, "sparse-checkout", "set", "test", exception: true)
+	dir
+end
 
 # The harness writes "#### <bytes>" and then the SQL, so SQL holding newlines survives
 def traced_sql(path)
@@ -29,31 +43,94 @@ def traced_sql(path)
 	sqls = []
 	pos = 0
 	while (header = text.match(/^#### (\d+)\n/n, pos))
-		sqls << text.byteslice(header.end(0), header[1].to_i).force_encoding(Encoding::UTF_8)
+		sqls << text.byteslice(header.end(0), header[1].to_i).force_encoding(Encoding::UTF_8).scrub
 		pos = header.end(0) + header[1].to_i
 	end
 	sqls
 end
 
-ARGV.each do |name|
-	Dir.mktmpdir do |dir|
-		source = Net::HTTP.get_response(URI("https://raw.githubusercontent.com/sqlite/sqlite/master/test/#{name}.test"))
-		abort "#{name}.test: #{source.code} #{source.message}" unless source.is_a?(Net::HTTPSuccess)
-
-		File.write(File.join(dir, "#{name}.test"), source.body)
-		FileUtils.cp(tester, File.join(dir, "tester.tcl"))
-		FileUtils.mkdir_p(File.join(dir, "work"))
-		trace = File.join(dir, "trace")
-
-		env = { "TRACE_OUT" => trace, "TRACE_DIR" => File.join(dir, "work") }
-		# A test that stops partway would leave its fixtures cut short, so keep the old ones instead
-		_out, err, status = Open3.capture3(env, "tclsh", File.join(dir, "#{name}.test"))
-		abort "#{name}.test did not run to the end (is tclsh installed, with the sqlite3 package?):\n#{err}" unless status.success?
-
-		statements = traced_sql(trace).flat_map { |sql| FixtureCorpus.statements(sql) }.map(&:strip).uniq
-
-		FileUtils.rm_f(Dir[File.join(fixtures_path, "#{name}-*.sql")])
-		statements.each_with_index { |sql, i| File.write(File.join(fixtures_path, "#{name}-#{i}.sql"), "#{sql}\n") }
-		puts "#{name}: #{statements.size} statements"
+# Runs one test file, returning its trace - or nil when it stopped partway. The limit is on CPU
+# time, so a busy machine does not cut tests short; the wall-clock one catches a test left waiting
+def trace(run_dir, work_dir, name)
+	trace = File.join(work_dir, "#{name}.trace")
+	cwd = File.join(work_dir, name)
+	FileUtils.mkdir_p(cwd)
+	env = { "TRACE_OUT" => trace, "TRACE_DIR" => cwd }
+	errors = File.join(work_dir, "#{name}.err")
+	pid = Process.spawn(env, "tclsh", File.join(run_dir, "#{name}.test"), out: File::NULL, err: errors, pgroup: true, rlimit_cpu: CPU_LIMIT)
+	waiter = Process.detach(pid)
+	unless waiter.join(WALL_LIMIT)
+		begin
+			Process.kill("KILL", -pid)
+		rescue Errno::ESRCH
+			nil # it finished just as the limit came
+		end
+		waiter.join
 	end
+	FileUtils.rm_rf(cwd)
+	traced_sql(trace) if waiter.value.success? && File.exist?(trace)
+end
+
+# Why a test file did not run to the end: the first line it wrote to stderr
+def failure(work_dir, name)
+	File.foreach(File.join(work_dir, "#{name}.err")).first&.strip || "killed after the time limit"
+rescue Errno::ENOENT
+	"did not start"
+end
+
+def statements(sql)
+	FixtureCorpus.statements(sql)
+rescue
+	[]
+end
+
+def normalize(sql) = sql.gsub(/\s+/, " ").strip
+
+Dir.mktmpdir do |tmp|
+	run_dir = File.join(tmp, "run")
+	FileUtils.cp_r(File.join(checkout(File.join(tmp, "sqlite")), "test"), run_dir)
+	FileUtils.cp(TESTER, File.join(run_dir, "tester.tcl"))
+
+	names = ARGV.empty? ? Dir[File.join(run_dir, "*.test")].map { |path| File.basename(path, ".test") }.sort : ARGV
+	queue = Queue.new(names).tap(&:close)
+	traces = {}
+	workers = Array.new(Etc.nprocessors) do
+		Thread.new do
+			while (name = queue.pop)
+				sqls = trace(run_dir, File.join(tmp, "work"), name)
+				traces[name] = sqls if sqls
+			end
+		end
+	end
+	workers.each(&:join)
+	warn "#{traces.size} of #{names.size} test files ran to the end"
+	# Named tests are expected to run, so say why one did not; with none running, nothing will
+	(names - traces.keys).each { |name| warn "  #{name}: #{failure(File.join(tmp, "work"), name)}" } if ARGV.any? || traces.empty?
+	abort "no test file ran - is tclsh installed, with the sqlite3 package?" if traces.empty?
+
+	known = Set.new
+	shapes = Set.new
+	Dir[File.join(FixtureCorpus::ROOT, "fixtures/**/*.sql")].each do |path|
+		sql = File.read(path)
+		statements(sql).each { |statement| known << normalize(statement) }
+		shapes << FixtureShape.of(sql) if path.start_with?(FIXTURES)
+	end
+
+	picked = {}
+	traces.sort.each do |name, sqls|
+		# Splitting asks sqlite3_complete once per semicolon, so a huge traced string is not worth it
+		sqls.reject { |traced| traced.bytesize > 1_000_000 }.flat_map { |traced| statements(traced) }.each do |sql|
+			sql = sql.strip
+			next if sql.empty? || sql.bytesize > 100_000 || !known.add?(normalize(sql))
+
+			plume, parsed = FixtureCorpus.plume_verdict(sql)
+			agrees = FixtureCorpus.sqlite_rejects_statement?(sql) ? (plume == :reject) : (plume == :pass)
+			# A bug's statement does not take the place of its shape's example, which comes once fixed
+			picked[sql] = name if !agrees || shapes.add?(FixtureShape.of(sql, parsed))
+		end
+	end
+
+	FileUtils.mkdir_p(FIXTURES)
+	picked.each { |sql, name| File.write(File.join(FIXTURES, "#{name}-#{Digest::SHA1.hexdigest(sql)[0, 10]}.sql"), "#{sql}\n") }
+	warn "#{picked.size} fixtures added"
 end

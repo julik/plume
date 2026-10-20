@@ -1,0 +1,2 @@
+WITH v17(x,y) AS (SELECT max(a), min(b) FROM t16 GROUP BY c)
+  SELECT * FROM v17 AS one, v17 AS two WHERE one.x=1;

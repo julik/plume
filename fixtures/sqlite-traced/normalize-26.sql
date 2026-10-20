@@ -1,1 +1,0 @@
-SELECT * FROM t1 WHERE x IN ((SELECT x FROM t1));

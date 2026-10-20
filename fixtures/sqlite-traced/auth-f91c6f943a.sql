@@ -1,0 +1,1 @@
+DROP INDEX di205.t1x;

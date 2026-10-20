@@ -1,0 +1,3 @@
+CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN
+      SELECT 'no-op' FROM orig.t1;
+    END;

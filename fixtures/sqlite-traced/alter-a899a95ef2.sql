@@ -1,0 +1,1 @@
+ALTER TABLE [T1] RENAME to [-t1-];

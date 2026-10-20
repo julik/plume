@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (a,b) IN (VALUES(1,2));

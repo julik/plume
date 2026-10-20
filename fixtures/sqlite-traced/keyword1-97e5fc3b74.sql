@@ -1,0 +1,1 @@
+INSERT INTO deferred SELECT a FROM t1

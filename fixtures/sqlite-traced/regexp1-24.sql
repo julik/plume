@@ -1,1 +1,0 @@
-SELECT x FROM t1 WHERE y REGEXP 'ur{2,10}e' ORDER BY x;

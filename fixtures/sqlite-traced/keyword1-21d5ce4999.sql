@@ -1,0 +1,1 @@
+INSERT INTO analyze VALUES(99)

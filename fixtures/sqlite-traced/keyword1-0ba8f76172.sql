@@ -1,0 +1,1 @@
+CREATE INDEX fail ON t1(a)

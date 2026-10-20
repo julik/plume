@@ -1,0 +1,1 @@
+SELECT * FROM t11 WHERE (a,a)==1;

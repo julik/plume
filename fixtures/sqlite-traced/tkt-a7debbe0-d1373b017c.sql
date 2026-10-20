@@ -1,0 +1,1 @@
+SELECT B   < a FROM t2

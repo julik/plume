@@ -1,0 +1,2 @@
+SELECT *, '|' FROM (VALUES(33,44),(55,66)) AS t2 FULL JOIN t1 ON a=b
+  ORDER BY +column1

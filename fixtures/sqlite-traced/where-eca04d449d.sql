@@ -1,0 +1,1 @@
+SELECT y FROM t1 WHERE y>4 ORDER BY rowid, w, x LIMIT 3;

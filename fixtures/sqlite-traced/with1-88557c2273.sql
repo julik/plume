@@ -1,0 +1,1 @@
+CREATE TEMP VIEW dual(dummy) AS VALUES('X')

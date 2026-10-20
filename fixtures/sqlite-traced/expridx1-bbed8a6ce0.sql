@@ -1,0 +1,1 @@
+CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;

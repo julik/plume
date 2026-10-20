@@ -1,1 +1,0 @@
-SELECT rowid FROM t2 WHERE a REGEXP '\-';

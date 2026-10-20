@@ -1,0 +1,2 @@
+ALTER TABLE t2 ALTER b SET NOT NULL --new cons
+;

@@ -1,0 +1,1 @@
+SELECT * FROM t2 JOIN t1 WHERE t1.bb=t1.aa AND t1.bb=17;

@@ -1,0 +1,4 @@
+SELECT t1.a, coalesce(t2.a,9999)
+      FROM t1 LEFT JOIN t2 ON (t1.c+1=t2.c AND t1.d=t2.d) OR (t1.f||'x')=t2.f
+     WHERE t1.a=80 OR t1.b=880 OR (t1.c=27027 AND round(t1.d)==80)
+    ORDER BY 1

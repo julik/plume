@@ -1,0 +1,1 @@
+SELECT 2 FROM t0 WHERE (SELECT +bb,1) >= (aa,1);

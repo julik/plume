@@ -1,0 +1,1 @@
+CREATE VIEW fred.v1 AS SELECT * FROM t1;

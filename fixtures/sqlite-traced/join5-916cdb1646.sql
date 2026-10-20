@@ -1,0 +1,1 @@
+SELECT count(z) FROM y1 LEFT JOIN y2 ON x GROUP BY y;

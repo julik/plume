@@ -1,0 +1,1 @@
+SELECT DISTINCT a,b,c FROM t4 WHERE a=0 AND b=1;

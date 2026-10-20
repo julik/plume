@@ -1,0 +1,3 @@
+SELECT * FROM x1 WHERE EXISTS (
+    SELECT 1 FROM x3 WHERE u IN (1, 2, 3, 4) AND v=b
+  );

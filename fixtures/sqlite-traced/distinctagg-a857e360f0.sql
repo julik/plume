@@ -1,0 +1,1 @@
+EXPLAIN SELECT count(DISTINCT a) FROM t1, t2

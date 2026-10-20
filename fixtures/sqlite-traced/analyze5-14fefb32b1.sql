@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 NOT INDEXED WHERE +z IN (0.5) ORDER BY +rowid

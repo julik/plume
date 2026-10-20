@@ -1,0 +1,4 @@
+SELECT * FROM t1
+       WHERE x IN (1,2,3,4,5,6,7,8)
+         AND y IN (10000,10001,10002,10003,10004,10005)
+       ORDER BY x

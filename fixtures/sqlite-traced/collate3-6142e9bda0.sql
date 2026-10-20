@@ -1,0 +1,1 @@
+SELECT a FROM collate3t1 ORDER BY 1;

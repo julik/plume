@@ -1,0 +1,1 @@
+CREATE TABLE aux.p1 (pid PRIMARY KEY);

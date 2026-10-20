@@ -1,0 +1,9 @@
+WITH RECURSIVE closure(x) AS (
+    SELECT 1 AS x
+    UNION
+    SELECT aa FROM link JOIN closure ON bb=x
+    UNION
+    SELECT bb FROM link JOIN closure on aa=x
+    ORDER BY x LIMIT 4
+  )
+  SELECT * FROM closure;

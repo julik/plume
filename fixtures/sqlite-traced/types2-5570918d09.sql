@@ -1,0 +1,1 @@
+SELECT 1 FROM t1 WHERE '10' IN (5,t1,'abc')

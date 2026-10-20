@@ -1,0 +1,1 @@
+CREATE TABLE t1(a DEFAULT 1, b DEFAULT 'abc')

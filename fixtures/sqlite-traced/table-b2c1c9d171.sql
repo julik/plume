@@ -1,0 +1,1 @@
+INSERT INTO t16(rowid) VALUES(4);

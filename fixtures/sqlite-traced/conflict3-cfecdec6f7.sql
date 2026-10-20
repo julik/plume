@@ -1,0 +1,2 @@
+INSERT INTO t2(a,b,c) VALUES(4,5,6), (5,6,4)
+      ON CONFLICT(c) DO NOTHING;

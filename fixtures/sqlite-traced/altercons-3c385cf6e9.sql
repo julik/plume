@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b NOT NULL AS (a+1))

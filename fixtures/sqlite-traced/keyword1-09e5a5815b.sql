@@ -1,0 +1,1 @@
+CREATE INDEX temp ON t1(a)

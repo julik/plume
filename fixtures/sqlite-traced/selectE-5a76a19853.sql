@@ -1,0 +1,4 @@
+WITH xyz AS (
+      SELECT a FROM t2 EXCEPT SELECT a FROM t3 ORDER BY a
+  )
+  SELECT * FROM xyz;

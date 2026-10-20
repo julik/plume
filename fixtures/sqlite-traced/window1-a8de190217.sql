@@ -1,0 +1,1 @@
+SELECT ntile(0) OVER (ORDER BY a) FROM t2;

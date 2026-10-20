@@ -1,0 +1,5 @@
+WITH c(x) AS MATERIALIZED (VALUES(0),(1))
+  SELECT c1.x||c2.x||c3.x
+    FROM (SELECT x FROM c LIMIT 5) AS c1,
+         (SELECT x FROM c LIMIT 6) AS c2,
+         (SELECT x FROM c LIMIT 7) AS c3;

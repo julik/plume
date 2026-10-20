@@ -1,0 +1,1 @@
+CREATE VIRTUAL TABLE x3 USING dbstat(123corp);

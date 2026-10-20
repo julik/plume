@@ -1,0 +1,3 @@
+SELECT a, rank() OVER(ORDER BY b) FROM t1
+    EXCEPT 
+  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;

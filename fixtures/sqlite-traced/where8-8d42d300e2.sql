@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE a BETWEEN 'his' AND 'same' OR 8628034825 > f

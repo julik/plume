@@ -1,0 +1,1 @@
+SELECT round(tan(pi()+1),7);

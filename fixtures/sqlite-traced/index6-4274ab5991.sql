@@ -1,0 +1,1 @@
+SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;

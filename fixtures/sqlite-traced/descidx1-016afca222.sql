@@ -1,0 +1,1 @@
+SELECT a||b||c FROM t3 WHERE d=0 ORDER BY a DESC, b ASC, c DESC

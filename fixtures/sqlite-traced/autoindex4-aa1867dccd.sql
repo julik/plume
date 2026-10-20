@@ -1,0 +1,1 @@
+SELECT t1.*, t2.*, '|' FROM t2 RIGHT JOIN t1 WHERE a=234 AND x=555;

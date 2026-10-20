@@ -1,0 +1,1 @@
+SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w

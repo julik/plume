@@ -1,0 +1,1 @@
+CREATE TABLE t1(rowid INTEGER PRIMARY KEY, id, k);

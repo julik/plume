@@ -1,0 +1,1 @@
+UPDATE OR REPLACE t2 SET x = x;

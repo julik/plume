@@ -1,0 +1,2 @@
+explain 
+    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)

@@ -1,0 +1,1 @@
+INSERT INTO database VALUES(99)

@@ -1,0 +1,1 @@
+SELECT x, typeof(x) FROM dual CROSS JOIN (SELECT CAST(4 AS NUMERIC) AS x);

@@ -1,0 +1,1 @@
+SELECT 31 FROM t0 RIGHT JOIN t1 WHERE (c0, x'') != (NULL, 0);

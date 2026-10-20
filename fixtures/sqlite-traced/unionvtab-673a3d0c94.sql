@@ -1,0 +1,2 @@
+WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )
+  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;

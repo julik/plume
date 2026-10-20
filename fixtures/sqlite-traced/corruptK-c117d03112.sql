@@ -1,0 +1,3 @@
+-- corrupt this one.
+
+  DELETE FROM t1 WHERE rowid IN(2, 4);

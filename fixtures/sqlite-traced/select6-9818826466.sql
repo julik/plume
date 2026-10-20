@@ -1,0 +1,2 @@
+SELECT ( SELECT y FROM t2 WHERE z = cnt )
+    FROM ( SELECT count(*) AS cnt FROM t1 );

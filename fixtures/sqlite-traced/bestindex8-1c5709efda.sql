@@ -1,0 +1,1 @@
+SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) LIMIT 2 OFFSET 2

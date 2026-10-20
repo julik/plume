@@ -1,0 +1,1 @@
+SELECT fullkey, atom, '|' FROM json_tree(json_set('{}','$.x',123,'$.x',456));

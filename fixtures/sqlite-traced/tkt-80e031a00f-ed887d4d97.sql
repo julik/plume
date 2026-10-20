@@ -1,0 +1,1 @@
+SELECT 1.23 IN t1

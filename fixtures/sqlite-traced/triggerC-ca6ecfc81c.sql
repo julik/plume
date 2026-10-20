@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b DEFAULT 4.5)

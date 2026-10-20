@@ -1,0 +1,1 @@
+CREATE TEMP TABLE temp3(a, b DEFAULT(f3(31)));

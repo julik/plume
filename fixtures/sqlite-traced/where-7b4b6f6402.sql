@@ -1,0 +1,2 @@
+INSERT INTO t1 VALUES(4, 'four', 'iii') 
+    ON CONFLICT(c) DO UPDATE SET b=NULL

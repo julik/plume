@@ -1,0 +1,1 @@
+CREATE INDEX like ON t1(a)

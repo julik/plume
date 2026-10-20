@@ -1,0 +1,1 @@
+SELECT x, y FROM t1 WHERE w>10 AND y=144 AND x=3

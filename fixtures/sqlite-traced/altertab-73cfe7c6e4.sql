@@ -1,0 +1,4 @@
+CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN
+    UPDATE t1 
+       SET (k,v)=((WITH cte1(a) AS (SELECT 1 FROM t2) SELECT t2.k FROM t2, cte1),1);
+  END;

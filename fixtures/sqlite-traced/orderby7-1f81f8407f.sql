@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO t1 SELECT content, rowid+100 FROM fts;

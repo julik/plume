@@ -1,0 +1,1 @@
+CREATE INDEX after ON t1(a)

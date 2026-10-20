@@ -1,0 +1,3 @@
+SELECT * FROM (
+      SELECT a FROM t1 INTERSECT SELECT b FROM t2
+  ) WHERE a||'' = 'ABC';

@@ -1,0 +1,1 @@
+SELECT (SELECT rowid FROM a1 WHERE a=+x AND b=+y) FROM a2

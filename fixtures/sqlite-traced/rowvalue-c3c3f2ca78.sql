@@ -1,0 +1,1 @@
+SELECT (2, 2) BETWEEN (2, NULL) AND (3, 3)

@@ -1,0 +1,6 @@
+SELECT sum(c) FILTER (WHERE (c%2)!=0) OVER win,
+             rank() OVER win,
+             dense_rank() OVER win
+      FROM t3
+      WINDOW win AS (  ORDER BY c NULLS LAST RANGE BETWEEN 6 PRECEDING AND 7 FOLLOWING   EXCLUDE CURRENT ROW  )
+      ORDER BY 1 NULLS FIRST, 2 NULLS FIRST, 3 NULLS FIRST

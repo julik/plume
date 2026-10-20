@@ -1,0 +1,1 @@
+INSERT INTO fail SELECT a FROM t1

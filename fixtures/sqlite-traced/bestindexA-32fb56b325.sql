@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10

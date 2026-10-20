@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT t191.rowid FROM t192, t191 WHERE (a=y OR b=y) AND x=?1;

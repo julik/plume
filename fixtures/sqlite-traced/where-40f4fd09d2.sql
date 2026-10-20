@@ -1,0 +1,1 @@
+SELECT x, y FROM t1 WHERE w=11 AND y<200 AND x>2

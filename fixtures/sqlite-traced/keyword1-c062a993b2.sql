@@ -1,0 +1,1 @@
+INSERT INTO pragma VALUES(99)

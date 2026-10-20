@@ -1,0 +1,1 @@
+INSERT INTO key VALUES(99)

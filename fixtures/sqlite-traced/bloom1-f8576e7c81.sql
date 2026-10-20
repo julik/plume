@@ -1,0 +1,1 @@
+CREATE INDEX t0x ON t0(a IS FALSE) WHERE false;

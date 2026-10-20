@@ -1,0 +1,1 @@
+SELECT ~('' BETWEEN t0.c0 AND TRUE) FROM t0;

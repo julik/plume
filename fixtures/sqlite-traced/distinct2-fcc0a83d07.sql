@@ -1,0 +1,1 @@
+SELECT DISTINCT a FROM t1, t2 WHERE x=b;

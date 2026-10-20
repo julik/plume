@@ -1,0 +1,3 @@
+CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN 
+    INSERT INTO log VALUES(1, 2,3);
+  END;

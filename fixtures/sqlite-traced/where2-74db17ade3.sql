@@ -1,0 +1,1 @@
+SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;

@@ -1,0 +1,1 @@
+CREATE TABLE apr (id INT PRIMARY KEY, apr REAL);

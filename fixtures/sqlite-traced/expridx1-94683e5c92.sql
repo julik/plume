@@ -1,0 +1,1 @@
+CREATE INDEX z1b ON z1(b+0.0);

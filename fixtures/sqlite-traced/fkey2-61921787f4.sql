@@ -1,0 +1,4 @@
+CREATE TABLE t1(
+      node PRIMARY KEY, 
+      parent REFERENCES t1 ON DELETE CASCADE
+    );

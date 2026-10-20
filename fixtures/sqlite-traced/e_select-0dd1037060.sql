@@ -1,0 +1,1 @@
+SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (t1.a=t2.a)

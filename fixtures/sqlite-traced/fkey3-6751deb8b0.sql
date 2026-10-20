@@ -1,0 +1,3 @@
+CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,
+    FOREIGN KEY(c, d) REFERENCES t6(a, b)
+  );

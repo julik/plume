@@ -1,0 +1,5 @@
+CREATE TRIGGER x1ai AFTER INSERT ON x1 BEGIN
+    INSERT INTO """x2""" VALUES('x', 'y');
+    DELETE FROM """x2""" WHERE a=1;
+    UPDATE """x2""" SET b = 11 WHERE a = 3;
+  END;

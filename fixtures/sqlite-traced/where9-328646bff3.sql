@@ -1,0 +1,5 @@
+DELETE FROM t1
+     WHERE (b IS NULL
+            OR c IS NULL
+            OR d IS NULL)
+       AND a!=96

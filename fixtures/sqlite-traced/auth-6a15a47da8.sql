@@ -1,0 +1,1 @@
+SELECT x,y2 FROM t1 FULL JOIN t2 USING(x);

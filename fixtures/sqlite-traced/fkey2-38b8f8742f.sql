@@ -1,0 +1,1 @@
+UPDATE OR IGNORE pp SET a = 1 WHERE a = 2

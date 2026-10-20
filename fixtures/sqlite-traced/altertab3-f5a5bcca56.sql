@@ -1,0 +1,1 @@
+CREATE INDEX i2 ON t2((LIKELIHOOD(c0, 1.0) IN ()));

@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85

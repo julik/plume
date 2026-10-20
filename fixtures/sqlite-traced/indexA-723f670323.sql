@@ -1,0 +1,1 @@
+SELECT * FROM t1 LEFT JOIN t2 ON (y=5) WHERE b=1 AND z IS c;

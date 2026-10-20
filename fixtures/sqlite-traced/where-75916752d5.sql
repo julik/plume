@@ -1,0 +1,1 @@
+SELECT w, x, y FROM t1 WHERE 11 IS w AND x>2

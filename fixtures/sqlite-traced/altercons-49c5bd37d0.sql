@@ -1,0 +1,1 @@
+INSERT INTO x1 VALUES(1), (2), (3), (NULL);

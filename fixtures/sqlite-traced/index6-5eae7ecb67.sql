@@ -1,0 +1,1 @@
+CREATE INDEX t10x ON t10(d) WHERE a=1 AND b=2 AND c=3;

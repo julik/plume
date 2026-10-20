@@ -1,0 +1,1 @@
+ALTER TABLE aux.t1 DROP CONSTRAINT bill;

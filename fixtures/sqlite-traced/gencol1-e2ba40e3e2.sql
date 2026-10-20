@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;

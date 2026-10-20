@@ -1,0 +1,1 @@
+SELECT * FROM x1 ORDER BY x COLLATE window;

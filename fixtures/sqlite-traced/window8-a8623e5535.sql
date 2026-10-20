@@ -1,0 +1,6 @@
+SELECT nth_value(c, 14) OVER win 
+    FROM t3
+    WINDOW win AS (
+      ORDER BY c, b, a
+      ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING  EXCLUDE GROUP 
+    )

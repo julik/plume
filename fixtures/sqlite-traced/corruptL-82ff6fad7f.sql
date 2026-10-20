@@ -1,0 +1,1 @@
+INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);

@@ -1,0 +1,1 @@
+CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );

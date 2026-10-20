@@ -1,0 +1,1 @@
+CREATE VIEW v1(a) AS SELECT a+1 FROM t0;

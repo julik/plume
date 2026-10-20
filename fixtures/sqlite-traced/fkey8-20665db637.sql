@@ -1,0 +1,1 @@
+DELETE FROM aux.p1 WHERE a=123;

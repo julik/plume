@@ -1,0 +1,1 @@
+SELECT b, d FROM t1 RIGHT JOIN t2 WHERE (b+0)=1 AND d!=4;

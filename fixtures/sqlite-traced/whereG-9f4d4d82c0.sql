@@ -1,0 +1,5 @@
+SELECT DISTINCT aname
+    FROM album, composer, track
+   WHERE unlikely(cname LIKE '%bach%')
+     AND composer.cid=track.cid
+     AND album.aid=track.aid;

@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a IN (1.5, 'myval2') ORDER BY b NULLS LAST;

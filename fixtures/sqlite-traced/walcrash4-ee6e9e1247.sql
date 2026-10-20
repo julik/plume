@@ -1,0 +1,1 @@
+PRAGMA main.synchronous = full;

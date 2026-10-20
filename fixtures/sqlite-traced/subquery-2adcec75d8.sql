@@ -1,0 +1,1 @@
+WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 2) SELECT affinity(a) FROM c;

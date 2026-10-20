@@ -1,0 +1,1 @@
+SELECT * FROM x1 JOIN x2 USING (rowid);

@@ -1,0 +1,1 @@
+UPDATE xt1c SET c=NULL WHERE rowid=5;

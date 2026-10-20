@@ -1,0 +1,1 @@
+SELECT count(*) FROM t46 WHERE c = 2 AND a = 1 AND b<10

@@ -1,0 +1,1 @@
+SELECT * FROM v3 WHERE d<0.55;

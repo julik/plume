@@ -1,0 +1,1 @@
+SELECT (SELECT col2 FROM tab1), (SELECT col1 FROM tab1)

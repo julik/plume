@@ -1,0 +1,1 @@
+SELECT * FROM t3 INDEXED BY sqlite_autoindex_t3_1 WHERE f = 10

@@ -1,0 +1,2 @@
+SELECT * FROM t1 
+  WHERE x COLLATE nocase BETWEEN 'a' COLLATE nocase AND 'c' COLLATE nocase;

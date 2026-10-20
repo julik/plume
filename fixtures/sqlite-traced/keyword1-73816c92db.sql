@@ -1,0 +1,1 @@
+INSERT INTO vacuum VALUES(99)

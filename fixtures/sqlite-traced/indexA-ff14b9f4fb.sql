@@ -1,0 +1,1 @@
+CREATE INDEX ex1 ON t1(c) WHERE b IS 'abc' COLLATE g;

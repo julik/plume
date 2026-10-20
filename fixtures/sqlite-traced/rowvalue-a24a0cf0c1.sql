@@ -1,0 +1,1 @@
+SELECT * FROM b3 WHERE (b3.a, b3.b) IN ( SELECT a, b FROM b5 );

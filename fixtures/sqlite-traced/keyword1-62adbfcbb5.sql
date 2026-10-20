@@ -1,0 +1,1 @@
+INSERT INTO trigger SELECT a FROM t1

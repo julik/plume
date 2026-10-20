@@ -1,0 +1,4 @@
+INSERT INTO foo (fooval) VALUES (17), (4711), (17)
+      ON CONFLICT DO
+      UPDATE SET refcnt = refcnt+1
+    RETURNING fooid;

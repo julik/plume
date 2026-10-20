@@ -1,0 +1,1 @@
+SELECT (SELECT c FROM t WHERE id=1) = (SELECT c FROM t WHERE id=3);

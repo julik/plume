@@ -1,0 +1,2 @@
+SELECT * FROM t1 AS t2 NATURAL RIGHT JOIN t1 AS t3
+   WHERE (a,b) IN (SELECT rowid, b FROM t1);

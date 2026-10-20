@@ -1,0 +1,1 @@
+SELECT a,c FROM t2 WHERE b IS NULL

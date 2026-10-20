@@ -1,0 +1,3 @@
+SELECT a, b, c, d
+      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0
+     ORDER BY +b, +d LIMIT 2 OFFSET 2

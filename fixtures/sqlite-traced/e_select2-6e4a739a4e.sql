@@ -1,0 +1,1 @@
+CREATE TEMP TABLE '%ss%' AS SELECT +y AS x FROM t5

@@ -1,0 +1,2 @@
+SELECT * FROM t1 LEFT JOIN t2 ON true JOIN t3 ON t2.y IS NOT NULL
+   WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600);

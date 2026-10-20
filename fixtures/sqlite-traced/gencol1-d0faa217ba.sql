@@ -1,0 +1,5 @@
+CREATE TABLE t0(
+    c0 INT AS(2) UNIQUE,
+    c1 TEXT UNIQUE,
+    FOREIGN KEY(c0) REFERENCES t0(c1)
+  );

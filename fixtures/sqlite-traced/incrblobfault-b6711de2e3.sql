@@ -1,0 +1,1 @@
+INSERT INTO blob SELECT NULL, v FROM blob;

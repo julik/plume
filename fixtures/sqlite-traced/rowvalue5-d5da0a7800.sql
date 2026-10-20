@@ -1,0 +1,1 @@
+SELECT expr FROM x1 WHERE a=1 AND 4 = b

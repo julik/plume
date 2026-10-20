@@ -1,0 +1,1 @@
+CREATE TRIGGER t1 BEFORE INSERT ON tbl WHEN new.a > 20 BEGIN UPDATE log set a = a + 1; END;

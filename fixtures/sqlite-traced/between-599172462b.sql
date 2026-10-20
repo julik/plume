@@ -1,0 +1,1 @@
+SELECT (y COLLATE binary) BETWEEN 'A' AND 'B' FROM t1

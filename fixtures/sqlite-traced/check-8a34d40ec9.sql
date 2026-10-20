@@ -1,0 +1,1 @@
+CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;

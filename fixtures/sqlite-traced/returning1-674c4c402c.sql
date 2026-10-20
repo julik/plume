@@ -1,0 +1,1 @@
+UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;

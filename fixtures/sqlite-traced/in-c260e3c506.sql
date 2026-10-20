@@ -1,0 +1,1 @@
+SELECT CASE WHEN x NOT IN (5,6,7) THEN 'yes' ELSE 'no' END FROM t3;

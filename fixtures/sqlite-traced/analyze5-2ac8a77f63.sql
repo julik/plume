@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE x IS NULL ORDER BY +rowid

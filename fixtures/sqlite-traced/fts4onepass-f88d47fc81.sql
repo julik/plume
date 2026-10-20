@@ -1,0 +1,1 @@
+DELETE FROM ft2 WHERE rowid=-1;

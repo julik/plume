@@ -1,0 +1,1 @@
+SELECT b FROM collate4t1 ORDER BY b COLLATE NOCASE, rowid

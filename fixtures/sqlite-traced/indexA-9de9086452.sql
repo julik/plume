@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 WHERE b = CAST(5 AS INT) AND b LIKE '%.0';

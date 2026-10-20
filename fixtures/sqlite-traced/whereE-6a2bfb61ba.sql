@@ -1,0 +1,1 @@
+INSERT INTO t2 SELECT x+4, (x+4)*11 FROM t2;

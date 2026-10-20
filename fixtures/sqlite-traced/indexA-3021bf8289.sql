@@ -1,0 +1,1 @@
+SELECT * FROM t1 INDEXED BY i1 WHERE b='abc' AND i=5 ORDER BY c;

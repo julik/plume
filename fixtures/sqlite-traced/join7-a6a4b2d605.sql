@@ -1,0 +1,3 @@
+SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c
+     WHERE b=c
+     ORDER BY +b;

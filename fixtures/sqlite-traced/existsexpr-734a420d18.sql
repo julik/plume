@@ -1,0 +1,3 @@
+SELECT * FROM y1 WHERE EXISTS ( 
+      SELECT 1 FROM y2 WHERE z=a AND y=b AND x=z
+  )

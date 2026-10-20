@@ -1,0 +1,1 @@
+INSERT INTO t2 VALUES('    0-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 0+1)

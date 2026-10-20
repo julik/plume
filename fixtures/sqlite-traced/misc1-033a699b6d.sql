@@ -1,0 +1,1 @@
+UPDATE t3 SET a=0 WHEREwww b=2;

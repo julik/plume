@@ -1,0 +1,4 @@
+WITH t99(b) AS (
+    SELECT b FROM t2 AS x LEFT JOIN t1 ON c IN (SELECT x FROM t3)
+  )
+  SELECT d, e, b FROM t2 JOIN t99 ON b IS NULL;

@@ -1,0 +1,1 @@
+CREATE VIEW   v2 AS SELECT 0 FROM v1 WHERE c1 IS '' OR c1 > '';

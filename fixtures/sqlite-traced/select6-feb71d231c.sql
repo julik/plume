@@ -1,0 +1,5 @@
+SELECT * FROM (
+    SELECT * FROM t UNION ALL 
+    SELECT l,m,l FROM j UNION ALL
+    SELECT * FROM k
+  )

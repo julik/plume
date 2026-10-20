@@ -1,0 +1,1 @@
+DELETE FROM main.t8 WHERE oid>1;

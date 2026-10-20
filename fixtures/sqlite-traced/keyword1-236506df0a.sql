@@ -1,0 +1,1 @@
+INSERT INTO like VALUES(99)

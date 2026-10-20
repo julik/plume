@@ -1,0 +1,1 @@
+INSERT INTO temp.t9 VALUES(1, 2, 3);

@@ -1,0 +1,1 @@
+SELECT b, a IN (3,4,5) FROM t2 ORDER BY b;

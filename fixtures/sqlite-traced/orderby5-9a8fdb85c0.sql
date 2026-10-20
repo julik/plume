@@ -1,0 +1,1 @@
+CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);

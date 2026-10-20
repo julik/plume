@@ -1,0 +1,2 @@
+INSERT INTO t1 AS tbl VALUES('c', 2, 2, 3) ON CONFLICT(y, x) 
+      DO UPDATE SET w = w||tbl.w;

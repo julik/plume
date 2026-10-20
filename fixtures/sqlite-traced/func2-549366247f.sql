@@ -1,0 +1,1 @@
+SELECT SUBSTR('ሴ', -1, 0)

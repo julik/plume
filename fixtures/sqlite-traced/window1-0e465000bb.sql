@@ -1,0 +1,11 @@
+SELECT sum(b) over(
+      ORDER BY (
+        SELECT max(b) OVER(
+          ORDER BY sum(
+            (SELECT x AS c UNION SELECT 1234 ORDER BY c)
+          )
+        ) AS e
+        ORDER BY e
+      )
+    )
+  FROM t1;

@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE (3=b OR c=6) AND +a>0 ORDER BY a

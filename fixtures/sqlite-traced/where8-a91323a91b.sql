@@ -1,0 +1,2 @@
+SELECT * FROM t3, t4 WHERE (a=1415926535 AND f=8628034825)
+                               OR (a=6939937510 AND f=2643383279)

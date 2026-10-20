@@ -1,0 +1,5 @@
+SELECT 
+      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) 
+    FROM (
+      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1
+    )

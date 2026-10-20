@@ -1,0 +1,1 @@
+CREATE INDEX asc ON t1(a)

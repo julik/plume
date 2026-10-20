@@ -1,0 +1,3 @@
+SELECT *
+    FROM (SELECT 1 a) AS x 
+         LEFT JOIN (SELECT 1, * FROM (SELECT * FROM (SELECT 1)));

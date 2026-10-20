@@ -1,0 +1,1 @@
+SELECT * FROM b3 GROUP BY count(*)

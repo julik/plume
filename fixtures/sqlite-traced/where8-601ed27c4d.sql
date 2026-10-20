@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE 'peak' = a OR b BETWEEN 2643383279 AND 'the'

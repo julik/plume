@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w

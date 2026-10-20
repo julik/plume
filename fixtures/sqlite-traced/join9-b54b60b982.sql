@@ -1,0 +1,5 @@
+SELECT *
+      FROM t3 NATURAL FULL JOIN 
+           (t4 NATURAL FULL JOIN
+            (t5 NATURAL FULL JOIN t6))
+    ORDER BY 1;

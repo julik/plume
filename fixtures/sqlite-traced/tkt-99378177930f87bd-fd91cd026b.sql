@@ -1,0 +1,1 @@
+CREATE VIEW t2(y) AS SELECT avg(w) FROM t0 GROUP BY w>1;

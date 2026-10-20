@@ -1,0 +1,3 @@
+INSERT INTO t2(a,b,c,e,d) VALUES(1,2,3,4,5)
+      ON CONFLICT(c) DO UPDATE SET b=''
+      ON CONFLICT((SELECT t2 FROM nosuchtable)) DO NOTHING;

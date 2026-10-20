@@ -1,0 +1,2 @@
+WITH i(x) AS ( SELECT 1, 2 UNION SELECT x+1 FROM i )
+  SELECT * FROM i;

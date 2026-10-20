@@ -1,0 +1,1 @@
+CREATE INDEX t1ca ON t1(c ASC,a DESC);

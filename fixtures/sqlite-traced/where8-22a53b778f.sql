@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE h > 1339.360726 AND 'and' > c

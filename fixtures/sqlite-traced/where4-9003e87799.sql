@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE w=1 AND x IS NULL

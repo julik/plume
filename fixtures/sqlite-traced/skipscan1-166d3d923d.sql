@@ -1,0 +1,1 @@
+SELECT max(a) FROM t1 WHERE a IN t1;

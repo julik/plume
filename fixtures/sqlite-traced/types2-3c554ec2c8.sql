@@ -1,0 +1,1 @@
+SELECT '500' > n1 FROM t1

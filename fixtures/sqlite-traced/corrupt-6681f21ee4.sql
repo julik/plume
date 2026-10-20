@@ -1,0 +1,1 @@
+INSERT OR REPLACE INTO t1 VALUES(5, randomblob(1900))

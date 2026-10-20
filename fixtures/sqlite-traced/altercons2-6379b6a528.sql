@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, b CONSTRAINT "a""b" CHECK (b IS NOT NULL));

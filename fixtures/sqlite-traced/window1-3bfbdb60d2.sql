@@ -1,0 +1,11 @@
+SELECT b FROM t4
+  UNION
+  SELECT a FROM t4
+  ORDER BY (
+    SELECT sum(x) OVER() FROM (
+      SELECT c AS x FROM t4
+      UNION
+      SELECT d FROM t4
+      ORDER BY (SELECT e FROM t4)
+    )
+  );

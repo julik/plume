@@ -1,0 +1,3 @@
+SELECT a.x/10, a.y/10 FROM 
+    (SELECT * FROM t1 LIMIT 5 OFFSET 0) AS a, t1 AS b WHERE a.x = b.x
+  LIMIT 5 OFFSET 0;

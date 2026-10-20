@@ -1,0 +1,3 @@
+SELECT * FROM (
+    WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp
+  );

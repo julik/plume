@@ -1,0 +1,3 @@
+SELECT count(*) OVER win, group_concat(CAST(b AS TEXT), '.') 
+    FILTER (WHERE a%2=0) OVER win FROM t2
+    WINDOW win AS (ORDER BY a ROWS BETWEEN CURRENT ROW         AND UNBOUNDED FOLLOWING)

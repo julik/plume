@@ -1,0 +1,1 @@
+SELECT * FROM t5 ORDER BY 1 DESC, b;

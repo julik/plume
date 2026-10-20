@@ -1,0 +1,1 @@
+SELECT round( atan(2), 7), round( atan(-2), 7);

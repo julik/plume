@@ -1,0 +1,1 @@
+SELECT x FROM d4 ORDER BY x||''

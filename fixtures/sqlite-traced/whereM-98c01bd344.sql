@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 WHERE c=10.0 AND c LIKE '10.0'

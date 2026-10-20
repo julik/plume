@@ -1,0 +1,1 @@
+SELECT docid FROM ft1, t1 WHERE ft1 MATCH y AND id=1 ORDER BY docid;

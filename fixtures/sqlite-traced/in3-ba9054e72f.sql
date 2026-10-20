@@ -1,0 +1,1 @@
+SELECT x IN (SELECT a FROM t1) FROM t2

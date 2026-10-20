@@ -1,0 +1,1 @@
+CREATE TABLE t4a(a TEXT, b TEXT COLLATE nocase, c);

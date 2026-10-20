@@ -1,0 +1,2 @@
+explain query plan
+  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;

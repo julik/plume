@@ -1,0 +1,1 @@
+INSERT INTO deferred VALUES(99)

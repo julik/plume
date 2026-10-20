@@ -1,0 +1,1 @@
+INSERT INTO tbl VALUES(500, '' * 10, 700);

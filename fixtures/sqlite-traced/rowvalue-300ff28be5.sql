@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (b,a) BETWEEN (-8,5) AND (0,-2);

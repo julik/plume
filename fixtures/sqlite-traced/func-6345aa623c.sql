@@ -1,0 +1,1 @@
+SELECT round() FROM t1 ORDER BY a

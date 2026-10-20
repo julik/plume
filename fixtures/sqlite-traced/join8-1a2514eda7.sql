@@ -1,0 +1,5 @@
+SELECT *
+    FROM t1
+         LEFT JOIN t2 ON TRUE
+         JOIN t3 ON c=''
+         RIGHT JOIN t4 ON b='';

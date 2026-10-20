@@ -1,0 +1,1 @@
+REPLACE INTO t0(c0,c2,c3) VALUES(0,0,0),(0,0,0);

@@ -1,0 +1,1 @@
+SELECT quote(a), quote(b), '|' FROM t1 GROUP BY a, abs(b);

@@ -1,0 +1,1 @@
+CREATE INDEX i4 ON t1(x) WHERE z="w"

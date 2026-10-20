@@ -1,0 +1,3 @@
+SELECT 'ABCD' FROM t1 
+      WHERE (a=? OR b=?) 
+      AND (0 OR (SELECT 'xyz' INTERSECT SELECT a ORDER BY 1))

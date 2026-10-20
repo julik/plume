@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE 50.58223172 <= c OR c = c AND b < b

@@ -1,0 +1,1 @@
+SELECT i FROM t1 WHERE rowid IS '12' ORDER BY i DESC

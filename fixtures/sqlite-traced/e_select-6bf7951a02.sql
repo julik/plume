@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) , t5 USING (a)

@@ -1,0 +1,1 @@
+SELECT c FROM t4a WHERE a IN (b) ORDER BY c;

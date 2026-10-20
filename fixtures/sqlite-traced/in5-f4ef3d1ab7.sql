@@ -1,0 +1,1 @@
+SELECT count(*) FROM n1 WHERE a IN (SELECT +a FROM n1)

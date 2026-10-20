@@ -1,0 +1,1 @@
+INSERT INTO ec VALUES(0,'?','a',-2000000000);

@@ -1,0 +1,1 @@
+SELECT count(DISTINCT a) FROM t1 GROUP BY b+c

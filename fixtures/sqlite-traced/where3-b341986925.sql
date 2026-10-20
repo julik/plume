@@ -1,0 +1,1 @@
+SELECT 1 FROM t1 JOIN t2 ON x=c AND y=d WHERE d>0;

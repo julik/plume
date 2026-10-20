@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);

@@ -1,0 +1,1 @@
+CREATE INDEX recursive ON t1(a)

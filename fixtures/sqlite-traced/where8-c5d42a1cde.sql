@@ -1,0 +1,3 @@
+SELECT * FROM t3, t4, t5, t6
+        WHERE (a=1415926535 AND f=8628034825 AND s!='hello' AND t!=5)
+           OR (a=6939937510 AND f=2643383279 AND s='tab-t5' AND t=123456)

@@ -1,0 +1,1 @@
+SELECT x, y FROM t1 WHERE x=3 AND y=100 AND w<10

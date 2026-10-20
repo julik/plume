@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT count(a) FROM t1;

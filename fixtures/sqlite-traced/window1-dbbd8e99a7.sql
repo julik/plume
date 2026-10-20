@@ -1,0 +1,9 @@
+SELECT avg(a) OVER (
+      ORDER BY (SELECT sum(b) OVER ()
+        FROM t1 ORDER BY (
+          SELECT total(d) OVER (ORDER BY c)
+          FROM (SELECT 1 AS d) ORDER BY 1
+          )
+        )
+      )
+  FROM t1;

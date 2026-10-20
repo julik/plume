@@ -1,0 +1,1 @@
+SELECT x/10, y/10 FROM t1;

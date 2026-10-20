@@ -1,0 +1,1 @@
+SELECT 2 AS x WHERE (SELECT x AS y WHERE 3>y);

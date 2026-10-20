@@ -1,0 +1,1 @@
+INSERT INTO regexp SELECT a FROM t1

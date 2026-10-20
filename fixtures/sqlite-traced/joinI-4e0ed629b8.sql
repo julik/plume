@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX i81 ON t1(c1, c4, +c2);

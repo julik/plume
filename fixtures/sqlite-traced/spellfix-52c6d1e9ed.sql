@@ -1,0 +1,1 @@
+UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;

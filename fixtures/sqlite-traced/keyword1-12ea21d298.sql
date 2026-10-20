@@ -1,0 +1,1 @@
+INSERT INTO temporary VALUES(99)

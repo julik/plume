@@ -1,0 +1,1 @@
+INSERT INTO view VALUES(99)

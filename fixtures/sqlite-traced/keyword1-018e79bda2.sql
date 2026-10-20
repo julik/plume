@@ -1,0 +1,1 @@
+INSERT INTO desc VALUES(99)

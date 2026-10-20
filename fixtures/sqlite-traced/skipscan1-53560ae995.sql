@@ -1,0 +1,2 @@
+EXPLAIN QUERY PLAN
+  SELECT a,b,c,d,'|' FROM t1 WHERE c=6 ORDER BY a, b, c;

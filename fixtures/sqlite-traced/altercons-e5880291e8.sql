@@ -1,0 +1,1 @@
+CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));

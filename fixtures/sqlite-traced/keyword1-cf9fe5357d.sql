@@ -1,0 +1,1 @@
+INSERT INTO raise SELECT a FROM t1

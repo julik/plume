@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT * FROM t1, t2) AS x JOIN t3

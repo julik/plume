@@ -1,0 +1,3 @@
+CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN
+      SELECT * FROM;  -- Syntax error
+    END;

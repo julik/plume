@@ -1,0 +1,1 @@
+CREATE INDEX cast ON t1(a)

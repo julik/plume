@@ -1,0 +1,2 @@
+CREATE VIEW terms_v AS 
+  SELECT term, documents, occurrences FROM terms WHERE col = '*';

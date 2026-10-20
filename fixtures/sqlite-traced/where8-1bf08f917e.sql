@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE c IS NULL AND a>'one'

@@ -1,0 +1,1 @@
+SELECT * FROM t1 LEFT JOIN t2 WHERE 1  ||  (a=0 AND y=1)

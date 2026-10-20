@@ -1,0 +1,1 @@
+INSERT INTO without VALUES(99)

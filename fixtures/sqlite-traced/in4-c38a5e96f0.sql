@@ -1,0 +1,1 @@
+SELECT * FROM t2 LEFT JOIN t1 ON c = d AND b IN (10,10,10);

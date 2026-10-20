@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE NOT x=upper(1);

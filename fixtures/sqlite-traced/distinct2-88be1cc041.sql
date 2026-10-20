@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX t5x ON t5(a+b);

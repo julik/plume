@@ -1,0 +1,1 @@
+SELECT sum(over.following) OVER w FROM t1 over WINDOW w AS (ORDER BY over)

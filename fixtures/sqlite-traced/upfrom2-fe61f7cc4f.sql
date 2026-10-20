@@ -1,0 +1,1 @@
+UPDATE x1 SET a=5 FROM x1

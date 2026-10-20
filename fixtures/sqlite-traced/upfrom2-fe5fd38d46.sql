@@ -1,0 +1,4 @@
+WITH data(k, v) AS (
+      VALUES(3, 'thirty'), (1, 'ten')
+    )
+    UPDATE o1 SET z=v FROM data WHERE (1+x+w*2)=k;

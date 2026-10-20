@@ -1,0 +1,1 @@
+CREATE TEMP TABLE dual AS SELECT 'X' AS dummy

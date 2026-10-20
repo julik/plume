@@ -1,0 +1,1 @@
+INSERT INTO column VALUES(99)

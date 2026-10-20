@@ -1,0 +1,4 @@
+SELECT name FROM people WHERE role='teacher' AND height>=180
+  UNION ALL
+  SELECT name FROM people WHERE role='student' AND height>=180
+  ORDER BY 1;

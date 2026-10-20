@@ -1,0 +1,1 @@
+REINDEX aux.t1

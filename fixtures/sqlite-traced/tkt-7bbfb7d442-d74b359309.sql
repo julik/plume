@@ -1,0 +1,8 @@
+CREATE TABLE InventoryControl (
+    InventoryControlId INTEGER PRIMARY KEY AUTOINCREMENT,
+    SKU INTEGER NOT NULL,
+    Variant INTEGER NOT NULL DEFAULT 0,
+    ControlDate DATE NOT NULL,
+    ControlState INTEGER NOT NULL DEFAULT -1,
+    DeliveredQty VARCHAR(30)
+  );

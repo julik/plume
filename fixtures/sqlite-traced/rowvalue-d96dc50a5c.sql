@@ -1,0 +1,4 @@
+UPDATE t2 SET (a,b)=(
+    SELECT max( t1.x ) OVER( PARTITION BY sum( (SELECT t1.y) ) ), 2
+  )
+  FROM t1;

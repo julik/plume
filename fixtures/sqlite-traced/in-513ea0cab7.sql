@@ -1,0 +1,1 @@
+SELECT * FROM t0 WHERE '1' IN (t0.c0);

@@ -1,0 +1,1 @@
+CREATE VIEW v0 AS SELECT 'xyz' AS d;

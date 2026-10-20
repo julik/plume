@@ -1,0 +1,1 @@
+SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;

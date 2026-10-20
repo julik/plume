@@ -1,0 +1,3 @@
+CREATE TRIGGER r2 DELETE on t2 BEGIN
+        SELECT NULL;
+    END;

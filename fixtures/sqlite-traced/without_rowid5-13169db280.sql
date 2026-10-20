@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS error1(
+    word TEXT PRIMARY KEY,
+    cnt INTEGER
+  ) WITHOUT _rowid_;

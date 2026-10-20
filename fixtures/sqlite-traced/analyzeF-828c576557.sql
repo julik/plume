@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;

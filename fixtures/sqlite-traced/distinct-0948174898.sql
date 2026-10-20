@@ -1,0 +1,6 @@
+INSERT INTO t2
+    SELECT DISTINCT
+      CASE a WHEN 1 THEN x'0000000000'
+             WHEN 2 THEN zeroblob(5)
+             ELSE 'xyzzy' END
+      FROM t1;

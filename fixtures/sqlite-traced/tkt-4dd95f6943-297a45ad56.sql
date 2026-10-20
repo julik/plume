@@ -1,0 +1,1 @@
+SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;

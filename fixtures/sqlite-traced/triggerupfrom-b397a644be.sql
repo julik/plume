@@ -1,0 +1,3 @@
+CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN
+    UPDATE t1 SET b = y FROM aux.t3 WHERE k=new.a;
+  END;

@@ -1,0 +1,2 @@
+SELECT 'abc' UNION ALL SELECT 'DEF'
+    ORDER BY 1 COLLATE nocase COLLATE nocase COLLATE nocase COLLATE nocase;

@@ -1,0 +1,2 @@
+CREATE VIEW v2(c0, c1) AS 
+        SELECT 'B' COLLATE NOCASE, 'a' FROM t0 ORDER BY t0.c0;

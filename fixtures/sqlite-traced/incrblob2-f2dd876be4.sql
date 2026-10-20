@@ -1,0 +1,1 @@
+UPDATE t3 SET a = 6 WHERE a > 3

@@ -1,0 +1,2 @@
+EXPLAIN 
+  SELECT * FROM t1 LEFT JOIN t2 ON (a=c) LEFT JOIN t3 ON (d=f);

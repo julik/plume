@@ -1,0 +1,4 @@
+SELECT t2.a FROM t1, t2
+     WHERE t1.a=80
+       AND (t1.c=t2.c OR t1.d=t2.d)
+    ORDER BY 1

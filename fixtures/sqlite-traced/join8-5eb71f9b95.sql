@@ -1,0 +1,2 @@
+SELECT t1.c0, t3.c0
+    FROM t2 NATURAL JOIN t1 RIGHT JOIN t3 ON t1.c0;

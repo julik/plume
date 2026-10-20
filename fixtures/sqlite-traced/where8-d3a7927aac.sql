@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE 'same' = b OR c >= 2643383279

@@ -1,0 +1,3 @@
+CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN
+    INSERT INTO log VALUES('insert');
+  END;

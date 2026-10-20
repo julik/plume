@@ -1,0 +1,1 @@
+UPDATE x1 SET b=19.0 WHERE b=20.0;

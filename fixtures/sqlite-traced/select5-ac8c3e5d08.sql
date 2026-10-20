@@ -1,0 +1,1 @@
+SELECT y, count(*) FROM t1 GROUP BY z ORDER BY y

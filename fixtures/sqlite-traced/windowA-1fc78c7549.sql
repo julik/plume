@@ -1,0 +1,5 @@
+SELECT a, b, quote(d), group_concat(b,'') OVER w1 FROM t1
+  WINDOW w1 AS 
+     (ORDER BY d DESC NULLS FIRST
+      RANGE BETWEEN 2.50 PRECEDING AND 0.5 PRECEDING)
+  ORDER BY +d DESC NULLS FIRST, +a;

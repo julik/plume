@@ -1,0 +1,2 @@
+SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) 
+      ORDER BY a, x ASC, y ASC;

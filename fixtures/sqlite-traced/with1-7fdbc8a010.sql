@@ -1,0 +1,7 @@
+WITH ii(a) AS (
+      VALUES(1)
+      UNION ALL 
+      SELECT a+1 FROM ii WHERE a<20 
+      LIMIT -1 OFFSET 0
+    )
+    SELECT * FROM ii

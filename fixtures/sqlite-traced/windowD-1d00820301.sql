@@ -1,0 +1,1 @@
+SELECT * FROM v1 WHERE 500 IS c;

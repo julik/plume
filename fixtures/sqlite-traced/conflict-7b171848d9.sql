@@ -1,0 +1,5 @@
+CREATE TABLE t1(
+    x PRIMARY KEY,
+    UNIQUE(x,x),
+    UNIQUE(x,x) ON CONFLICT REPLACE
+  );

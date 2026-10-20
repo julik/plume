@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE b >= 4543.266482 OR 'Alpine' > a OR 271.2019091 <= a

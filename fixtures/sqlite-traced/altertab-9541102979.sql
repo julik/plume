@@ -1,0 +1,1 @@
+CREATE TABLE x(f1 integer NOT NULL);

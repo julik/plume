@@ -1,0 +1,1 @@
+SELECT lower(x) FROM t3 LEFT JOIN t4 USING(x) WHERE x='Abc';

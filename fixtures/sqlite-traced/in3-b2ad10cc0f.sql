@@ -1,0 +1,1 @@
+SELECT 'TEXT' COLLATE nocase IN (SELECT b FROM t3)

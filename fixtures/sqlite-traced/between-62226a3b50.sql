@@ -1,0 +1,1 @@
+SELECT y COLLATE nocase   BETWEEN 'A' AND 'B' FROM t1

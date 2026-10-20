@@ -1,0 +1,1 @@
+INSERT INTO plan SELECT a FROM t1

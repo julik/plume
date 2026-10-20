@@ -1,0 +1,2 @@
+SELECT * FROM v74
+    WHERE NOT (vout IN (SELECT t0.c0 FROM t0));

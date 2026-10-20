@@ -1,0 +1,1 @@
+SELECT count(z) FROM ( SELECT * FROM y1 ) LEFT JOIN y2 ON x

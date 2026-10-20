@@ -1,0 +1,1 @@
+INSERT INTO restrict SELECT a FROM t1

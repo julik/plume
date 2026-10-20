@@ -1,0 +1,1 @@
+SELECT a FROM t4 WHERE f1(c) ORDER BY a;

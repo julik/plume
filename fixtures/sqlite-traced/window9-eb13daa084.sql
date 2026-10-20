@@ -1,0 +1,1 @@
+CREATE TABLE t1(a BLOB, b INTEGER, c COLLATE nocase);

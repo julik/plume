@@ -1,0 +1,1 @@
+SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;

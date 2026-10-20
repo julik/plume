@@ -1,0 +1,1 @@
+CREATE TABLE p1(a, 'b b b' PRIMARY KEY);

@@ -1,0 +1,3 @@
+CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN
+    UPDATE t3 SET d = new.b WHERE c = old.a;
+  END;

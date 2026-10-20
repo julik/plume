@@ -1,0 +1,1 @@
+SELECT * FROM t5 INDEXED BY t5x1 WHERE a+f1(b)=3;

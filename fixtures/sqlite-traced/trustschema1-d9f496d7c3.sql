@@ -1,0 +1,1 @@
+CREATE VIEW v1a AS SELECT f3(a+b) FROM t1;

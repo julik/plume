@@ -1,0 +1,1 @@
+INSERT INTO fail VALUES(99)

@@ -1,0 +1,1 @@
+INSERT INTO '"x2"' SELECT * FROM x2;

@@ -1,0 +1,1 @@
+SELECT c1.rowid FROM c1 WHERE b = (SELECT y FROM c2);

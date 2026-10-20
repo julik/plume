@@ -1,0 +1,1 @@
+SELECT 99=id AND 0=y AS "truth" FROM t2 RIGHT JOIN t1 ON true;

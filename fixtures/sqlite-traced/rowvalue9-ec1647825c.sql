@@ -1,0 +1,3 @@
+SELECT * FROM f3 WHERE (e, f) IN (
+    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2
+  );

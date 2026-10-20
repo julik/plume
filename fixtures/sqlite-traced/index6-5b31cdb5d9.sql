@@ -1,0 +1,1 @@
+SELECT 3 FROM t0 WHERE c1 <= c0;

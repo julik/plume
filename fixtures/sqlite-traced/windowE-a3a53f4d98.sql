@@ -1,0 +1,2 @@
+SELECT min(x) FILTER (WHERE x_count(x) OVER w1) OVER w1 FROM t1
+    WINDOW w1 AS (PARTITION BY x OVER w1);

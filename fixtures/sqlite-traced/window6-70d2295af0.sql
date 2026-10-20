@@ -1,0 +1,1 @@
+SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;

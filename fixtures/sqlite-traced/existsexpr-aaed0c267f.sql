@@ -1,0 +1,3 @@
+SELECT * FROM t2
+    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)
+  LIMIT 2 OFFSET 3

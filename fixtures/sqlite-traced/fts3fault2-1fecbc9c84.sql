@@ -1,0 +1,4 @@
+WITH s(i) AS (
+    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50
+  )
+  INSERT INTO t9 SELECT 'one two three' FROM s;

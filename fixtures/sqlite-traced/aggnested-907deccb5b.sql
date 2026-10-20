@@ -1,0 +1,1 @@
+SELECT (SELECT y FROM (SELECT sum(x) AS y) AS t2 ) FROM t1;

@@ -1,0 +1,4 @@
+SELECT * FROM t1 WHERE 
+    EXISTS (
+      SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii ) 
+    )

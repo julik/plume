@@ -1,0 +1,1 @@
+SELECT * FROM t0 WHERE ((c0 NOT NULL) AND 1) OR (c0 == NULL);

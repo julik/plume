@@ -1,1 +1,0 @@
-select x from t2 order by x;

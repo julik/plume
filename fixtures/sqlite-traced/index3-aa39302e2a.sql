@@ -1,0 +1,1 @@
+CREATE INDEX t1d ON t1('d' COLLATE binary ASC);

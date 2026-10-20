@@ -1,0 +1,1 @@
+SELECT typeof(unhex(NULL, ' '))

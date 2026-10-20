@@ -1,0 +1,1 @@
+CREATE TRIGGER t2 BEFORE INSERT ON tbl WHEN (SELECT count(*) FROM tbl) = 0 BEGIN UPDATE log set a = a + 1; END;

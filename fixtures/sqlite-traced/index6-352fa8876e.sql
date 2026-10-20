@@ -1,0 +1,1 @@
+CREATE INDEX index_0 ON t0(c0) WHERE c0 NOT NULL;

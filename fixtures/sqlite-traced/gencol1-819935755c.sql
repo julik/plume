@@ -1,0 +1,1 @@
+CREATE TABLE t0(c0 NOT NULL AS(c1), c1);

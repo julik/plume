@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE a BETWEEN 'one' AND 'two' OR a = 3421170679

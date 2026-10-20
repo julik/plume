@@ -1,0 +1,1 @@
+SELECT a, sum(b) OVER (PARTITION BY c) FROM t1

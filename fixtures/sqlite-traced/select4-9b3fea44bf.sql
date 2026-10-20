@@ -1,0 +1,6 @@
+SELECT x, y FROM (
+    SELECT 98 AS x, 99 AS y
+    UNION
+    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a
+  ) AS w WHERE y>=20
+  ORDER BY +x;

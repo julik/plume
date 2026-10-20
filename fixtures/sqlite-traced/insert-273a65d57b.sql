@@ -1,0 +1,3 @@
+CREATE TRIGGER t3r1 AFTER DELETE ON t3 BEGIN
+    INSERT INTO t3(b,c,d) VALUES(old.b,old.c,old.d);
+  END;

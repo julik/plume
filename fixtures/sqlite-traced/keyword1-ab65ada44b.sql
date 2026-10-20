@@ -1,0 +1,1 @@
+INSERT INTO pragma SELECT a FROM t1

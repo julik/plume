@@ -1,0 +1,1 @@
+UPDATE short SET f = 2 WHERE f IS NULL

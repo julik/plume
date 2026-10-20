@@ -1,0 +1,1 @@
+SELECT * FROM (SELECT * FROM t1 WHERE 1=x.a) AS x;

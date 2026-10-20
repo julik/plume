@@ -1,0 +1,4 @@
+CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN
+    SELECT t1.x, * FROM t1, t2;
+    INSERT INTO t2 VALUES(new.x, new.y);
+  END;

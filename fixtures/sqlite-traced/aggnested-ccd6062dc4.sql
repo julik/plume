@@ -1,0 +1,1 @@
+SELECT (SELECT sum(x+(SELECT y)) FROM bb) FROM aa;

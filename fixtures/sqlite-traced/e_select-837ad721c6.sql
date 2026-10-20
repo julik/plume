@@ -1,0 +1,1 @@
+SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION SELECT *,* FROM j2

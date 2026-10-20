@@ -1,0 +1,1 @@
+INSERT INTO rollback SELECT a FROM t1

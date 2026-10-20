@@ -1,0 +1,1 @@
+CREATE TABLE generated(a PRIMARY KEY);

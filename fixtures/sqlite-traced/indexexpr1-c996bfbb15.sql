@@ -1,0 +1,1 @@
+CREATE INDEX t1400x ON t1400(abs(15+3));

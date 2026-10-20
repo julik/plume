@@ -1,0 +1,1 @@
+SELECT a,b,c,d,'|' FROM t1 WHERE b=345 ORDER BY a;

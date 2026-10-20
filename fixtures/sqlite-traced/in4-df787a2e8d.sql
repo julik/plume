@@ -1,0 +1,1 @@
+SELECT c FROM t4b WHERE a IN (b);

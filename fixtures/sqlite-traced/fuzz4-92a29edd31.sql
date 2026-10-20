@@ -1,0 +1,1 @@
+INSERT INTO temp.Table6 DEFAULT VALUES ;

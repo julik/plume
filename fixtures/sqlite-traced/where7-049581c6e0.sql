@@ -1,0 +1,3 @@
+SELECT a FROM t2
+      WHERE f IS NULL
+         OR ((a BETWEEN 39 AND 41) AND a!=40)

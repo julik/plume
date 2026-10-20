@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE (0, 0) IN ( SELECT count(*), 0 FROM t1 )

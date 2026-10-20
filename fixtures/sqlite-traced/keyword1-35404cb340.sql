@@ -1,0 +1,1 @@
+INSERT INTO trigger VALUES(99)

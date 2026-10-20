@@ -1,0 +1,5 @@
+WITH aaa(x, y, z) AS (
+    SELECT x, y, max(y) OVER xyz FROM t4
+    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)
+  )
+  SELECT * FROM aaa ORDER BY 1;

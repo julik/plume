@@ -1,0 +1,1 @@
+SELECT k FROM x1 WHERE z - 78.43

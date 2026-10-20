@@ -1,0 +1,1 @@
+EXPLAIN QUERY PLAN SELECT count(*) FROM ev, cat WHERE x=y

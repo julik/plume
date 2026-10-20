@@ -1,0 +1,5 @@
+CREATE TRIGGER trig BEFORE INSERT ON t4 BEGIN
+    INSERT INTO t5 SELECT * FROM t1 WHERE 
+        (a IN (SELECT x FROM empty) OR b IN (SELECT x FROM not_empty)) 
+        AND c IN (SELECT f FROM t2 WHERE e=1234567);
+  END;

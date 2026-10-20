@@ -1,0 +1,3 @@
+SELECT c FROM a GROUP BY c
+    HAVING(SELECT(sum(b) OVER(ORDER BY b),
+                  sum(b) OVER(PARTITION BY min(DISTINCT c), c ORDER BY b)));

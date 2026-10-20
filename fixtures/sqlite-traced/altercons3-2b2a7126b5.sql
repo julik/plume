@@ -1,0 +1,1 @@
+UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';

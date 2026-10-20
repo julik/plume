@@ -1,0 +1,1 @@
+SELECT count(*) FROM t WHERE t MATCH 'a NEAR/100 b';

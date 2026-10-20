@@ -1,0 +1,1 @@
+SELECT * FROM t3 WHERE x IN (10) AND y IN (10);

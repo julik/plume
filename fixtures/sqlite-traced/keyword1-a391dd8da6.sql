@@ -1,0 +1,1 @@
+INSERT INTO column SELECT a FROM t1

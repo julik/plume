@@ -1,0 +1,1 @@
+SELECT sum(y) FROM t1 WHERE x>200 AND x<300

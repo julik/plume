@@ -1,0 +1,1 @@
+SELECT sign(-32), sign(0), sign(234);

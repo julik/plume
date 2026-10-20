@@ -1,0 +1,3 @@
+CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN
+      INSERT INTO t2 VALUES(new.a - 1);
+    END;

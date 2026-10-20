@@ -1,0 +1,1 @@
+ALTER TABLE 'one two' DROP COLUMN 'z 1'

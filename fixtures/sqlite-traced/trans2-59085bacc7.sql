@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES(404,'94bebd769d5e55a44e961e64a5673c',zeroblob(1559),'ddd48fae1159f50490febfc5e0361a');

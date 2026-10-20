@@ -1,0 +1,5 @@
+CREATE TEMP TABLE foo (
+      fooid INTEGER PRIMARY KEY,
+      fooval INTEGER NOT NULL UNIQUE,
+      refcnt INTEGER NOT NULL DEFAULT 1
+    );

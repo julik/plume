@@ -1,0 +1,2 @@
+EXPLAIN 
+  SELECT * FROM t1 CROSS JOIN t2 WHERE (t1.i1 = t2.i2) AND t2.i2 = 1;

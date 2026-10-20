@@ -1,0 +1,1 @@
+UPDATE OR ROLLBACK t1 SET b=b*2;

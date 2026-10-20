@@ -1,0 +1,1 @@
+SELECT *, '|' FROM t1 LEFT JOIN t2 ON y=c AND z IN (5,0) ORDER BY +a;

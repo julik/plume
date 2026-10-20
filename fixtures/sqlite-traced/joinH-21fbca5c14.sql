@@ -1,0 +1,1 @@
+CREATE TABLE t1(a INT AS (b), b INT);

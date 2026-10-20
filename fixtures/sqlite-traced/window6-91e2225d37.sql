@@ -1,0 +1,2 @@
+SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)
+    FROM t1 ORDER BY a;

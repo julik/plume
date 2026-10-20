@@ -1,0 +1,1 @@
+SELECT (w) FROM t1 WHERE (w)==(97)

@@ -1,0 +1,3 @@
+CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN
+    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;
+  END;

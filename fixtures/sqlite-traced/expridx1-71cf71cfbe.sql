@@ -1,0 +1,1 @@
+UPDATE z1 SET b=-4.0 WHERE b=4.0;

@@ -1,0 +1,1 @@
+EXPLAIN SELECT count(DISTINCT rowid) FROM t1

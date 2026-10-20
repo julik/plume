@@ -1,0 +1,10 @@
+SELECT * FROM 
+  ( 
+  SELECT 'a' AS column1, 'b' AS column2 
+  UNION ALL SELECT 'c', 'd' UNION ALL SELECT 123, NULL
+  )
+ UNION ALL SELECT * FROM 
+  ( 
+  SELECT 'a' AS column1, 'b' AS column2 
+  UNION ALL SELECT 'c', 'd' UNION ALL SELECT 123, NULL
+  )

@@ -1,0 +1,1 @@
+CREATE TABLE x1(a COLLATE nocase, b, UNIQUE(a));

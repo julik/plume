@@ -1,0 +1,4 @@
+CREATE TABLE t70b(
+     a INT CHECK( rowid!=33 ),
+     b TEXT PRIMARY KEY
+  ) WITHOUT ROWID;

@@ -1,0 +1,7 @@
+SELECT 1
+    FROM A,
+         (SELECT id,xx,yy,zz FROM C) subq,
+         B
+   WHERE A.id='1'
+     AND A.id=subq.yy
+     AND B.id=subq.zz;

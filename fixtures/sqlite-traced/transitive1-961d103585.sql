@@ -1,0 +1,4 @@
+SELECT *
+    FROM t301 CROSS JOIN t302 ON w=y
+   WHERE y>1
+   ORDER BY w DESC

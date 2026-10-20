@@ -1,0 +1,1 @@
+CREATE INDEX ex2 ON t1(a, 4);

@@ -1,0 +1,1 @@
+DELETE FROM t3 WHERE x IS NOT NULL AND +rowid=6;

@@ -1,0 +1,1 @@
+INSERT INTO offset SELECT a FROM t1

@@ -1,0 +1,1 @@
+INSERT INTO event VALUES('ci',2460994.978048461023,126223,NULL,NULL,NULL,NULL,'drh',NULL,unistr('Data structure improvements on columnar layout.  Prep work for getting\u000acolumnar layouts to respond to nScreenWidth.'),NULL,2460994.978048461023);

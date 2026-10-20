@@ -1,0 +1,1 @@
+SELECT y FROM t1, t2 WHERE a=x AND b<=y ORDER BY b DESC;

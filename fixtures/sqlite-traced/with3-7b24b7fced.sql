@@ -1,0 +1,4 @@
+WITH
+    x1(a) AS (values(100))
+  INSERT INTO t1(x)
+    SELECT * FROM (WITH x2(y) AS (SELECT * FROM x1) SELECT y+a FROM x1, x2);

@@ -1,0 +1,1 @@
+CREATE INDEX plan ON t1(a)

@@ -1,0 +1,1 @@
+CREATE TEMP VIEW v1temp AS SELECT a, b FROM t1;

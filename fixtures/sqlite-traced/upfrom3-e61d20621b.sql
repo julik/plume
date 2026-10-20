@@ -1,0 +1,1 @@
+UPDATE g1 SET c=101 FROM g1 AS g2;

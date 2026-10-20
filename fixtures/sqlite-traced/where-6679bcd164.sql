@@ -1,0 +1,1 @@
+SELECT w FROM t1 WHERE x+1=4 AND y+1==122

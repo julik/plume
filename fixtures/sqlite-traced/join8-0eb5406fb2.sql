@@ -1,0 +1,1 @@
+CREATE INDEX t2b ON t2( (b IS NOT NULL) );

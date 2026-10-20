@@ -1,0 +1,1 @@
+SELECT 500 = 500.0 FROM t1

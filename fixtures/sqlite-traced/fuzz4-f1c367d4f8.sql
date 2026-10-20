@@ -1,0 +1,3 @@
+CREATE TABLE Table2a(
+     Col0  NOT NULL   DEFAULT (CURRENT_TIME IS 1  IS NOT 1  > 1)
+  );

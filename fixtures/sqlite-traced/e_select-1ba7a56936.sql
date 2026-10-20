@@ -1,0 +1,1 @@
+INSERT INTO x3 VALUES('alerting', NULL, -93.79, NULL);

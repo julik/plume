@@ -1,0 +1,4 @@
+SELECT group_concat(CAST(b AS TEXT), '.') OVER (win1 ROWS BETWEEN CURRENT ROW         AND CURRENT ROW) 
+    FROM t2
+    WINDOW win1 AS (PARTITION BY b%2,a ORDER BY b%10)
+    ORDER BY 1

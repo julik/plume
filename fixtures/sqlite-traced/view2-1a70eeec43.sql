@@ -1,0 +1,4 @@
+CREATE VIEW v1 AS SELECT * FROM (
+    WITH x1 AS (SELECT y, x FROM t1)
+    SELECT * FROM x1
+  );

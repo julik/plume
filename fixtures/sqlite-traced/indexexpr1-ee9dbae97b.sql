@@ -1,0 +1,1 @@
+CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);

@@ -1,0 +1,1 @@
+INSERT INTO glob SELECT a FROM t1

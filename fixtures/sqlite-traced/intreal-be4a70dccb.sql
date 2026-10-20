@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX i0 ON t0(c1, 0 | c0);

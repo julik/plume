@@ -1,0 +1,1 @@
+CREATE VIEW v0(c0) AS SELECT 1 AS col_0 FROM t0;

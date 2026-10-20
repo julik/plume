@@ -1,0 +1,1 @@
+SELECT 500.0 > n1 FROM t1

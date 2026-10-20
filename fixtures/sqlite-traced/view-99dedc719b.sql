@@ -1,0 +1,1 @@
+WITH s AS ( VALUES(123), (456) ) SELECT * FROM t3 WHERE b IN s;

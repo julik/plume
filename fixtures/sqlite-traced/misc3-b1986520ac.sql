@@ -1,0 +1,1 @@
+UPDATE t1 SET a=CASE a WHEN 2 THEN 1 ELSE a END, b='y';

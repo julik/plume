@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE b = 810000 AND NOT (a < 500);

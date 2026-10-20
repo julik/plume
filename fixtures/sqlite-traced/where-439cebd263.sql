@@ -1,0 +1,1 @@
+SELECT w FROM t4 WHERE x=4 and y<1000 ORDER BY y DESC limit 3;

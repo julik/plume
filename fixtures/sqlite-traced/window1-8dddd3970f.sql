@@ -1,0 +1,2 @@
+SELECT (SELECT max(x)OVER(ORDER BY x) + min(x)OVER(ORDER BY x))
+    FROM (SELECT (SELECT sum(a) FROM t1 GROUP BY a) AS x FROM t1);

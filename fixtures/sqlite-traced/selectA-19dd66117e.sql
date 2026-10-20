@@ -1,0 +1,4 @@
+SELECT c, d FROM t5 
+  UNION ALL
+  SELECT a, b FROM t4 WHERE f()==f()
+  ORDER BY 1,2

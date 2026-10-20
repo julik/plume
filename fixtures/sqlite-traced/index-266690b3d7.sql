@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));

@@ -1,0 +1,1 @@
+ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');

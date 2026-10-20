@@ -1,0 +1,7 @@
+SELECT d IN (
+    SELECT sum(c) OVER ( ROWS BETWEEN CURRENT ROW AND c FOLLOWING) 
+    FROM t3
+  )
+  FROM (
+    SELECT * FROM t2
+  );

@@ -1,0 +1,1 @@
+INSERT INTO t2(x) SELECT x+9 FROM t1;

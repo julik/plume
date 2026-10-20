@@ -1,0 +1,1 @@
+INSERT INTO temp SELECT a FROM t1

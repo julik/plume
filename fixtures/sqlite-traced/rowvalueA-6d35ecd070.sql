@@ -1,0 +1,1 @@
+SELECT ( SELECT 123 )=='123'

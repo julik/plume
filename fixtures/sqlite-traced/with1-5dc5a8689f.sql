@@ -1,0 +1,3 @@
+WITH RECURSIVE
+    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)
+  SELECT * FROM i;

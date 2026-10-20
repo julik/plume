@@ -1,0 +1,1 @@
+SELECT b FROM t1 WHERE a>? AND a<4 ORDER BY rowid

@@ -1,0 +1,1 @@
+INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11;

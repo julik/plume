@@ -1,0 +1,1 @@
+SELECT * FROM t3 , t4 ON (t3.a=t4.a AND t3.c=t4.c)

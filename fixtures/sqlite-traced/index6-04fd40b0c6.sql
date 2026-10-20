@@ -1,0 +1,1 @@
+UPDATE t3 SET a=999 WHERE b%5!=0;

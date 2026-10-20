@@ -1,0 +1,1 @@
+INSERT INTO detach VALUES(99)

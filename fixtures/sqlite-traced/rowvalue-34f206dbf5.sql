@@ -1,0 +1,1 @@
+SELECT (1, 2, NULL) IS (1, 2, NULL)

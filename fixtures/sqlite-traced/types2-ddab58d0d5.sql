@@ -1,0 +1,1 @@
+SELECT o1 IN (SELECT o||'' FROM t3) FROM t1

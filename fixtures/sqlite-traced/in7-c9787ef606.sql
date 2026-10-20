@@ -1,0 +1,3 @@
+CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (
+    SELECT a FROM x1
+  );

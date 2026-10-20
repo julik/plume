@@ -1,0 +1,5 @@
+SELECT * FROM (
+    SELECT c0 FROM t0 
+    UNION ALL 
+    SELECT a.c0 FROM t0 AS a RIGHT JOIN t0 AS b ON 0
+  ) WHERE abs(c0)

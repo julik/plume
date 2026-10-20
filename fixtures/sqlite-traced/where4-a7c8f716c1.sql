@@ -1,0 +1,1 @@
+SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL AND y=123

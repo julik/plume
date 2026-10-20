@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE f IS NULL AND a >= h

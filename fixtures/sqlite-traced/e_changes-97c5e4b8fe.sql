@@ -1,0 +1,1 @@
+UPDATE t1 SET b=b+1 WHERE a<5;

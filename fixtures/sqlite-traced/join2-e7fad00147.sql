@@ -1,0 +1,1 @@
+SELECT * FROM t0 LEFT JOIN v0 ON v0.c0 >= '0';

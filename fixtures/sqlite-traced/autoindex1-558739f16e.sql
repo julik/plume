@@ -1,0 +1,1 @@
+INSERT INTO t1 SELECT a+2, b+22 FROM t1;

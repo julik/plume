@@ -1,0 +1,1 @@
+CREATE TABLE j1b AS SELECT jsonb(x) AS "x" FROM j1;

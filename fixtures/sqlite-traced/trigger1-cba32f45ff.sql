@@ -1,0 +1,3 @@
+CREATE TRIGGER main.t16err5 AFTER INSERT ON tA BEGIN
+      UPDATE t16 INDEXED BY t16a SET rowid=rowid+1 WHERE a=1;
+    END;

@@ -1,0 +1,1 @@
+SELECT count(*) FROM t1 INDEXED BY t1x WHERE (SELECT z FROM t3);

@@ -1,1 +1,0 @@
-SELECT $v1 REGEXP '^abc\rdef$'

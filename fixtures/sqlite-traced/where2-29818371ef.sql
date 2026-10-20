@@ -1,0 +1,1 @@
+SELECT c FROM t614a, t614b WHERE a=c OR b=c;

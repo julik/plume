@@ -1,0 +1,1 @@
+INSERT INTO immediate SELECT a FROM t1

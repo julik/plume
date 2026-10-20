@@ -1,0 +1,1 @@
+SELECT x'303132' IN t1

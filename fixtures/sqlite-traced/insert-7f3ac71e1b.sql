@@ -1,0 +1,1 @@
+REPLACE INTO t1 SELECT a, b FROM t2;

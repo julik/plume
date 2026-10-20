@@ -1,0 +1,2 @@
+SELECT rowid, sum(a) OVER w1 FROM t7 
+  WINDOW w1 AS (PARTITION BY b IN (SELECT rowid FROM t7));

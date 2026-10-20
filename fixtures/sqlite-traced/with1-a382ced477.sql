@@ -1,0 +1,1 @@
+CREATE VIEW aux.v3 AS VALUES(1);

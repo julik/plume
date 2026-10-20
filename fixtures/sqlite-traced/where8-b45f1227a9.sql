@@ -1,0 +1,1 @@
+SELECT * FROM t3, t4 WHERE h < 'are' OR f BETWEEN 0938446095 AND 'are' OR b = b

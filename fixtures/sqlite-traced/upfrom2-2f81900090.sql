@@ -1,0 +1,4 @@
+WITH data(k, v) AS (
+      VALUES(1, 'seven'), (1, 'eight'), (2, 'eleven'), (2, 'twelve')
+    )
+    UPDATE t1 SET z=v FROM data WHERE x=k;

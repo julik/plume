@@ -1,0 +1,2 @@
+SELECT rowid FROM y1 AS o NOT INDEXED 
+  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)

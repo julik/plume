@@ -1,0 +1,1 @@
+INSERT INTO asc VALUES(99)

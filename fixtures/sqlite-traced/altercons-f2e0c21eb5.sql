@@ -1,0 +1,1 @@
+CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a))

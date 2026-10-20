@@ -1,0 +1,1 @@
+INSERT INTO test1(f1) SELECT f1 FROM test1 ORDER BY min(f1);

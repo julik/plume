@@ -1,0 +1,3 @@
+SELECT a FROM t2
+      WHERE ((a BETWEEN 64 AND 66) AND a!=65)
+         OR ((a BETWEEN 90 AND 92) AND a!=91)

@@ -1,0 +1,5 @@
+EXPLAIN QUERY PLAN
+  SELECT c01, c02, c03, c04, c05, c06, c07
+    FROM t1, x01, x02, x03, x04, x05, x06, x07
+   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05
+     AND a06=b06 AND a07=b07;

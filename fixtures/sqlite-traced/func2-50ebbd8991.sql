@@ -1,0 +1,1 @@
+SELECT SUBSTR(x'1234', -1, 0)

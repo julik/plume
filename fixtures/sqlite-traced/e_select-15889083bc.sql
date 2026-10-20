@@ -1,0 +1,1 @@
+SELECT * FROM t5 , t6 USING (a)

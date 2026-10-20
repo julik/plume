@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES('aaa', 4.0);

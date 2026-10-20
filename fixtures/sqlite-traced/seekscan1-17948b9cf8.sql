@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a=1 AND (b, c) IN (SELECT c, d FROM t2);

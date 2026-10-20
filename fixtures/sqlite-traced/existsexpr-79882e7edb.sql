@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);

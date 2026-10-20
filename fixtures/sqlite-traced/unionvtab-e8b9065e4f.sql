@@ -1,0 +1,1 @@
+CREATE TEMP TABLE x3(a BLOB, b);

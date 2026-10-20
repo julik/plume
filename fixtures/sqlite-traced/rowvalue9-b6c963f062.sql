@@ -1,0 +1,3 @@
+SELECT a1.rowid FROM a1, a2 WHERE EXISTS (
+    SELECT 1 FROM a1 WHERE a=x AND b=y
+  )

@@ -1,0 +1,1 @@
+SELECT a FROM cnt WHERE a>45 GROUP BY 1;

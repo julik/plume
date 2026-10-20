@@ -1,0 +1,1 @@
+SELECT x IS FALSE FROM t1;

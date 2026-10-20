@@ -1,0 +1,1 @@
+CREATE VIRTUAL TABLE att.ft1 USING fts4(x, y);

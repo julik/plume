@@ -1,0 +1,1 @@
+INSERT INTO key SELECT a FROM t1

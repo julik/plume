@@ -1,0 +1,3 @@
+CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN
+    UPDATE t12 SET a=new.a+1, b=new.b+1;
+  END;

@@ -1,0 +1,1 @@
+SELECT coalesce(datetime(),'NULL')

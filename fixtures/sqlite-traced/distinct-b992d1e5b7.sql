@@ -1,0 +1,1 @@
+EXPLAIN SELECT DISTINCT rowid/2, rowid FROM t1

@@ -1,0 +1,1 @@
+CREATE VIEW agg2 AS SELECT a, sum(b) AS m FROM t2 GROUP BY a;

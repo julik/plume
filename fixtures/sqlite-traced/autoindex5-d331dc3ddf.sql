@@ -1,0 +1,4 @@
+CREATE VIEW vvv AS
+    SELECT * FROM t1
+    UNION ALL
+    SELECT 0, 0 WHERE 0;

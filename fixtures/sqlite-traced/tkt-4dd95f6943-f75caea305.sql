@@ -1,0 +1,1 @@
+SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x ASC;

@@ -1,0 +1,3 @@
+CREATE TRIGGER trig UPDATE ON t1 FOR EACH STATEMENT BEGIN
+        SELECT * FROM sqlite_master;
+     END;

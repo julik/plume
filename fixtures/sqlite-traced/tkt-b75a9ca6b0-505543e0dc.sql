@@ -1,0 +1,1 @@
+SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC

@@ -1,0 +1,1 @@
+SELECT 'a' >= 'B' COLLATE NOCASE

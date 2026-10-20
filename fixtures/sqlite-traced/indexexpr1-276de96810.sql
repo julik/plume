@@ -1,0 +1,1 @@
+CREATE INDEX t2x2 ON t2(a,b+(SELECT 15));

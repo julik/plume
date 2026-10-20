@@ -1,0 +1,1 @@
+CREATE TEMP TABLE tbl (a PRIMARY KEY, b) WITHOUT rowid;

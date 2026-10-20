@@ -1,0 +1,1 @@
+SELECT * FROM t1 INDEXED BY t1bb;
