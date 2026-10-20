@@ -385,3 +385,11 @@ test "select '@abc'.'!pqr' from '@abc'" do
 	assert_equal [core.columns[0].result.table, core.columns[0].result.column], ["@abc", "!pqr"]
 	assert_equal core.source.table, "@abc"
 end
+
+test "a list ends where its separator is missing, even before a word that could be a name" do
+	window = parse_stmt("SELECT sum(b) OVER (ORDER BY c ROWS 2 PRECEDING) FROM t").body.columns.first.result.over_clause
+
+	assert_equal window.orderings.size, 1
+	assert_equal window.frame.type, :ROWS
+	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT * + 1 FROM t") }
+end

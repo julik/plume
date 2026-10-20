@@ -3826,7 +3826,8 @@ module Plume
 			end
 			a << insert
 
-			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, &)
+			# Without a separator after the first item the list has ended, as collect decides for later ones
+			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, &) unless trailing_sep && sep_tk.nil?
 
 			return token_span_from(*a) if a.all?(Array)
 
