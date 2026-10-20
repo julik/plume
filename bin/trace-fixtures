@@ -56,14 +56,26 @@ def trace(run_dir, work_dir, name)
 	cwd = File.join(work_dir, name)
 	FileUtils.mkdir_p(cwd)
 	env = { "TRACE_OUT" => trace, "TRACE_DIR" => cwd }
-	pid = Process.spawn(env, "tclsh", File.join(run_dir, "#{name}.test"), out: File::NULL, err: File::NULL, pgroup: true, rlimit_cpu: CPU_LIMIT)
+	errors = File.join(work_dir, "#{name}.err")
+	pid = Process.spawn(env, "tclsh", File.join(run_dir, "#{name}.test"), out: File::NULL, err: errors, pgroup: true, rlimit_cpu: CPU_LIMIT)
 	waiter = Process.detach(pid)
 	unless waiter.join(WALL_LIMIT)
-		Process.kill("KILL", -pid)
+		begin
+			Process.kill("KILL", -pid)
+		rescue Errno::ESRCH
+			nil # it finished just as the limit came
+		end
 		waiter.join
 	end
 	FileUtils.rm_rf(cwd)
 	traced_sql(trace) if waiter.value.success? && File.exist?(trace)
+end
+
+# Why a test file did not run to the end: the first line it wrote to stderr
+def failure(work_dir, name)
+	File.foreach(File.join(work_dir, "#{name}.err")).first&.strip || "killed after the time limit"
+rescue Errno::ENOENT
+	"did not start"
 end
 
 def statements(sql)
@@ -92,6 +104,9 @@ Dir.mktmpdir do |tmp|
 	end
 	workers.each(&:join)
 	warn "#{traces.size} of #{names.size} test files ran to the end"
+	# Named tests are expected to run, so say why one did not; with none running, nothing will
+	(names - traces.keys).each { |name| warn "  #{name}: #{failure(File.join(tmp, "work"), name)}" } if ARGV.any? || traces.empty?
+	abort "no test file ran - is tclsh installed, with the sqlite3 package?" if traces.empty?
 
 	known = Set.new
 	shapes = Set.new
@@ -103,7 +118,8 @@ Dir.mktmpdir do |tmp|
 
 	picked = {}
 	traces.sort.each do |name, sqls|
-		sqls.flat_map { |traced| statements(traced) }.each do |sql|
+		# Splitting asks sqlite3_complete once per semicolon, so a huge traced string is not worth it
+		sqls.reject { |traced| traced.bytesize > 1_000_000 }.flat_map { |traced| statements(traced) }.each do |sql|
 			sql = sql.strip
 			next if sql.empty? || sql.bytesize > 100_000 || !known.add?(normalize(sql))
 

@@ -12,7 +12,7 @@ module FixtureShape
 	# Pass the statements when they are already parsed
 	def of(sql, statements = nil)
 		tree(statements || Plume.parse(sql))
-	rescue
+	rescue StandardError, SystemStackError
 		[:tokens, tokens(sql)]
 	end
 
