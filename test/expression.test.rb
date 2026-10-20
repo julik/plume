@@ -2690,3 +2690,7 @@ test "~ is no binary operator" do
 	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT 1 ~ 2") }
 	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT n ~(c) + 1 FROM t") }
 end
+
+test "a parameter whose name is not valid UTF-8 parses" do
+	assert_equal Plume.parse((+"SELECT :a\xFF").force_encoding(Encoding::UTF_8)).first.to_sql, (+"SELECT :a\xFF").force_encoding(Encoding::UTF_8)
+end
