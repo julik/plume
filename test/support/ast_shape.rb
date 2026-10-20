@@ -5,8 +5,8 @@
 #
 # The shape is flat - the tree walked in order - and built without recursion, so neither building
 # nor comparing two shapes needs a stack as deep as the tree. A long UNION ALL or OR chain is that
-# deep, and a thread's stack is small. A node's class fixes which fields follow it, each named
-# for readable failures, and a list gives its length first
+# deep, and a thread's stack is small. A node's class - the class itself, which no value can equal -
+# fixes which fields follow it, each named for readable failures, and a list gives its length first
 module AstShape
 	extend self
 
@@ -28,7 +28,7 @@ module AstShape
 				shape << :row unless Plume::Node === inner
 				pending << inner
 			when Plume::Node
-				shape << item.class.name
+				shape << item.class
 				FIELDS[item.class].each { |name| pending << read(item, name) << name.name }
 			when Array
 				shape << :list << item.size

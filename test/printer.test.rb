@@ -76,13 +76,14 @@ test "alter table's constraint and not null forms print back as they parsed" do
 	].each { |sql| assert_equal parse_stmt(sql).to_sql, sql }
 end
 
-test "a chain of one operator prints flat, and only a right operand keeps its parentheses" do
-	assert_equal parse_stmt("SELECT a OR b OR c, a - b - c, a - (b - c), (a OR b) AND c").to_sql,
-		"SELECT a OR b OR c, a - b - c, a - (b - c), (a OR b) AND c"
+test "a chain at one precedence prints flat, and only a right operand keeps its parentheses" do
+	assert_equal parse_stmt("SELECT a OR b OR c, a - b + c, a * b / c % d, a = b IS c, a - (b + c), (a OR b) AND c").to_sql,
+		"SELECT a OR b OR c, a - b + c, a * b / c % d, a = b IS c, a - (b + c), (a OR b) AND c"
 end
 
 # Tests run on a thread, whose stack is far smaller than the main thread's
-test "long OR and UNION ALL chains round trip on a thread" do
-	round_trip("SELECT a FROM t WHERE #{(1..3000).map { |i| "a = #{i}" }.join(" OR ")}")
+test "long OR, mixed-operator and UNION ALL chains round trip on a thread" do
+	round_trip("SELECT a FROM t WHERE #{(1..6000).map { |i| "a = #{i}" }.join(" OR ")}")
+	round_trip("SELECT 0#{(1..6000).map { |i| i.odd? ? " - #{i}" : " + #{i}" }.join}")
 	round_trip((1..600).map { |i| "SELECT #{i}" }.join(" UNION ALL "))
 end
