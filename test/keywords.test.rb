@@ -36,3 +36,15 @@ test "a window is named the way SQLite names anything, a join keyword or a strin
 	assert_equal parse_stmt("SELECT sum(1) OVER left FROM t WINDOW left AS ()").body.columns.first.result.over_clause.window_name, "left"
 	assert_equal parse_stmt("SELECT sum(1) OVER ('w' ORDER BY y) FROM t WINDOW 'w' AS ()").body.columns.first.result.over_clause.base_window_name, "w"
 end
+
+test "the table after IN is any name, a join keyword or a string included" do
+	right = parse_stmt("SELECT 1 IN main.left").body.columns.first.result.right
+	assert_equal [right.schema, right.table], ["main", "left"]
+	assert_equal parse_stmt("SELECT 1 IN 't'").body.columns.first.result.right.table, "t"
+	assert_equal parse_stmt("SELECT 1 IN cross(2)").body.columns.first.result.right.function, "cross"
+end
+
+# SQLite reads STORED after a generated column's expression as a plain name it checks
+test "stored names tables and columns" do
+	assert_equal parse_stmt("SELECT stored FROM stored").body.columns.first.result.column, "stored"
+end

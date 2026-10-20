@@ -62,6 +62,7 @@ module Plume
 			:GLOB,
 			:LIKE,
 			:ROWID,
+			:STORED,
 			:STRICT,
 			:COLUMN,
 			:DO,
@@ -1541,9 +1542,9 @@ module Plume
 						else
 							expected!(:RP, "select-stmt", "expr")
 						end
-					elsif (ref = maybe { identifier })
+					elsif (ref = maybe { name })
 						if maybe :DOT
-							name = identifier
+							qualified = name
 
 							if (arguments_lp = maybe :LP)
 								arguments = maybe_some(trailing_sep: :COMMA) { expression }
@@ -1552,7 +1553,7 @@ module Plume
 								right = FunctionReference.concrete(
 									full_source: @lexer.sql,
 									schema_tk: Token::Identifier(ref),
-									function_tk: Token::Identifier(name),
+									function_tk: Token::Identifier(qualified),
 									arguments_lp: Token::Punctuation(arguments_lp),
 									arguments: FunctionArguments.concrete(
 										full_source: @lexer.sql,
@@ -1564,7 +1565,7 @@ module Plume
 								right = TableName.concrete(
 									full_source: @lexer.sql,
 									schema_tk: Token::Identifier(ref),
-									table_tk: Token::Identifier(name),
+									table_tk: Token::Identifier(qualified),
 								)
 							end
 						elsif (arguments_lp = maybe :LP)
