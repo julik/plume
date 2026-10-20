@@ -133,3 +133,15 @@ end
 test "a parsed list of several statements is refused like SQL with several statements" do
 	assert_raises(Plume::Analysis::Error) { Plume.access(Plume.parse("select 1; select 2")) }
 end
+
+# Whether it is too deep depends on the stack, but running out of it must not show
+test "a statement too deep for the resolver's stack is an analysis error" do
+	sql = "SELECT * FROM #{"(SELECT * FROM " * 999}t#{")" * 999}"
+	result = Thread.new do
+		Plume.access(Plume.parse(sql))
+	rescue Plume::Analysis::Error, Plume::SyntaxError => e
+		e # some Rubies run out of stack parsing it already
+	end.value
+
+	assert([Plume::Analysis::Error, Plume::SyntaxError, Plume::Analysis::Access].any? { |kind| kind === result }) { result.inspect[0, 200] }
+end
