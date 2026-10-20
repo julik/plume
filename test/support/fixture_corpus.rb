@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "ast_shape"
+
 module FixtureCorpus
 	extend self
 
@@ -15,13 +17,18 @@ module FixtureCorpus
 		File.read(File.join(ROOT, path))
 	end
 
+	# The check test/fixtures.test.rb makes - parse, print, parse again, same tree - and on a
+	# thread like the test, whose smaller stack can overflow where the main thread's does not
 	def classify(path)
-		statements = Plume::Parser.new(read(path)).parse
-		statements.all?(Plume::Node) ? :pass : :fail
-	rescue Plume::SyntaxError
-		:reject
-	rescue
-		:fail
+		Thread.new do
+			statements = Plume::Parser.new(read(path)).parse
+			printed = statements.map(&:to_sql).join(";\n")
+			(AstShape.of(Plume.parse(printed)) == AstShape.of(statements)) ? :pass : :fail
+		rescue Plume::SyntaxError
+			:reject
+		rescue StandardError, SystemStackError
+			:fail
+		end.value
 	end
 
 	def leading_keyword(path)
