@@ -24,11 +24,14 @@ module FixtureCorpus
 	# Returns the verdict (:pass, :fail or :reject) and the statements, when they parsed
 	def plume_verdict(sql)
 		Thread.new do
-			statements = Plume::Parser.new(sql).parse
+			statements = begin
+				Plume::Parser.new(sql).parse
+			rescue Plume::SyntaxError
+				next [:reject, nil]
+			end
+			# Printing what parsed into something that does not parse back is a failure, not a rejection
 			printed = statements.map(&:to_sql).join(";\n")
 			[(AstShape.of(Plume.parse(printed)) == AstShape.of(statements)) ? :pass : :fail, statements]
-		rescue Plume::SyntaxError
-			[:reject, nil]
 		rescue StandardError, SystemStackError
 			[:fail, nil]
 		end.value
