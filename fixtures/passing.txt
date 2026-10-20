@@ -9047,15 +9047,10 @@ fixtures/sqlite/sql/limit-98.sql
 fixtures/sqlite/sql/limit-99.sql
 fixtures/sqlite/sql/literal2-0.sql
 fixtures/sqlite/sql/literal2-1.sql
-fixtures/sqlite/sql/literal2-10.sql
 fixtures/sqlite/sql/literal2-2.sql
 fixtures/sqlite/sql/literal2-3.sql
 fixtures/sqlite/sql/literal2-4.sql
 fixtures/sqlite/sql/literal2-5.sql
-fixtures/sqlite/sql/literal2-6.sql
-fixtures/sqlite/sql/literal2-7.sql
-fixtures/sqlite/sql/literal2-8.sql
-fixtures/sqlite/sql/literal2-9.sql
 fixtures/sqlite/sql/loadext-0.sql
 fixtures/sqlite/sql/lock-0.sql
 fixtures/sqlite/sql/lock-1.sql

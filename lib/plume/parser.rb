@@ -151,6 +151,9 @@ module Plume
 			else
 				result
 			end
+		rescue SystemStackError
+			# SQLite has a nesting limit as well, and like its own it comes from the parser's stack
+			raise SyntaxError.new("statement nested too deeply")
 		end
 
 		def sql_stmt_list
@@ -2556,7 +2559,9 @@ module Plume
 				end
 			elsif :RAISE == current_token
 				raise_function
-			elsif (variable_tk = maybe :VARIABLE)
+			# SQLite lexes "#9" as a variable too, but "#" and a digit only ever names a register
+			# inside its own nested parses, so as a parameter it is a syntax error
+			elsif :VARIABLE == current_token && !current_value.match?(/\A#\d/) && (variable_tk = maybe :VARIABLE)
 				Variable.concrete(
 					full_source: @lexer.sql,
 					name_tk: Token::Variable(variable_tk),
@@ -3450,7 +3455,7 @@ module Plume
 				tk = require :FALSE
 				Token::False(tk)
 			when :QNUMBER
-				tk = require :QNUMBER
+				tk = require_qnumber
 				Token::Numeric(tk)
 			when :INTEGER
 				tk = require :INTEGER
@@ -3658,8 +3663,8 @@ module Plume
 				#
 				# A signed number is a numeric literal with an optional sign.
 			#
-			sign_tk  = maybe_one_of   :PLUS, :MINUS
-			value_tk = require_one_of :INTEGER, :FLOAT, :QNUMBER
+			sign_tk = maybe_one_of :PLUS, :MINUS
+			value_tk = (:QNUMBER == current_token) ? require_qnumber : require_one_of(:INTEGER, :FLOAT)
 
 			return value_tk unless sign_tk
 
@@ -3971,6 +3976,14 @@ module Plume
 		def current_token
 			buf = ensure_buffer
 			buf[0][0]
+		end
+
+		# SQLite lexes any number holding a "_" as a QNUMBER, and accepts it only if every "_" sits
+		# between two digits - hex digits after 0x
+		def require_qnumber
+			misplaced = current_value.match?(/\A0x/i) ? /(?<!\h)_|_(?!\h)/ : /(?<!\d)_|_(?!\d)/
+			expected!(:INTEGER, :FLOAT) if current_value.match?(misplaced)
+			require :QNUMBER
 		end
 
 		def statement_end?
