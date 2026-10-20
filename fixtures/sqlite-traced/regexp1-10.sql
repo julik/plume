@@ -1,0 +1,1 @@
+SELECT x FROM t1 WHERE y REGEXP 'by|in' ORDER BY x;

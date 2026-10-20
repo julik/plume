@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Runs test files from SQLite's own suite under a stand-in for its Tcl harness, and writes each
+# SQL statement they hand to SQLite to fixtures/sqlite-traced/<test>-<n>.sql. That catches the
+# statements Tcl builds at runtime, which bin/fixtures cannot see in the source. Then run
+# `bin/fixture-report --write` to hold Plume to them.
+#
+# Needs a tclsh with the sqlite3 package: macOS ships one, on Debian `apt install tcl libsqlite3-tcl`.
+#
+# Usage: bin/trace-fixtures main blob literal normalize regexp1 misc5
+
+require "bundler/setup"
+require "fileutils"
+require "net/http"
+require "open3"
+require "tmpdir"
+require_relative "../test/support/fixture_corpus"
+
+abort "usage: bin/trace-fixtures TEST..." if ARGV.empty?
+
+fixtures_path = File.join(FixtureCorpus::ROOT, "fixtures/sqlite-traced")
+tester = File.join(FixtureCorpus::ROOT, "test/support/sqlite_tester.tcl")
+FileUtils.mkdir_p(fixtures_path)
+
+# The harness writes "#### <bytes>" and then the SQL, so SQL holding newlines survives
+def traced_sql(path)
+	text = File.binread(path)
+	sqls = []
+	pos = 0
+	while (header = text.match(/^#### (\d+)\n/n, pos))
+		sqls << text.byteslice(header.end(0), header[1].to_i).force_encoding(Encoding::UTF_8)
+		pos = header.end(0) + header[1].to_i
+	end
+	sqls
+end
+
+ARGV.each do |name|
+	Dir.mktmpdir do |dir|
+		source = Net::HTTP.get_response(URI("https://raw.githubusercontent.com/sqlite/sqlite/master/test/#{name}.test"))
+		abort "#{name}.test: #{source.code} #{source.message}" unless source.is_a?(Net::HTTPSuccess)
+
+		File.write(File.join(dir, "#{name}.test"), source.body)
+		FileUtils.cp(tester, File.join(dir, "tester.tcl"))
+		FileUtils.mkdir_p(File.join(dir, "work"))
+		trace = File.join(dir, "trace")
+
+		env = { "TRACE_OUT" => trace, "TRACE_DIR" => File.join(dir, "work") }
+		# A test that stops partway would leave its fixtures cut short, so keep the old ones instead
+		_out, err, status = Open3.capture3(env, "tclsh", File.join(dir, "#{name}.test"))
+		abort "#{name}.test did not run to the end (is tclsh installed, with the sqlite3 package?):\n#{err}" unless status.success?
+
+		statements = traced_sql(trace).flat_map { |sql| FixtureCorpus.statements(sql) }.map(&:strip).uniq
+
+		FileUtils.rm_f(Dir[File.join(fixtures_path, "#{name}-*.sql")])
+		statements.each_with_index { |sql, i| File.write(File.join(fixtures_path, "#{name}-#{i}.sql"), "#{sql}\n") }
+		puts "#{name}: #{statements.size} statements"
+	end
+end

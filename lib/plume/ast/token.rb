@@ -123,13 +123,25 @@ module Plume
 
 			case tok
 			when :INTEGER, [:PLUS, :INTEGER], [:MINUS, :INTEGER]
-				src.to_i
+				integer_literal(src)
 			when :FLOAT, [:PLUS, :FLOAT], [:MINUS, :FLOAT]
 				src.to_f
 			when :QNUMBER, [:PLUS, :QNUMBER], [:MINUS, :QNUMBER]
-				value = src.to_f
-				(value % 1 == 0) ? value.to_i : value
+				(src.match?(/[.eE]/) && !src.match?(/0x/i)) ? src.delete("_").to_f : integer_literal(src)
 			end
+		end
+
+		def integer_literal(src)
+			digits = src.delete("_").delete_prefix("+")
+			negative = digits.delete_prefix!("-")
+			value = digits.match?(/\A0x/i) ? hex_literal(digits) : digits.to_i
+			negative ? -value : value
+		end
+
+		# SQLite reads a hex literal as a 64-bit two's-complement integer, so 0xFFFFFFFFFFFFFFFF is -1
+		def hex_literal(digits)
+			value = digits.to_i(16)
+			(value >= (2**63)) ? value - (2**64) : value
 		end
 
 		def string_literal(str, tup)

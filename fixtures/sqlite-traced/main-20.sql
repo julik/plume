@@ -1,0 +1,2 @@
+CREATE TRIGGER xyz AFTER DELETE end BEGIN
+         SELECT a, b FROM end;

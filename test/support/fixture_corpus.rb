@@ -5,6 +5,7 @@ module FixtureCorpus
 
 	ROOT = File.expand_path("../..", __dir__)
 	BASELINE_PATH = File.join(ROOT, "fixtures/passing.txt")
+	REJECTED_PATH = File.join(ROOT, "fixtures/rejected.txt")
 
 	def paths
 		Dir.glob("fixtures/**/*.sql", base: ROOT).sort
@@ -17,7 +18,9 @@ module FixtureCorpus
 	def classify(path)
 		statements = Plume::Parser.new(read(path)).parse
 		statements.all?(Plume::Node) ? :pass : :fail
-	rescue StandardError, SystemStackError
+	rescue Plume::SyntaxError
+		:reject
+	rescue
 		:fail
 	end
 
@@ -61,7 +64,9 @@ module FixtureCorpus
 		@sqlite ||= SQLite3::Database.new(":memory:")
 	end
 
-	def baseline
-		File.exist?(BASELINE_PATH) ? File.readlines(BASELINE_PATH, chomp: true) : []
-	end
+	def baseline = lines(BASELINE_PATH)
+
+	def rejected = lines(REJECTED_PATH)
+
+	def lines(path) = File.exist?(path) ? File.readlines(path, chomp: true) : []
 end

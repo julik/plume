@@ -1,0 +1,2 @@
+CREATE TRIGGER xyz AFTER DELETE [;end;] BEGIN
+         UPDATE pqr;

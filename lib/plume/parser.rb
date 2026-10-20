@@ -151,6 +151,9 @@ module Plume
 			else
 				result
 			end
+		rescue SystemStackError
+			# How deep is too deep depends on the stack the caller has left, so no fixture relies on it
+			raise SyntaxError.new("statement nested too deeply")
 		end
 
 		def sql_stmt_list
@@ -474,7 +477,7 @@ module Plume
 		end
 
 		def pragma_value
-			if current_token in :PLUS | :MINUS | :INTEGER | :FLOAT | :QNUMBER
+			if current_token in :PLUS | :MINUS | :INTEGER | :FLOAT
 				Token::Numeric(signed_number)
 			elsif (keyword_tk = maybe_one_of :ON, :DELETE, :DEFAULT, :TRUE, :FALSE)
 				Token::Keyword(keyword_tk)
@@ -1848,7 +1851,7 @@ module Plume
 							default_rp:    Token::Punctuation(default_rp),
 							**value_attr,
 						)
-					elsif (number       = maybe      { signed_numeric })
+					elsif (number       = maybe      { signed_number })
 						DefaultColumnConstraint.concrete(
 							full_source:   @lexer.sql,
 							constraint_kw: Token::Keyword(constraint_kw),
@@ -2556,10 +2559,12 @@ module Plume
 				end
 			elsif :RAISE == current_token
 				raise_function
-			elsif (variable_tk = maybe :VARIABLE)
+			# SQLite lexes "#9" as a variable too, but "#" and a digit only ever names a register
+			# inside its own nested parses, so as a parameter it is a syntax error
+			elsif :VARIABLE == current_token && !current_value.match?(/\A#\d/)
 				Variable.concrete(
 					full_source: @lexer.sql,
-					name_tk: Token::Variable(variable_tk),
+					name_tk: Token::Variable(require(:VARIABLE)),
 				)
 			else
 				expected!("<basic expression>")
@@ -3450,7 +3455,7 @@ module Plume
 				tk = require :FALSE
 				Token::False(tk)
 			when :QNUMBER
-				tk = require :QNUMBER
+				tk = require_qnumber
 				Token::Numeric(tk)
 			when :INTEGER
 				tk = require :INTEGER
@@ -3626,40 +3631,6 @@ module Plume
 			#
 			sign_tk  = maybe_one_of   :PLUS, :MINUS
 			value_tk = require_one_of :INTEGER, :FLOAT
-
-			return value_tk unless sign_tk
-
-			sign_tk, beg, _fin = sign_tk
-			value_tk, _beg, fin = value_tk
-
-			[[sign_tk, value_tk], beg, fin]
-		end
-
-		def signed_numeric
-			#
-				# Used by:
-				#   - column_constraint
-				#
-				# Relevant `parse.y` grammar rules:
-				#   ccons ::= DEFAULT PLUS term | DEFAULT MINUS term
-				#   expr ::= expr PLUS|MINUS expr | term
-				#   term ::= NULL | FLOAT | BLOB | STRING | INTEGER | CTIME_KW | QNUMBER
-				#
-				# Syntax diagram:
-				#   ◯─┬───▶────┬─▶{ numeric-literal }─▶◯
-				#     ├─▶{ + }─┤
-				#     └─▶{ - }─┘
-				#
-				# Simplified grammar:
-				#   [PLUS | MINUS] INTEGER | FLOAT | QNUMBER
-				#
-				# Relevant SQLite documentation:
-				#   - https://www.sqlite.org/syntax/signed-number.html
-				#
-				# A signed number is a numeric literal with an optional sign.
-			#
-			sign_tk  = maybe_one_of   :PLUS, :MINUS
-			value_tk = require_one_of :INTEGER, :FLOAT, :QNUMBER
 
 			return value_tk unless sign_tk
 
@@ -3971,6 +3942,15 @@ module Plume
 		def current_token
 			buf = ensure_buffer
 			buf[0][0]
+		end
+
+		# SQLite lexes any number holding a "_" as a QNUMBER, and accepts it as a term only if every
+		# "_" sits between two digits - hex digits after 0x
+		def require_qnumber
+			value = current_value
+			misplaced = value.match?(/\A0x/i) ? /(?<!\h)_|_(?!\h)/ : /(?<!\d)_|_(?!\d)/
+			expected!(:INTEGER, :FLOAT) if value.match?(misplaced)
+			require :QNUMBER
 		end
 
 		def statement_end?

@@ -1,0 +1,1 @@
+SELECT * from T1 where ^x

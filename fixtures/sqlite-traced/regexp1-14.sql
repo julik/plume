@@ -1,0 +1,1 @@
+SELECT x FROM t1 WHERE regexpi('BY|CHRIST',y) ORDER BY x;

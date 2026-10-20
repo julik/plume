@@ -3,8 +3,9 @@
 
 # Prints how much of the fixture corpus parses, bucketed by the leading keyword.
 # INVALID counts fixtures we fail on that SQLite rejects as malformed too.
-# With --write, also records the passing fixtures in fixtures/passing.txt (which
-# test/fixtures.test.rb holds us to) and the table in llm/fixture-report.txt
+# With --write, also records the passing fixtures in fixtures/passing.txt and the
+# invalid ones Plume raises a SyntaxError for in fixtures/rejected.txt (both of which
+# test/fixtures.test.rb holds us to), and the table in llm/fixture-report.txt
 
 require "bundler/setup"
 require "plume"
@@ -12,12 +13,14 @@ require_relative "../test/support/fixture_corpus"
 
 counts = Hash.new { |h, k| h[k] = Hash.new(0) }
 passing = []
+rejected = []
 
 FixtureCorpus.paths.each do |path|
-	status = FixtureCorpus.classify(path)
-	status = :invalid if status == :fail && FixtureCorpus.sqlite_rejects?(path)
+	plume = FixtureCorpus.classify(path)
+	status = (plume == :pass) ? :pass : (FixtureCorpus.sqlite_rejects?(path) ? :invalid : :fail)
 	counts[FixtureCorpus.leading_keyword(path)][status] += 1
 	passing << path if status == :pass
+	rejected << path if status == :invalid && plume == :reject
 end
 
 rows = counts.sort_by { |kw, c| [-c.values.sum, kw.to_s] }.map do |kw, c|
@@ -36,8 +39,11 @@ puts report
 if ARGV.include?("--write")
 	root = FixtureCorpus::ROOT
 	File.write(FixtureCorpus::BASELINE_PATH, "#{passing.join("\n")}\n")
+	File.write(FixtureCorpus::REJECTED_PATH, "#{rejected.join("\n")}\n")
 	File.write(File.join(root, "llm/fixture-report.txt"), report)
 
 	lost = FixtureCorpus.baseline - passing
 	warn "#{lost.size} fixtures that used to pass no longer do" if lost.any?
+	accepted = FixtureCorpus.rejected - rejected
+	warn "#{accepted.size} malformed fixtures that used to be rejected no longer are" if accepted.any?
 end

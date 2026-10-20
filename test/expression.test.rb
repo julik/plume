@@ -2662,3 +2662,14 @@ test "\"a \"\"b\"\"\".`c``d`" do
 
 	assert_equal [column.table, column.column], ["a \"b\"", "c`d"]
 end
+
+# The values SQLite's own test/literal.test expects
+test "numeric literals take the values SQLite gives them" do
+	{
+		"45" => 45, "0xFF" => 255, "0x123FFFFFFFF" => 0x123FFFFFFFF, "0xFFFFFFFFFFFFFFFF" => -1,
+		"0x7FFFFFFFFFFFFFFF" => 0x7FFFFFFFFFFFFFFF, "1e12" => 1e12, "1_000" => 1000, "1.1_1" => 1.11,
+		"12_3_456.7_8_9" => 123456.789, "9_223_372_036_854_775_807" => 9_223_372_036_854_775_807, "0x1_F" => 31,
+	}.each do |sql, value|
+		assert_equal parse_stmt("SELECT #{sql}").body.columns.first.result.value, value
+	end
+end
