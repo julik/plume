@@ -41,7 +41,14 @@ module Plume
 		# Operands of these need parentheses to keep their grouping when printed inside another expression
 		COMPOUND_EXPRESSIONS = [BinaryExpression, UnaryExpression, TernaryExpression, LikeExpression, CollationExpression].freeze
 
-		def self.print(node) = new.print(node)
+		Error = Class.new(StandardError)
+
+		def self.print(node)
+			new.print(node)
+		rescue SystemStackError
+			# As with parsing, how deep is too deep depends on the stack the caller has left
+			raise Error, "statement nested too deeply to print"
+		end
 
 		def print(node)
 			case node

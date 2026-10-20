@@ -105,3 +105,10 @@ test "a collation whose name is not valid UTF-8 prints back" do
 		round_trip(sql.dup.force_encoding(Encoding::UTF_8))
 	end
 end
+
+test "a tree too deep for the printer's stack is a printer error" do
+	expression = Plume::ColumnName.new(column: "a")
+	100_000.times { expression = Plume::UnaryExpression.new(operator: :NOT, operand: expression) }
+
+	assert_raises(Plume::Printer::Error) { expression.to_sql }
+end
