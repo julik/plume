@@ -19,7 +19,12 @@ module Plume
 		end
 
 		# see: https://github.com/sqlite/sqlite/blob/master/src/parse.y#L255-L283
+		# Literals in an expression, names anywhere else: SQLite has no TRUE or FALSE keyword, and lets
+		# the CURRENT_* ones (CTIME_KW) fall back to names
+		LITERAL_KEYWORDS = Set[:TRUE, :FALSE, :CURRENT_DATE, :CURRENT_TIME, :CURRENT_TIMESTAMP].freeze
+
 		TOKEN_FALLBACKS = Set[
+			*LITERAL_KEYWORDS,
 			:EXPLAIN,
 			:QUERY,
 			:PLAN,
@@ -2086,7 +2091,7 @@ module Plume
 
 		# The inside of a window-defn parenthesis, shared by OVER (…) and WINDOW name AS (…)
 		def window_body
-			base_window_name_tk = maybe { identifier(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
+			base_window_name_tk = maybe { name(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
 			if (partition_by_kw = maybe_all_of(:PARTITION, :BY))
 				partitions = require_some(trailing_sep: :COMMA) { expression }
 			end
@@ -2187,7 +2192,7 @@ module Plume
 					window_rp: Token::Punctuation(window_rp),
 				)
 			else
-				window_name_tk = identifier
+				window_name_tk = name
 
 				OverClause.concrete(
 					full_source: @lexer.sql,
@@ -2494,7 +2499,10 @@ module Plume
 					select_rp: Token::Punctuation(select_rp),
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
-			elsif !(current_token == :STRING && peek == :DOT) && (literal_tk = maybe { literal_value })
+			# A string or TRUE/FALSE before a dot names a table: `'t'.x`, `false.false`. SQLite has no TRUE
+			# or FALSE keyword at all, while CURRENT_* is always a literal in an expression
+			elsif !((current_token in :STRING | :TRUE | :FALSE) && peek == :DOT) &&
+					(literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
 					value_tk: literal_tk,
@@ -3719,6 +3727,8 @@ module Plume
 				start_buffer = @peek_buffer.dup
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
+				start_last_consumed = @last_consumed_token
+				start_last_consumed_fin = @last_consumed_fin
 
 				result = catch(:ERROR) { yield }
 
@@ -3726,6 +3736,8 @@ module Plume
 					@peek_buffer = start_buffer
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
+					@last_consumed_token = start_last_consumed
+					@last_consumed_fin = start_last_consumed_fin
 					nil
 				else
 					result
@@ -3996,6 +4008,7 @@ module Plume
 			ensure_buffer
 			token = @peek_buffer.shift
 			@last_consumed_fin = token[2]
+			@last_consumed_token = token[0]
 			token
 		end
 
@@ -4005,9 +4018,40 @@ module Plume
 			lexer = @lexer
 			@peek_buffer.tap do |buf|
 				while buf.size < size
-					buf << [lexer.next_token, lexer.anchor, lexer.cursor].freeze
+					token = lexer.next_token
+					if token == :WINDOW || token == :OVER || token == :FILTER
+						token = contextual_keyword(token, buf.empty? ? @last_consumed_token : buf.last[0])
+					end
+					buf << [token, lexer.anchor, lexer.cursor].freeze
 				end
 			end
+		end
+
+		# Like SQLite's tokenize.c, decide from the tokens around them whether WINDOW, OVER and FILTER are
+		# keywords here or names: WINDOW only before `name AS`, OVER only after `)` and before `(` or a
+		# name, FILTER only after `)` and before `(`
+		def contextual_keyword(token, previous)
+			following, after = lex_ahead
+			keyword =
+				case token
+				when :WINDOW then name_token?(following) && after == :AS
+				when :OVER then previous == :RP && (following == :LP || name_token?(following))
+				when :FILTER then previous == :RP && following == :LP
+				end
+			keyword ? token : :ID
+		end
+
+		# The types of the two tokens after the one just lexed, leaving the lexer where it was
+		def lex_ahead
+			cursor, anchor = @lexer.cursor, @lexer.anchor
+			[@lexer.next_token, @lexer.next_token]
+		ensure
+			@lexer.cursor, @lexer.anchor = cursor, anchor
+		end
+
+		# What SQLite's tokenize.c counts as a name when looking around WINDOW and OVER
+		def name_token?(token)
+			(token in :ID | :STRING | :WINDOW | :OVER) || JOIN_KEYWORDS.include?(token) || TOKEN_FALLBACKS.include?(token)
 		end
 
 		def expected!(*expected)
