@@ -65,16 +65,19 @@ module Plume
 			name = name.to_s
 			return name if name.ascii_only? && name.match?(BARE_IDENTIFIER) && bare_keyword_ok?(name.upcase.to_sym)
 
-			%("#{name.gsub('"', '""')}")
+			%("#{doubled(name, '"')}")
 		end
 
 		# Keywords SQLite falls back to treating as identifiers, like ROWID or KEY, need no quotes -
 		# except the ones that would read back as the start of an expression
 		def bare_keyword_ok?(word) = !Lexer::KEYWORDS.include?(word) || (Parser::TOKEN_FALLBACKS.include?(word) && !EXPRESSION_KEYWORDS.include?(word))
 
-		def string(value) = "'#{value.to_s.gsub("'", "''")}'"
+		def string(value) = "'#{doubled(value.to_s, "'")}'"
 
 		private
+
+		# Done on the bytes, since TruffleRuby's gsub refuses a string that is not valid UTF-8
+		def doubled(text, quote) = text.b.gsub(quote, quote * 2).force_encoding(text.encoding)
 
 		def underscore(name) = name.gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase
 
