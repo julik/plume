@@ -87,3 +87,10 @@ test "long OR, mixed-operator and UNION ALL chains round trip on a thread" do
 	round_trip("SELECT 0#{(1..6000).map { |i| i.odd? ? " - #{i}" : " + #{i}" }.join}")
 	round_trip((1..600).map { |i| "SELECT #{i}" }.join(" UNION ALL "))
 end
+
+test "a name that is not valid UTF-8 prints quoted" do
+	sql = (+"SELECT \xFFa FROM t").force_encoding(Encoding::UTF_8)
+
+	assert_equal Plume.parse(sql).first.to_sql, (+"SELECT \"\xFFa\" FROM t").force_encoding(Encoding::UTF_8)
+	round_trip(sql)
+end
