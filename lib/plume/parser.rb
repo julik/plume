@@ -874,7 +874,10 @@ module Plume
 					select_statement: as_select
 				)
 			elsif (columns_lp = maybe :LP)
-				columns         = require_some(trailing_sep: :COMMA) { column_def }
+				# The comma after the last column leads into the table constraints: `columnlist COMMA conslist`
+				columns         = require_some(given: column_def, trailing_sep: :COMMA) do
+					column_def unless current_token in :CONSTRAINT | :PRIMARY | :UNIQUE | :CHECK | :FOREIGN
+				end
 				# inlined `table_constraint`
 				constraints     = maybe_some(trailing_sep: [:COMMA, nil].freeze) do
 					#
@@ -3826,7 +3829,7 @@ module Plume
 			end
 			a << insert
 
-			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, ended: trailing_sep && sep_tk.nil?, &)
+			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, last_sep: sep_tk, &)
 
 			return token_span_from(*a) if a.all?(Array)
 
@@ -3865,7 +3868,7 @@ module Plume
 			if insert
 				a << insert
 
-				collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, ended: trailing_sep && sep_tk.nil?, &)
+				collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, last_sep: sep_tk, &)
 
 				return token_span_from(*a) if a.all?(Array)
 
@@ -3875,11 +3878,11 @@ module Plume
 			end
 		end
 
-		# `ended`: the last item in `into` had no trailing separator, so the list has ended there
-		def collect(into: [], trailing_sep: nil, leading_sep: nil, ended: false, &block)
-			break_next = ended
+		# `last_sep` is what followed the last item in `into`: nil when no separator did, so the list has
+		# ended; a separator token, so another item must follow; false when an optional one was left out
+		def collect(into: [], trailing_sep: nil, leading_sep: nil, last_sep: false, &block)
 			while true
-				break if break_next
+				break if trailing_sep && last_sep.nil?
 
 				if leading_sep
 					sep_tk = (Array === leading_sep) ? maybe_one_of(*leading_sep) : maybe(leading_sep)
@@ -3895,11 +3898,10 @@ module Plume
 					end
 
 				elsif trailing_sep
-					val = maybe { yield }
+					val = last_sep ? yield : maybe { yield }
 					break if val.nil?
 
-					sep_tk = (Array === trailing_sep) ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
-					break_next = sep_tk.nil?
+					last_sep = sep_tk = (Array === trailing_sep) ? maybe_one_of(*trailing_sep) : maybe(trailing_sep)
 
 					insert = if Node === val
 						val.trailing = Token::Punctuation(sep_tk) if sep_tk

@@ -7,7 +7,7 @@ UPDATE           536     530       0       6
 EXPLAIN          523     519       0       4
 DELETE           405     402       0       3
 DROP             394     383       4       7
-WITH             384     376       4       4
+WITH             384     375       4       5
 BEGIN            329     329       0       0
 ALTER            177      99      76       2
 ATTACH           105     102       0       3
@@ -28,4 +28,4 @@ MINUS              2       0       0       2
 EMPTY              1       1       0       0
 INTEGER            1       0       0       1
 OF                 1       0       0       1
-ALL            26977   26525     194     258
+ALL            26977   26524     194     259

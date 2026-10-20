@@ -11426,7 +11426,6 @@ fixtures/sqlite-traced/with1-789c71d705.sql
 fixtures/sqlite-traced/with1-78d118fd77.sql
 fixtures/sqlite-traced/with1-79a4e6a415.sql
 fixtures/sqlite-traced/with1-7dc09911ee.sql
-fixtures/sqlite-traced/with1-7eefc3a17c.sql
 fixtures/sqlite-traced/with1-7f607f7d06.sql
 fixtures/sqlite-traced/with1-7f673f7f18.sql
 fixtures/sqlite-traced/with1-7fdbc8a010.sql

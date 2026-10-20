@@ -395,7 +395,16 @@ test "select sum(b) over (order by c rows 2 preceding) from t" do
 end
 
 test "items with no separator between them are a syntax error" do
-	["SELECT * + 1 FROM t", "SELECT * FROM json_each(x y)", "CREATE TABLE t(a PRIMARY KEY) STRICT WITHOUT ROWID"].each do |sql|
+	[
+		"SELECT * + 1 FROM t", "SELECT * FROM json_each(x y)", "CREATE TABLE t(a PRIMARY KEY) STRICT WITHOUT ROWID",
+		"SELECT coalesce(a b) FROM t", "SELECT a FROM t WHERE a IN (1 2)"
+	].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
+end
+
+test "a separator with no item after it is a syntax error" do
+	["SELECT a, b, FROM t", "VALUES (1, 2,)", "SELECT a FROM t WHERE a IN (1, 2,)", "WITH x AS (SELECT 1), SELECT 1"].each do |sql|
 		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
 	end
 end

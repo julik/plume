@@ -237,6 +237,7 @@ fixtures/sqlite-traced/window6-da146ca623.sql
 fixtures/sqlite-traced/window6-de493387f1.sql
 fixtures/sqlite-traced/window9-9d6e6d9de6.sql
 fixtures/sqlite-traced/windowE-a3a53f4d98.sql
+fixtures/sqlite-traced/with1-7eefc3a17c.sql
 fixtures/sqlite-traced/with1-a27f6bc013.sql
 fixtures/sqlite-traced/without_rowid5-13169db280.sql
 fixtures/sqlite/sql/attach-19.sql
