@@ -1502,7 +1502,8 @@ module Plume
 			left = basic_expression
 
 			while (operator = current_token)
-				operator_precedence = OPERATOR_PRECEDENCE[operator] || -1
+				# ~ has a precedence for its operand's sake, but is no binary operator
+				operator_precedence = ((operator != :BITNOT) && OPERATOR_PRECEDENCE[operator]) || -1
 				break if operator_precedence < min_precedence
 				next_precedence = operator_precedence + 1
 
