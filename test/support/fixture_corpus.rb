@@ -17,17 +17,20 @@ module FixtureCorpus
 		File.read(File.join(ROOT, path))
 	end
 
+	def classify(path) = plume_verdict(read(path)).first
+
 	# The check test/fixtures.test.rb makes - parse, print, parse again, same tree - and on a
-	# thread like the test, whose smaller stack can overflow where the main thread's does not
-	def classify(path)
+	# thread like the test, whose smaller stack can overflow where the main thread's does not.
+	# Returns the verdict (:pass, :fail or :reject) and the statements, when they parsed
+	def plume_verdict(sql)
 		Thread.new do
-			statements = Plume::Parser.new(read(path)).parse
+			statements = Plume::Parser.new(sql).parse
 			printed = statements.map(&:to_sql).join(";\n")
-			(AstShape.of(Plume.parse(printed)) == AstShape.of(statements)) ? :pass : :fail
+			[(AstShape.of(Plume.parse(printed)) == AstShape.of(statements)) ? :pass : :fail, statements]
 		rescue Plume::SyntaxError
-			:reject
+			[:reject, nil]
 		rescue StandardError, SystemStackError
-			:fail
+			[:fail, nil]
 		end.value
 	end
 
@@ -37,18 +40,23 @@ module FixtureCorpus
 		:UNLEXABLE
 	end
 
-	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input/
+	# What SQLite's parser rejects - most as a syntax error, some in words of their own. Any other
+	# error ("no such table", "ambiguous column name"...) comes after the statement parsed
+	SQLITE_SYNTAX_ERROR = Regexp.union(
+		"syntax error", "unrecognized token", "incomplete input", "clause should come after",
+		"is required before", "unknown join type", "unknown table option", "prohibited in PRIMARY KEY",
+	)
 
 	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
 	# test suite, which feeds it plenty of deliberately broken SQL. Statements are prepared one
 	# at a time, since a "no such table" in one would otherwise stop us from checking the next
-	def sqlite_rejects?(path)
-		statements(read(path)).any? do |sql|
-			sqlite.prepare(sql).close
-			false
-		rescue SQLite3::Exception => e
-			e.message.match?(SQLITE_SYNTAX_ERROR)
-		end
+	def sqlite_rejects?(path) = statements(read(path)).any? { |sql| sqlite_rejects_statement?(sql) }
+
+	def sqlite_rejects_statement?(sql)
+		sqlite.prepare(sql).close
+		false
+	rescue SQLite3::Exception => e
+		e.message.match?(SQLITE_SYNTAX_ERROR)
 	end
 
 	# sqlite3_complete knows that semicolons inside a trigger body do not end the statement
