@@ -19,13 +19,12 @@ module Plume
 		end
 
 		# see: https://github.com/sqlite/sqlite/blob/master/src/parse.y#L255-L283
+		# Literals in an expression, names anywhere else: SQLite has no TRUE or FALSE keyword, and lets
+		# the CURRENT_* ones (CTIME_KW) fall back to names
+		LITERAL_KEYWORDS = Set[:TRUE, :FALSE, :CURRENT_DATE, :CURRENT_TIME, :CURRENT_TIMESTAMP].freeze
+
 		TOKEN_FALLBACKS = Set[
-			# SQLite has no TRUE or FALSE keyword, and lets the CURRENT_* ones (CTIME_KW) fall back too
-			:TRUE,
-			:FALSE,
-			:CURRENT_DATE,
-			:CURRENT_TIME,
-			:CURRENT_TIMESTAMP,
+			*LITERAL_KEYWORDS,
 			:EXPLAIN,
 			:QUERY,
 			:PLAN,
@@ -2501,7 +2500,7 @@ module Plume
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
 			# A literal-looking word before a dot names a table: `'t'.x`, `false.false`, `current_date.x`
-			elsif !((current_token in :STRING | :TRUE | :FALSE | :CURRENT_DATE | :CURRENT_TIME | :CURRENT_TIMESTAMP) && peek == :DOT) &&
+			elsif !((current_token == :STRING || LITERAL_KEYWORDS.include?(current_token)) && peek == :DOT) &&
 					(literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
@@ -4026,28 +4025,29 @@ module Plume
 		# keywords here or names: WINDOW only before `name AS`, OVER only after `)` and before `(` or a
 		# name, FILTER only after `)` and before `(`
 		def contextual_keyword(token, previous)
-			case token
-			when :WINDOW then (name_token?(lex_ahead(1)) && lex_ahead(2) == :AS) ? :WINDOW : :ID
-			when :OVER then (previous == :RP && (lex_ahead(1) == :LP || name_token?(lex_ahead(1)))) ? :OVER : :ID
-			when :FILTER then (previous == :RP && lex_ahead(1) == :LP) ? :FILTER : :ID
-			else token
-			end
+			return token unless token in :WINDOW | :OVER | :FILTER
+
+			following, after = lex_ahead
+			keyword =
+				case token
+				when :WINDOW then name_token?(following) && after == :AS
+				when :OVER then previous == :RP && (following == :LP || name_token?(following))
+				when :FILTER then previous == :RP && following == :LP
+				end
+			keyword ? token : :ID
 		end
 
-		# The type of the `n`th token after the one just lexed, leaving the lexer where it was
-		def lex_ahead(n)
+		# The types of the two tokens after the one just lexed, leaving the lexer where it was
+		def lex_ahead
 			cursor, anchor = @lexer.cursor, @lexer.anchor
-			token = nil
-			n.times { token = @lexer.next_token }
-			token
+			[@lexer.next_token, @lexer.next_token]
 		ensure
 			@lexer.cursor, @lexer.anchor = cursor, anchor
 		end
 
 		# What SQLite's tokenize.c counts as a name when looking around WINDOW and OVER
 		def name_token?(token)
-			(token in :ID | :STRING | :WINDOW | :OVER | :CROSS | :FULL | :INNER | :LEFT | :NATURAL | :OUTER | :RIGHT) ||
-				TOKEN_FALLBACKS.include?(token)
+			(token in :ID | :STRING | :WINDOW | :OVER) || JOIN_KEYWORDS.include?(token) || TOKEN_FALLBACKS.include?(token)
 		end
 
 		def expected!(*expected)
