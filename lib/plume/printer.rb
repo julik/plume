@@ -342,7 +342,7 @@ module Plume
 
 		def print_parenthetical_expression(node) = "(#{print(node.contents)})"
 
-		def print_cast_expression(node) = "CAST(#{print(node.expression)} AS #{print(node.as)})"
+		def print_cast_expression(node) = "CAST(#{join(print(node.expression), "AS", print(node.as))})"
 
 		def print_case_expression(node)
 			join("CASE", node.predicate && print(node.predicate), list_of(node.conditions), node.else_clause && "ELSE #{print(node.else_clause)}", "END")
@@ -453,6 +453,11 @@ module Plume
 		def print_check_table_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_no_op_table_constraint(node) = constraint_name(node)
 
+		def print_deferrable_column_constraint(node)
+			deferrable = node.deferrable_span? ? Array(node.deferrable_span_tok).join(" ") : (node.deferred ? "DEFERRABLE INITIALLY DEFERRED" : "DEFERRABLE")
+			join(constraint_name(node), deferrable)
+		end
+
 		def print_foreign_key_table_constraint(node)
 			join(constraint_name(node), "FOREIGN KEY (#{list(node.columns)})", print(node.foreign_key_clause))
 		end
@@ -470,7 +475,7 @@ module Plume
 		def print_match_clause(node) = "MATCH #{node.type}"
 
 		def print_indexed_column(node)
-			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s)
+			join(identifier(node.name), node.collation && "COLLATE #{identifier(node.collation)}", node.direction&.to_s, node.nulls && "NULLS #{node.nulls}")
 		end
 
 		def print_strict_table_option(_node) = "STRICT"

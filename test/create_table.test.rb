@@ -1296,3 +1296,23 @@ test "create table z(a, b, primary key(a) unique(b))" do
 		assert_equal statement.constraints.size, 2
 	end
 end
+
+test "create table t(a, b, primary key(a desc, b nulls first), unique(a nulls last))" do
+	statement = parse_stmt("CREATE TABLE t(a, b, PRIMARY KEY(a DESC, b NULLS FIRST), UNIQUE(a NULLS LAST))")
+
+	assert_equal statement.constraints.first.columns.map(&:nulls), [nil, :FIRST]
+	assert_equal statement.constraints.last.columns.first.nulls, :LAST
+end
+
+test "a column may be deferrable on its own, as SQLite's grammar allows" do
+	constraints = parse_stmt("CREATE TABLE t(a NOT NULL DEFERRABLE INITIALLY DEFERRED, b NOT DEFERRABLE)").columns.map { |c| c.constraints.last }
+
+	assert_equal constraints.map(&:class), [Plume::DeferrableColumnConstraint, Plume::DeferrableColumnConstraint]
+	assert_equal constraints.map(&:deferred), [true, false]
+end
+
+test "a foreign key's on and match clauses come in any order" do
+	clause = parse_stmt("CREATE TABLE t(a REFERENCES u MATCH FULL ON DELETE CASCADE MATCH SIMPLE ON UPDATE SET NULL)").columns.first.constraints.first.foreign_key_clause
+
+	assert_equal [clause.on_delete, clause.on_update, clause.match_type], [:CASCADE, :SET_NULL, :SIMPLE]
+end

@@ -1845,6 +1845,13 @@ module Plume
 						not_null_kw:     Token::Keyword(not_null_kw),
 						conflict_clause: on_conflict,
 					)
+				elsif current_token == :DEFERRABLE || (current_token == :NOT && peek == :DEFERRABLE)
+					DeferrableColumnConstraint.concrete(
+						full_source:     @lexer.sql,
+						constraint_kw:   Token::Keyword(constraint_kw),
+						name_tk:         Token::Identifier(constraint_name),
+						deferrable_span: Token::Keyword(defer_subclause),
+					)
 				elsif (null_kw        = maybe        :NULL)
 					on_conflict         = maybe      { conflict_clause }
 
@@ -2289,7 +2296,10 @@ module Plume
 				columns = require_some(trailing_sep: :COMMA) { indexed_column }
 				columns_rp = require :RP
 			end
-			foreign_key_actions = maybe_some(trailing_sep: nil) do
+			# refargs ::= refargs refarg, so ON and MATCH clauses come in any order
+			refargs = maybe_some(trailing_sep: nil) do
+				next match_clause if current_token == :MATCH
+
 				on_kw      = require        :ON
 				trigger_kw = require_one_of :DELETE, :UPDATE
 				action_kw  = require_one_of :CASCADE, :RESTRICT, [:SET, :NULL].freeze, [:SET, :DEFAULT].freeze, [:NO, :ACTION].freeze
@@ -2300,24 +2310,9 @@ module Plume
 					action_kw:   Token::Keyword(action_kw),
 				)
 			end
-			match_clauses = maybe_some(trailing_sep: nil) do
-				match_kw = require :MATCH
-				type_tk  = name(except: [:ON, :MATCH, :DEFERRABLE, :NOT])
-				MatchClause.concrete(
-					full_source: @lexer.sql,
-					match_kw:    Token::Keyword(match_kw),
-					type_tk:     Token::Identifier(type_tk),
-				)
-			end
-
-			deferrable_span = maybe_one_of(
-				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
-				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
-				[:NOT, :DEFERRABLE].freeze,
-				:DEFERRABLE,
-			)
+			foreign_key_actions = refargs.grep(ForeignKeyAction)
+			match_clauses = refargs.grep(MatchClause)
+			deferrable_span = defer_subclause
 
 			ForeignKeyClause.concrete(
 				full_source: @lexer.sql,
@@ -2329,6 +2324,28 @@ module Plume
 				actions: foreign_key_actions,
 				match_clauses: match_clauses,
 				deferrable_span: Token::Keyword(deferrable_span),
+			)
+		end
+
+		def match_clause
+			match_kw = require :MATCH
+			type_tk  = name(except: [:ON, :MATCH, :DEFERRABLE, :NOT])
+			MatchClause.concrete(
+				full_source: @lexer.sql,
+				match_kw:    Token::Keyword(match_kw),
+				type_tk:     Token::Identifier(type_tk),
+			)
+		end
+
+		# defer_subclause ::= NOT DEFERRABLE init_deferred_pred_opt | DEFERRABLE init_deferred_pred_opt
+		def defer_subclause
+			maybe_one_of(
+				[:NOT, :DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+				[:NOT, :DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+				[:DEFERRABLE, :INITIALLY, :IMMEDIATE].freeze,
+				[:DEFERRABLE, :INITIALLY, :DEFERRED].freeze,
+				[:NOT, :DEFERRABLE].freeze,
+				:DEFERRABLE,
 			)
 		end
 
@@ -2447,7 +2464,7 @@ module Plume
 				expression_lp = require :LP
 				e = expression
 				as_kw = require :AS
-				t = type_name
+				t = type_name unless current_token == :RP # typetoken ::= .
 				expression_rp = require :RP
 
 				CastExpression.concrete(
@@ -2754,6 +2771,14 @@ module Plume
 					expressions: expressions,
 					order_by_kw: Token::Keyword(order_by_kw),
 					order_by: order_by,
+				)
+			elsif (order_by_kw = maybe_all_of :ORDER, :BY)
+				# An aggregate ordered over no arguments, like `count(ORDER BY a)`
+				FunctionArguments.concrete(
+					full_source: @lexer.sql,
+					expressions: [],
+					order_by_kw: Token::Keyword(order_by_kw),
+					order_by: require_some(trailing_sep: :COMMA) { ordering_term },
 				)
 			elsif :RP == current_token
 				EmptyFunctionArgument.new
@@ -3559,13 +3584,15 @@ module Plume
 				collation_tk = identifier_or_string(except: [:ASC, :DESC].freeze)
 			end
 			direction_tk = maybe_one_of :ASC, :DESC
+			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze
 
 			IndexedColumn.concrete(
 				full_source: @lexer.sql,
 				name_tk:      Token::Identifier(column_name),
 				collate_kw:   Token::Keyword(collate_kw),
 				collation_tk: Token::Keyword(collation_tk),
-				direction_tk: Token::Keyword(direction_tk)
+				direction_tk: Token::Keyword(direction_tk),
+				nulls_tk:     Token::Keyword(nulls_tk),
 			)
 		end
 
