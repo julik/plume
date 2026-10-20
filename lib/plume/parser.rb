@@ -3555,6 +3555,7 @@ module Plume
 			#   collate ::= . | COLLATE ids.
 			#   sortorder ::= . | ASC | DESC
 			#   nm ::= idj | STRING
+			#   (PRIMARY KEY and UNIQUE take a sortlist, whose items may also end NULLS FIRST or NULLS LAST)
 			#
 			# Syntax diagram:
 			#   ◯──▶{ column-name }─┬─▶───────────────────────────────┬┬────────▶───┬──▶◯
@@ -3562,7 +3563,7 @@ module Plume
 			#                                                          └─▶{ DESC }──┘
 			#
 			# Simplified grammar:
-			#   name [COLLATE identifier] [ASC | DESC]
+			#   name [COLLATE identifier] [ASC | DESC] [NULLS FIRST | NULLS LAST]
 			#
 			# Relevant SQLite documentation:
 			#   - https://www.sqlite.org/syntax/indexed-column.html
@@ -3593,42 +3594,6 @@ module Plume
 				collation_tk: Token::Keyword(collation_tk),
 				direction_tk: Token::Keyword(direction_tk),
 				nulls_tk:     Token::Keyword(nulls_tk),
-			)
-		end
-
-		def indexed_expression
-			# Used by:
-			#   - tcons, upsert, expr (ORDER BY), create-index, window
-			#
-			# Relevant `parse.y` grammar rules:
-			#   sortlist  ::= sortlist COMMA expr sortorder nulls | expr sortorder nulls
-			#   sortorder ::= . | ASC | DESC
-			#   nulls     ::= . | NULLS FIRST | NULLS LAST
-			#
-			# Syntax diagram:
-			#   ◯─▶[ expr ]─┬────────▶───┬─┬────────────▶────────────┬───▶◯
-			#               ├─▶{ ASC }─▶─┤ ├─▶{ NULLS }─▶{ FIRST }─▶─┤
-			#               └─▶{ DESC }──┘ └─▶{ NULLS }─▶{ LAST }────┘
-			#
-			# Simplified grammar:
-			#   expression [ASC | DESC] [NULLS FIRST | NULLS LAST]
-			#
-			# Relevant SQLite documentation:
-			#   - https://www.sqlite.org/syntax/indexed-column.html
-			#   - https://www.sqlite.org/expridx.html
-			#
-			# the sortlist non-terminal stores a list of expression where each
-			# expression is optionally followed by ASC or DESC to indicate the
-			# sort order.
-			#
-			expr         = expression
-			direction_tk = maybe_one_of :ASC, :DESC
-			nulls_tk     = maybe_one_of [:NULLS, :FIRST].freeze, [:NULLS, :LAST].freeze
-
-			IndexedExpression.new(
-				expression: expr,
-				direction_tk: Token::Keyword(direction_tk),
-				nulls_tk: Token::Keyword(nulls_tk)
 			)
 		end
 

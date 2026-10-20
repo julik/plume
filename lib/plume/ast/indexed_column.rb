@@ -11,6 +11,7 @@ module Plume
 		attribute :name, Stringy
 		attribute :collation, Stringy
 		attribute :direction, Stringy
+		attribute :nulls, OrderingTerm::Nulls
 
 		def self.new(*, name:, **) = super
 		def self.concrete(*, name_tk:, **) = super
@@ -18,6 +19,6 @@ module Plume
 		def name = (@name == LiteralNil) ? name_tk_val : @name
 		def collation = (@collation == LiteralNil) ? collation_tk_val&.to_sym&.upcase : @collation
 		def direction = (@direction == LiteralNil) ? direction_tk_val&.to_sym&.upcase : @direction
-		def nulls = nulls_tk_tok&.last
+		def nulls = (@nulls == LiteralNil) ? nulls_tk_tok&.last : @nulls
 	end
 end

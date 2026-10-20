@@ -453,9 +453,13 @@ module Plume
 		def print_check_table_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_no_op_table_constraint(node) = constraint_name(node)
 
-		def print_deferrable_column_constraint(node)
-			deferrable = node.deferrable_span? ? Array(node.deferrable_span_tok).join(" ") : (node.deferred ? "DEFERRABLE INITIALLY DEFERRED" : "DEFERRABLE")
-			join(constraint_name(node), deferrable)
+		def print_deferrable_column_constraint(node) = join(constraint_name(node), deferrable(node) || "DEFERRABLE")
+
+		# The words as written, or else what `deferred` says
+		def deferrable(node)
+			return Array(node.deferrable_span_tok).join(" ") if node.deferrable_span?
+
+			"DEFERRABLE INITIALLY DEFERRED" if node.deferred
 		end
 
 		def print_foreign_key_table_constraint(node)
@@ -463,11 +467,10 @@ module Plume
 		end
 
 		def print_foreign_key_clause(node)
-			deferrable = node.deferrable_span? ? node.deferrable_span_tok : (node.deferred && "DEFERRABLE INITIALLY DEFERRED")
 			join(
 				"REFERENCES", identifier(node.table), node.columns && "(#{list(node.columns)})",
 				list_of(Array(node.actions)), list_of(Array(node.match_clauses)),
-				deferrable && Array(deferrable).join(" "),
+				deferrable(node),
 			)
 		end
 

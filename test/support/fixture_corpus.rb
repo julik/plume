@@ -61,16 +61,17 @@ module FixtureCorpus
 	# made, in a database of its own, and the statement prepared again
 	def sqlite_rejects_statement?(sql)
 		db = sqlite
-		8.times do
+		tries = 0
+		begin
 			db.prepare(sql).close
-			return false
+			false
 		rescue SQLite3::Exception => e
 			return true if e.message.match?(SQLITE_SYNTAX_ERROR)
 
 			db = SQLite3::Database.new(":memory:") if db.equal?(sqlite)
-			return false unless make_missing(db, e.message)
+			retry if (tries += 1) < 8 && make_missing(db, e.message)
+			false
 		end
-		false
 	end
 
 	# Makes the table or database an error says is missing, and whether it could
