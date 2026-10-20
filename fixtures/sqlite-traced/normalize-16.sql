@@ -1,0 +1,1 @@
+SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8();

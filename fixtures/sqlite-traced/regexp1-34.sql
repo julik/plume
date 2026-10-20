@@ -1,0 +1,1 @@
+SELECT x FROM t1 WHERE y REGEXP '\bma[nd]' ORDER BY x;

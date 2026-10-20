@@ -1,0 +1,1 @@
+SELECT regexpi('abc','ABC');

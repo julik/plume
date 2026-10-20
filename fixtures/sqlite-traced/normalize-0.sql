@@ -1,0 +1,1 @@
+SELECT * FROM t1 WHERE a IN (1) AND b=51.42

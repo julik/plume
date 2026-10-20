@@ -1,0 +1,1 @@
+SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);

@@ -1,0 +1,1 @@
+SELECT * FROM t1 wHERE a REGEXP '日本語';
