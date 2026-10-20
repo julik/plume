@@ -18,6 +18,8 @@ module Plume
 			NOT_REGEXP: "NOT REGEXP", MATCH: "MATCH", NOT_MATCH: "NOT MATCH", IN: "IN", NOT_IN: "NOT IN",
 		}.freeze
 
+		EXPRESSION_KEYWORDS = Set[:CAST, :RAISE, :TRUE, :FALSE, :CURRENT_DATE, :CURRENT_TIME, :CURRENT_TIMESTAMP].freeze
+
 		COMPOUND_OPERATORS = { UNION: "UNION", UNION_ALL: "UNION ALL", INTERSECT: "INTERSECT", EXCEPT: "EXCEPT" }.freeze
 		JOIN_KINDS = { COMMA: ",", INNER: "JOIN", LEFT: "LEFT JOIN", RIGHT: "RIGHT JOIN", FULL: "FULL JOIN", CROSS: "CROSS JOIN" }.freeze
 		FOREIGN_KEY_ACTIONS = { CASCADE: "CASCADE", RESTRICT: "RESTRICT", SET_NULL: "SET NULL", SET_DEFAULT: "SET DEFAULT", NO_ACTION: "NO ACTION" }.freeze
@@ -45,8 +47,9 @@ module Plume
 			%("#{name.gsub('"', '""')}")
 		end
 
-		# Keywords SQLite falls back to treating as identifiers, like ROWID or KEY, need no quotes
-		def bare_keyword_ok?(word) = !Lexer::KEYWORDS.include?(word) || Parser::TOKEN_FALLBACKS.include?(word)
+		# Keywords SQLite falls back to treating as identifiers, like ROWID or KEY, need no quotes -
+		# except the ones that would read back as the start of an expression
+		def bare_keyword_ok?(word) = !Lexer::KEYWORDS.include?(word) || (Parser::TOKEN_FALLBACKS.include?(word) && !EXPRESSION_KEYWORDS.include?(word))
 
 		def string(value) = "'#{value.to_s.gsub("'", "''")}'"
 
