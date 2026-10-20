@@ -45,7 +45,7 @@ module Plume
 
 		def self.print(node)
 			new.print(node)
-		rescue SystemStackError
+		rescue *STACK_EXHAUSTED
 			# As with parsing, how deep is too deep depends on the stack the caller has left
 			raise Error, "statement nested too deeply to print"
 		end

@@ -128,7 +128,7 @@ module Plume
 
 			access = begin
 				Resolver.new(catalog:).analyze(statement)
-			rescue SystemStackError
+			rescue *STACK_EXHAUSTED
 				# As with parsing, how deep the resolver can go depends on the stack the caller has left
 				raise Error, "statement nested too deeply"
 			end

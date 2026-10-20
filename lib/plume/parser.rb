@@ -157,7 +157,7 @@ module Plume
 			else
 				result
 			end
-		rescue SystemStackError
+		rescue *STACK_EXHAUSTED
 			# How deep is too deep depends on the stack the caller has left, so no fixture relies on it
 			raise SyntaxError.new("statement nested too deeply")
 		end
