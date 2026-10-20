@@ -135,7 +135,11 @@ module Plume
 				outer = with_scope(statement.with_clause, nil)
 				scope = Scope.new(sources: [], parent: outer, ctes: {}, aliases: {})
 				target = add_target(statement.table, scope)
-				add_source(statement.source, scope, :projected) if statement.source
+				if statement.source
+					# Pairing the target's rows with FROM's reads the target, named columns or not
+					record(target.schema, target.table&.name || statement.table.table, nil, :referenced, statement.table) if target&.kind == :table
+					add_source(statement.source, scope, :projected)
+				end
 
 				assign(statement.assignments, target, scope)
 				expression(statement.condition, scope, :referenced)
