@@ -22,12 +22,12 @@ fixtures_path = File.join(FixtureCorpus::ROOT, "fixtures/sqlite-traced")
 tester = File.join(FixtureCorpus::ROOT, "test/support/sqlite_tester.tcl")
 FileUtils.mkdir_p(fixtures_path)
 
-# The harness writes "#### <kind> <length>" and then the SQL, so SQL holding newlines survives
+# The harness writes "#### <length>" and then the SQL, so SQL holding newlines survives
 def traced_sql(path)
 	text = File.read(path, encoding: "utf-8")
 	sqls = []
 	pos = 0
-	while (header = text.match(/^#### \w+ (\d+)\n/, pos))
+	while (header = text.match(/^#### (\d+)\n/, pos))
 		sqls << text[header.end(0), header[1].to_i]
 		pos = header.end(0) + header[1].to_i
 	end
@@ -48,7 +48,7 @@ ARGV.each do |name|
 		system(env, "tclsh", File.join(dir, "#{name}.test"), out: File::NULL, err: File::NULL)
 		abort "#{name}.test wrote no trace - is tclsh installed, with the sqlite3 package?" unless File.exist?(trace)
 
-		statements = traced_sql(trace).flat_map { |sql| FixtureCorpus.statements(sql) }.map(&:strip).reject(&:empty?).uniq
+		statements = traced_sql(trace).flat_map { |sql| FixtureCorpus.statements(sql) }.map(&:strip).uniq
 
 		FileUtils.rm_f(Dir[File.join(fixtures_path, "#{name}-*.sql")])
 		statements.each_with_index { |sql, i| File.write(File.join(fixtures_path, "#{name}-#{i}.sql"), "#{sql}\n") }
