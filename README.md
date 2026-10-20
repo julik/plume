@@ -12,7 +12,7 @@ Plume is a Ruby library for working with SQLite elegantly. Presently, this means
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+Plume needs Ruby 3.2 or later. Install the gem and add to the application's Gemfile by executing:
 
 ```bash
 bundle add plume
@@ -26,9 +26,9 @@ gem install plume
 
 ## Usage
 
-Parse a SQL query with the `Plume::Parser` class:
+Every statement in SQLite's grammar parses, and the parser is checked against the SQL in SQLite's own test suite - both the SQL written in its test files and the SQL they build as they run. Of the 26,977 fixture files in that corpus, Plume parses 26,707 and rejects 266 that SQLite rejects too. The 4 left are deliberate: 3 that Plume parses but SQLite refuses for reasons other than syntax, and 1 expression nested 1,000 deep, past what Plume's stack allows.
 
-Every statement in SQLite's grammar parses, and the parser is checked against the SQL in SQLite's own test suite: of the 15,836 statements there, the ones it does not parse are those SQLite rejects as well.
+Parse SQL with `Plume.parse`, which returns one node per statement:
 
 ```ruby
 sql = <<~SQL
@@ -177,7 +177,6 @@ Plume::CreateTableStatement(
   options = [
     Plume::WithoutRowidTableOption(),
   ],
-  select_statement = Object(),
   strict = false,
   without_row_id = true,
 )
@@ -198,14 +197,14 @@ stmt.to_sql
 # => "SELECT a FROM t WHERE (b = 1) AND (tenant_id = ?)"
 ```
 
-Tokenize a SQL query with the `Plume::Lexer` class:
+Tokenize SQL with `Plume.tokenize`:
 
 ```ruby
 tokens = Plume.tokenize("SELECT * FROM users WHERE id = 1")
 # => [:SELECT, :STAR, :FROM, :ID, :WHERE, :ID, :EQ, :INTEGER]
 ```
 
-SQLite works with a grammar of _167_ token types, _136_ of which are keywords. The remaining _31_ are punctuation, operators, and literals.
+The lexer knows _183_ token types: _153_ keywords, and _30_ more for punctuation, operators, literals and names. Words like `rowid`, `strict` and `stored`, which SQLite reads as plain names and checks by their text, are keywords here that fall back to names wherever SQLite would take a name.
 
 ### What does this query read?
 
@@ -283,14 +282,14 @@ The results are tested against SQLite's own [authorizer callback](https://www.sq
 
 ## Performance
 
-`bin/benchmark` runs the whole fixture corpus (15,817 statements, 4.2 MB of SQL). On an Apple M-series laptop with Ruby 3.4:
+`bin/benchmark` runs every fixture that parses (26,707 files, 5.5 MB of SQL). On an Apple M5 Pro with Ruby 4.0:
 
-| Step | Statements/s | MB/s |
-| --- | ---: | ---: |
-| `Plume.tokenize` | ~13,500 | 3.7 |
-| `Plume.parse` | ~1,400 | 0.38 |
-| `Node#to_sql` | ~6,000 | 1.7 |
-| `Plume.reads` (no catalog) | ~1,000 | 0.21 |
+| Step | Fixtures/s | MB/s | MB/s with YJIT |
+| --- | ---: | ---: | ---: |
+| `Plume.tokenize` | ~30,000 | 6.4 | 18.5 |
+| `Plume.parse` | ~2,900 | 0.62 | 0.66 |
+| `Node#to_sql` | ~12,000 | 2.5 | 2.3 |
+| `Plume.reads` (no catalog, `SELECT`s only) | ~2,200 | 0.38 | 0.46 |
 
 The corpus leans on very large generated expressions; a typical application query parses in well under a millisecond. About half of the parse time goes to Literal's runtime type checks on every node property.
 
