@@ -65,8 +65,25 @@ foreach prepare {sqlite3_prepare sqlite3_prepare_v2 sqlite3_prepare_v3} {
 	}
 }
 
-# Anything else the real harness provides (finish_test, load_static_extension...) is a no-op here
-proc unknown {args} { return "" }
+# Anything else the real harness provides (finish_test, load_static_extension...) is a no-op here.
+# 0 reads as false, so a check for a feature the harness lacks skips the tests that need it
+proc unknown {args} { return 0 }
+
+# Globals the real harness sets from the build, at SQLite's defaults
+set ::AUTOVACUUM 0
+set ::TEMP_STORE 1
+set ::SQLITE_MAX_LENGTH 1000000000
+set ::SQLITE_MAX_ATTACHED 10
+set ::SQLITE_MAX_COLUMN 2000
+set ::SQLITE_MAX_EXPR_DEPTH 1000
+set ::SQLITE_MAX_FUNCTION_ARG 127
+set ::SQLITE_MAX_VARIABLE_NUMBER 32766
+set ::SQLITE_MAX_SQL_LENGTH 1000000000
+set ::SQLITE_MAX_COMPOUND_SELECT 500
+set ::SQLITE_MAX_LIKE_PATTERN_LENGTH 50000
+set ::SQLITE_MAX_TRIGGER_DEPTH 1000
+set ::sqlite_open_file_count 0
+array set ::cmdlinearg {soft-heap-limit 0 maxerror 1000 malloctrace 0 backtrace 0 binarylog 0 soak 0 start {} match {} verbose 0}
 
 set ::testprefix ""
 cd [file normalize $::env(TRACE_DIR)]
