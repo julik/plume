@@ -306,8 +306,11 @@ module Plume
 
 		def print_variable(node) = node.name
 
+		# Binary operators associate to the left, so a left operand with the same operator needs no
+		# parentheses - and a long chain like `a OR b OR …` stays flat rather than nesting a pair per term
 		def print_binary_expression(node)
-			"#{operand(node.left)} #{BINARY_OPERATORS.fetch(node.operator)} #{operand(node.right)}"
+			left = (BinaryExpression === node.left && node.left.operator == node.operator) ? print(node.left) : operand(node.left)
+			"#{left} #{BINARY_OPERATORS.fetch(node.operator)} #{operand(node.right)}"
 		end
 
 		def print_unary_expression(node)
