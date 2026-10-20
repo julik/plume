@@ -2091,7 +2091,7 @@ module Plume
 
 		# The inside of a window-defn parenthesis, shared by OVER (…) and WINDOW name AS (…)
 		def window_body
-			base_window_name_tk = maybe { identifier(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
+			base_window_name_tk = maybe { name(except: [:PARTITION, :ORDER, :RANGE, :ROWS, :GROUPS]) }
 			if (partition_by_kw = maybe_all_of(:PARTITION, :BY))
 				partitions = require_some(trailing_sep: :COMMA) { expression }
 			end
@@ -2192,7 +2192,7 @@ module Plume
 					window_rp: Token::Punctuation(window_rp),
 				)
 			else
-				window_name_tk = identifier
+				window_name_tk = name
 
 				OverClause.concrete(
 					full_source: @lexer.sql,
@@ -2499,8 +2499,9 @@ module Plume
 					select_rp: Token::Punctuation(select_rp),
 				)
 			# A string followed by a dot is a quoted table name, as in `'t'.col`
-			# A literal-looking word before a dot names a table: `'t'.x`, `false.false`, `current_date.x`
-			elsif !((current_token == :STRING || LITERAL_KEYWORDS.include?(current_token)) && peek == :DOT) &&
+			# A string or TRUE/FALSE before a dot names a table: `'t'.x`, `false.false`. SQLite has no TRUE
+			# or FALSE keyword at all, while CURRENT_* is always a literal in an expression
+			elsif !((current_token in :STRING | :TRUE | :FALSE) && peek == :DOT) &&
 					(literal_tk = maybe { literal_value })
 				LiteralExpression.concrete(
 					full_source: @lexer.sql,
@@ -3727,6 +3728,7 @@ module Plume
 				start_lexer_cursor = @lexer.cursor
 				start_lexer_pos = @lexer.anchor
 				start_last_consumed = @last_consumed_token
+				start_last_consumed_fin = @last_consumed_fin
 
 				result = catch(:ERROR) { yield }
 
@@ -3735,6 +3737,7 @@ module Plume
 					@lexer.cursor = start_lexer_cursor
 					@lexer.anchor = start_lexer_pos
 					@last_consumed_token = start_last_consumed
+					@last_consumed_fin = start_last_consumed_fin
 					nil
 				else
 					result
@@ -4015,8 +4018,11 @@ module Plume
 			lexer = @lexer
 			@peek_buffer.tap do |buf|
 				while buf.size < size
-					previous = buf.empty? ? @last_consumed_token : buf.last[0]
-					buf << [contextual_keyword(lexer.next_token, previous), lexer.anchor, lexer.cursor].freeze
+					token = lexer.next_token
+					if token == :WINDOW || token == :OVER || token == :FILTER
+						token = contextual_keyword(token, buf.empty? ? @last_consumed_token : buf.last[0])
+					end
+					buf << [token, lexer.anchor, lexer.cursor].freeze
 				end
 			end
 		end
@@ -4025,8 +4031,6 @@ module Plume
 		# keywords here or names: WINDOW only before `name AS`, OVER only after `)` and before `(` or a
 		# name, FILTER only after `)` and before `(`
 		def contextual_keyword(token, previous)
-			return token unless token in :WINDOW | :OVER | :FILTER
-
 			following, after = lex_ahead
 			keyword =
 				case token

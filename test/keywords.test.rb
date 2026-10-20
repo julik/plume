@@ -27,3 +27,12 @@ test "a name that would read back as the start of an expression prints quoted" d
 	assert_equal parse_stmt(%(SELECT * FROM cast ORDER BY "raise")).to_sql, %(SELECT * FROM "cast" ORDER BY "raise")
 	assert_equal parse_stmt("SELECT key FROM true").to_sql, %(SELECT key FROM "true")
 end
+
+test "current_* before a dot is not a table name, as SQLite reads it as a literal" do
+	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT current_date.a FROM t") }
+end
+
+test "a window is named the way SQLite names anything, a join keyword or a string included" do
+	assert_equal parse_stmt("SELECT sum(1) OVER left FROM t WINDOW left AS ()").body.columns.first.result.over_clause.window_name, "left"
+	assert_equal parse_stmt("SELECT sum(1) OVER ('w' ORDER BY y) FROM t WINDOW 'w' AS ()").body.columns.first.result.over_clause.base_window_name, "w"
+end
