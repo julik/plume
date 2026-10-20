@@ -69,6 +69,23 @@ test "alter table forms" do
 	assert_equal [drop.action, drop.column], [:DROP_COLUMN, "c"]
 end
 
+test "alter table constraint and not null forms" do
+	add = parse_stmt("alter table t add constraint positive check (a > 0) on conflict ignore")
+	assert_equal [add.action, add.constraint.name, add.constraint.conflict_clause.resolution], [:ADD_CONSTRAINT, "positive", :IGNORE]
+	assert_equal parse_stmt("alter table t add check (a > 0)").constraint.name, nil
+
+	drop = parse_stmt("alter table t drop constraint positive")
+	assert_equal [drop.action, drop.constraint_name], [:DROP_CONSTRAINT, "positive"]
+
+	set = parse_stmt("alter table t alter column a set not null on conflict abort")
+	assert_equal [set.action, set.column, set.conflict_clause.resolution], [:SET_NOT_NULL, "a", :ABORT]
+	drop_not_null = parse_stmt("alter table t alter a drop not null")
+	assert_equal [drop_not_null.action, drop_not_null.column], [:DROP_NOT_NULL, "a"]
+
+	# Only CHECK can be added
+	assert_raises(Plume::SyntaxError) { Plume.parse("alter table t add constraint u unique (a)") }
+end
+
 test "create virtual table if not exists v using fts5(a, b, tokenize = 'porter ascii', content = '')" do
 	node = parse_stmt("create virtual table if not exists v using fts5(a, b, tokenize = 'porter ascii', content = '')")
 

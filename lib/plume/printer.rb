@@ -217,6 +217,10 @@ module Plume
 				when :RENAME_COLUMN then "RENAME COLUMN #{identifier(node.column)} TO #{identifier(node.new_name)}"
 				when :ADD_COLUMN then "ADD COLUMN #{print(node.column_definition)}"
 				when :DROP_COLUMN then "DROP COLUMN #{identifier(node.column)}"
+				when :ADD_CONSTRAINT then "ADD #{print(node.constraint)}"
+				when :DROP_CONSTRAINT then "DROP CONSTRAINT #{identifier(node.constraint_name)}"
+				when :SET_NOT_NULL then join("ALTER COLUMN #{identifier(node.column)} SET NOT NULL", print(node.conflict_clause))
+				when :DROP_NOT_NULL then "ALTER COLUMN #{identifier(node.column)} DROP NOT NULL"
 				end
 			join("ALTER TABLE", print(node.table), action)
 		end
@@ -446,7 +450,7 @@ module Plume
 		end
 
 		def print_unique_table_constraint(node) = join(constraint_name(node), "UNIQUE (#{list(node.columns)})", print(node.conflict_clause))
-		def print_check_table_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})")
+		def print_check_table_constraint(node) = join(constraint_name(node), "CHECK (#{print(node.expression)})", print(node.conflict_clause))
 		def print_no_op_table_constraint(node) = constraint_name(node)
 
 		def print_foreign_key_table_constraint(node)

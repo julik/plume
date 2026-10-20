@@ -656,6 +656,11 @@ module Plume
 				#   cmd ::= ALTER TABLE add_column_fullname ADD kwcolumn_opt columnname carglist
 				#   cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm
 				#   cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm
+				#   cmd ::= ALTER TABLE fullname DROP CONSTRAINT nm
+				#   cmd ::= ALTER TABLE fullname ALTER kwcolumn_opt nm DROP NOT NULL
+				#   cmd ::= ALTER TABLE fullname ALTER kwcolumn_opt nm SET NOT NULL onconf
+				#   cmd ::= ALTER TABLE fullname ADD CONSTRAINT nm CHECK LP expr RP onconf
+				#   cmd ::= ALTER TABLE fullname ADD CHECK LP expr RP onconf
 				#   kwcolumn_opt ::= . | COLUMNKW
 				#
 				# Relevant SQLite documentation:
@@ -674,14 +679,32 @@ module Plume
 				column_tk = name
 				to_kw = require :TO
 				new_name_tk = name
+			elsif current_token == :ADD && (peek in :CONSTRAINT | :CHECK)
+				action = :ADD_CONSTRAINT
+				action_kw = require :ADD
+				constraint_name = name if (constraint_kw = maybe :CONSTRAINT)
+				constraint = check_table_constraint(constraint_kw, constraint_name)
 			elsif (action_kw = maybe_one_of [:ADD, :COLUMN].freeze, :ADD)
 				action = :ADD_COLUMN
 				column_definition = column_def
+			elsif current_token == :DROP && peek == :CONSTRAINT
+				action = :DROP_CONSTRAINT
+				action_kw = require_all_of :DROP, :CONSTRAINT
+				constraint_name_tk = name
 			elsif (action_kw = maybe_one_of [:DROP, :COLUMN].freeze, :DROP)
 				action = :DROP_COLUMN
 				column_tk = name
+			elsif (action_kw = maybe_one_of [:ALTER, :COLUMN].freeze, :ALTER)
+				column_tk = name
+				if (not_null_kw = maybe_all_of :DROP, :NOT, :NULL)
+					action = :DROP_NOT_NULL
+				else
+					action = :SET_NOT_NULL
+					not_null_kw = require_all_of :SET, :NOT, :NULL
+					on_conflict = maybe { conflict_clause }
+				end
 			else
-				expected!(:RENAME, :ADD, :DROP)
+				expected!(:RENAME, :ADD, :DROP, :ALTER)
 			end
 
 			AlterTableStatement.concrete(
@@ -692,8 +715,32 @@ module Plume
 				action_kw:         Token::Keyword(action_kw),
 				column_tk:         Token::Identifier(column_tk),
 				to_kw:             Token::Keyword(to_kw),
-				new_name_tk:       Token::Identifier(new_name_tk),
-				column_definition: column_definition,
+				new_name_tk:        Token::Identifier(new_name_tk),
+				column_definition:  column_definition,
+				constraint:         constraint,
+				constraint_name_tk: Token::Identifier(constraint_name_tk),
+				not_null_kw:        Token::Keyword(not_null_kw),
+				conflict_clause:    on_conflict,
+			)
+		end
+
+		# tcons ::= CHECK LP expr RP onconf, after the `CONSTRAINT nm` the caller may have read
+		def check_table_constraint(constraint_kw = nil, constraint_name = nil)
+			check_kw = require :CHECK
+			check_lp = require :LP
+			check = expression
+			check_rp = require :RP
+			on_conflict = maybe { conflict_clause }
+
+			CheckTableConstraint.concrete(
+				full_source:     @lexer.sql,
+				constraint_kw:   Token::Keyword(constraint_kw),
+				name_tk:         Token::Identifier(constraint_name),
+				check_kw:        Token::Keyword(check_kw),
+				check_lp:        Token::Punctuation(check_lp),
+				expression:      check,
+				check_rp:        Token::Punctuation(check_rp),
+				conflict_clause: on_conflict,
 			)
 		end
 
@@ -919,7 +966,7 @@ module Plume
 						constraint_name     = name
 					end
 
-					if    (unique_kw      = maybe          :UNIQUE)
+					if    (unique_kw      = maybe :UNIQUE)
 						unique_lp           = require :LP
 						unique_columns      = require_some(trailing_sep: :COMMA) { indexed_column }
 						unique_rp           = require        :RP
@@ -935,20 +982,8 @@ module Plume
 							unique_rp:       Token::Punctuation(unique_rp),
 							conflict_clause: on_conflict,
 						)
-					elsif (check_kw       = maybe          :CHECK)
-						check_lp            = require        :LP
-						check               =                expression
-						check_rp            = require        :RP
-
-						CheckTableConstraint.concrete(
-							full_source:     @lexer.sql,
-							constraint_kw:   Token::Keyword(constraint_kw),
-							name_tk:         Token::Identifier(constraint_name),
-							check_kw:        Token::Keyword(check_kw),
-							check_lp:        Token::Punctuation(check_lp),
-							expression:      check,
-							check_rp:        Token::Punctuation(check_rp),
-						)
+					elsif current_token == :CHECK
+						check_table_constraint(constraint_kw, constraint_name)
 					elsif (primary_key_kw = maybe_all_of   :PRIMARY, :KEY)
 						primary_key_lp      = require :LP
 						primary_key_columns = require_some(trailing_sep: :COMMA) { indexed_column }
