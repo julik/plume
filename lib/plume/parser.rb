@@ -3826,8 +3826,7 @@ module Plume
 			end
 			a << insert
 
-			# Without a separator after the first item the list has ended, as collect decides for later ones
-			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, &) unless trailing_sep && sep_tk.nil?
+			collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, ended: trailing_sep && sep_tk.nil?, &)
 
 			return token_span_from(*a) if a.all?(Array)
 
@@ -3866,7 +3865,7 @@ module Plume
 			if insert
 				a << insert
 
-				collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, &)
+				collect(into: a, trailing_sep: trailing_sep, leading_sep: leading_sep, ended: trailing_sep && sep_tk.nil?, &)
 
 				return token_span_from(*a) if a.all?(Array)
 
@@ -3876,8 +3875,9 @@ module Plume
 			end
 		end
 
-		def collect(into: [], trailing_sep: nil, leading_sep: nil, &block)
-			break_next = false
+		# `ended`: the last item in `into` had no trailing separator, so the list has ended there
+		def collect(into: [], trailing_sep: nil, leading_sep: nil, ended: false, &block)
+			break_next = ended
 			while true
 				break if break_next
 

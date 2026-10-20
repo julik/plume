@@ -386,10 +386,16 @@ test "select '@abc'.'!pqr' from '@abc'" do
 	assert_equal core.source.table, "@abc"
 end
 
-test "a list ends where its separator is missing, even before a word that could be a name" do
+# A list ends where its separator is missing, even before a word that could be a name
+test "select sum(b) over (order by c rows 2 preceding) from t" do
 	window = parse_stmt("SELECT sum(b) OVER (ORDER BY c ROWS 2 PRECEDING) FROM t").body.columns.first.result.over_clause
 
 	assert_equal window.orderings.size, 1
 	assert_equal window.frame.type, :ROWS
-	assert_raises(Plume::SyntaxError) { Plume.parse("SELECT * + 1 FROM t") }
+end
+
+test "items with no separator between them are a syntax error" do
+	["SELECT * + 1 FROM t", "SELECT * FROM json_each(x y)", "CREATE TABLE t(a PRIMARY KEY) STRICT WITHOUT ROWID"].each do |sql|
+		assert_raises(Plume::SyntaxError) { Plume.parse(sql) }
+	end
 end
