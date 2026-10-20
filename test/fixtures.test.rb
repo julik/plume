@@ -10,3 +10,10 @@ FixtureCorpus.baseline.each do |path|
 		round_trip(FixtureCorpus.read(path))
 	end
 end
+
+# And the ones SQLite rejects as malformed, recorded in fixtures/rejected.txt, are held to a SyntaxError
+FixtureCorpus.rejected.each do |path|
+	test path do
+		assert_raises(Plume::SyntaxError) { Plume.parse(FixtureCorpus.read(path)) }
+	end
+end

@@ -5,6 +5,7 @@ module FixtureCorpus
 
 	ROOT = File.expand_path("../..", __dir__)
 	BASELINE_PATH = File.join(ROOT, "fixtures/passing.txt")
+	REJECTED_PATH = File.join(ROOT, "fixtures/rejected.txt")
 
 	def paths
 		Dir.glob("fixtures/**/*.sql", base: ROOT).sort
@@ -21,13 +22,21 @@ module FixtureCorpus
 		:fail
 	end
 
+	def plume_rejects?(path)
+		Plume::Parser.new(read(path)).parse
+		false
+	rescue Plume::SyntaxError
+		true
+	end
+
 	def leading_keyword(path)
 		Plume.tokenize(read(path)).first || :EMPTY
 	rescue
 		:UNLEXABLE
 	end
 
-	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input/
+	# "Recursion limit" is SQLite's parser running out of stack on deeply nested input
+	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input|Recursion limit/
 
 	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
 	# test suite, which feeds it plenty of deliberately broken SQL. Statements are prepared one
@@ -61,7 +70,9 @@ module FixtureCorpus
 		@sqlite ||= SQLite3::Database.new(":memory:")
 	end
 
-	def baseline
-		File.exist?(BASELINE_PATH) ? File.readlines(BASELINE_PATH, chomp: true) : []
-	end
+	def baseline = lines(BASELINE_PATH)
+
+	def rejected = lines(REJECTED_PATH)
+
+	def lines(path) = File.exist?(path) ? File.readlines(path, chomp: true) : []
 end
