@@ -15,6 +15,8 @@ fixtures/sqlite-traced/alter3-615d45696c.sql
 fixtures/sqlite-traced/altercons-1565cacb7c.sql
 fixtures/sqlite-traced/altercons2-1d8908b13f.sql
 fixtures/sqlite-traced/altercons2-df2c06eafb.sql
+fixtures/sqlite-traced/bind-1070b471ac.sql
+fixtures/sqlite-traced/bind-249207389f.sql
 fixtures/sqlite-traced/bind-9e0566f803.sql
 fixtures/sqlite-traced/blob-074ad487a5.sql
 fixtures/sqlite-traced/blob-074b226bd1.sql
@@ -48,6 +50,7 @@ fixtures/sqlite-traced/e_select-5f142a1d2c.sql
 fixtures/sqlite-traced/e_select-740ae8298f.sql
 fixtures/sqlite-traced/e_select-762d65cf57.sql
 fixtures/sqlite-traced/e_select-7dda81792f.sql
+fixtures/sqlite-traced/e_select-8301b4849d.sql
 fixtures/sqlite-traced/e_select-837ad721c6.sql
 fixtures/sqlite-traced/e_select-8466d12284.sql
 fixtures/sqlite-traced/e_select-8a9642371f.sql
@@ -234,6 +237,7 @@ fixtures/sqlite-traced/window6-da146ca623.sql
 fixtures/sqlite-traced/window6-de493387f1.sql
 fixtures/sqlite-traced/window9-9d6e6d9de6.sql
 fixtures/sqlite-traced/windowE-a3a53f4d98.sql
+fixtures/sqlite-traced/with1-7eefc3a17c.sql
 fixtures/sqlite-traced/with1-a27f6bc013.sql
 fixtures/sqlite-traced/without_rowid5-13169db280.sql
 fixtures/sqlite/sql/attach-19.sql

@@ -1,13 +1,13 @@
 KEYWORD        TOTAL    PASS    FAIL INVALID
-SELECT         18708   18469      78     161
+SELECT         18708   18490      56     162
 CREATE          3087    3008      36      43
-INSERT          1350    1331      18       1
+INSERT          1350    1329      18       3
 PRAGMA           735     732       0       3
 UPDATE           536     530       0       6
-EXPLAIN          523     517       2       4
+EXPLAIN          523     519       0       4
 DELETE           405     402       0       3
 DROP             394     383       4       7
-WITH             384     375       5       4
+WITH             384     375       4       5
 BEGIN            329     329       0       0
 ALTER            177      99      76       2
 ATTACH           105     102       0       3
@@ -28,4 +28,4 @@ MINUS              2       0       0       2
 EMPTY              1       1       0       0
 INTEGER            1       0       0       1
 OF                 1       0       0       1
-ALL            26977   26503     219     255
+ALL            26977   26524     194     259

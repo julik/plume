@@ -1286,3 +1286,13 @@ test "a foreign key clause can be built by hand" do
 	assert_equal [clause.table, clause.deferred], ["users", true]
 	assert_equal clause.to_sql, "REFERENCES users DEFERRABLE INITIALLY DEFERRED"
 end
+
+# The comma after the last column leads into the constraints, and the comma between constraints is optional
+test "create table z(a, b, primary key(a) unique(b))" do
+	["CREATE TABLE z(a, b, PRIMARY KEY(a) UNIQUE(b))", "CREATE TABLE z(a, b, PRIMARY KEY(a), UNIQUE(b))"].each do |sql|
+		statement = parse_stmt(sql)
+
+		assert_equal statement.columns.size, 2
+		assert_equal statement.constraints.size, 2
+	end
+end
