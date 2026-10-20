@@ -16,11 +16,11 @@ passing = []
 rejected = []
 
 FixtureCorpus.paths.each do |path|
-	status = FixtureCorpus.classify(path)
-	status = :invalid if status == :fail && FixtureCorpus.sqlite_rejects?(path)
+	plume = FixtureCorpus.classify(path)
+	status = (plume == :pass) ? :pass : (FixtureCorpus.sqlite_rejects?(path) ? :invalid : :fail)
 	counts[FixtureCorpus.leading_keyword(path)][status] += 1
 	passing << path if status == :pass
-	rejected << path if status == :invalid && FixtureCorpus.plume_rejects?(path)
+	rejected << path if status == :invalid && plume == :reject
 end
 
 rows = counts.sort_by { |kw, c| [-c.values.sum, kw.to_s] }.map do |kw, c|

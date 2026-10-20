@@ -18,15 +18,10 @@ module FixtureCorpus
 	def classify(path)
 		statements = Plume::Parser.new(read(path)).parse
 		statements.all?(Plume::Node) ? :pass : :fail
-	rescue StandardError, SystemStackError
-		:fail
-	end
-
-	def plume_rejects?(path)
-		Plume::Parser.new(read(path)).parse
-		false
 	rescue Plume::SyntaxError
-		true
+		:reject
+	rescue
+		:fail
 	end
 
 	def leading_keyword(path)
