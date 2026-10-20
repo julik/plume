@@ -1,7 +1,7 @@
 KEYWORD        TOTAL    PASS    FAIL INVALID
 SELECT         11551   11494       0      57
 CREATE          1586    1560       0      26
-INSERT          1452    1451       0       1
+INSERT          1452    1451       1       0
 PRAGMA           708     708       0       0
 BEGIN            326     326       0       0
 DROP             323     316       0       7
@@ -25,4 +25,4 @@ RELEASE            5       5       0       0
 EMPTY              3       3       0       0
 SEMI               2       2       0       0
 OF                 1       0       0       1
-ALL            16931   16826       0     105
+ALL            16931   16826       1     104

@@ -152,7 +152,7 @@ module Plume
 				result
 			end
 		rescue SystemStackError
-			# SQLite has a nesting limit as well, and like its own it comes from the parser's stack
+			# How deep is too deep depends on the stack the caller has left, so no fixture relies on it
 			raise SyntaxError.new("statement nested too deeply")
 		end
 

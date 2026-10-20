@@ -82,7 +82,6 @@ fixtures/sqlite-traced/main-82.sql
 fixtures/sqlite-traced/main-95.sql
 fixtures/sqlite-traced/main-96.sql
 fixtures/sqlite-traced/main-97.sql
-fixtures/sqlite-traced/misc5-74.sql
 fixtures/sqlite-traced/misc5-84.sql
 fixtures/sqlite-traced/misc5-85.sql
 fixtures/sqlite-traced/normalize-6.sql

@@ -30,8 +30,7 @@ module FixtureCorpus
 		:UNLEXABLE
 	end
 
-	# "Recursion limit" is SQLite's parser running out of stack on deeply nested input
-	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input|Recursion limit/
+	SQLITE_SYNTAX_ERROR = /syntax error|unrecognized token|incomplete input/
 
 	# Whether SQLite itself rejects the fixture as malformed - the corpus comes from SQLite's
 	# test suite, which feeds it plenty of deliberately broken SQL. Statements are prepared one
