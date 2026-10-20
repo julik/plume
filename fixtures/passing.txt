@@ -1313,6 +1313,7 @@ fixtures/sqlite-traced/altertab3-3288ba1b00.sql
 fixtures/sqlite-traced/altertab3-33b91ce34d.sql
 fixtures/sqlite-traced/altertab3-357369b741.sql
 fixtures/sqlite-traced/altertab3-36cc3eb8fc.sql
+fixtures/sqlite-traced/altertab3-3e9a810fdd.sql
 fixtures/sqlite-traced/altertab3-44c0c9294a.sql
 fixtures/sqlite-traced/altertab3-4585332283.sql
 fixtures/sqlite-traced/altertab3-4870224591.sql

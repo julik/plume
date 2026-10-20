@@ -62,6 +62,7 @@ module Plume
 			:GLOB,
 			:LIKE,
 			:ROWID,
+			:STORED,
 			:STRICT,
 			:COLUMN,
 			:DO,
@@ -1541,39 +1542,20 @@ module Plume
 						else
 							expected!(:RP, "select-stmt", "expr")
 						end
-					elsif (ref = maybe { identifier })
-						if maybe :DOT
-							name = identifier
+					elsif (first_tk = maybe { name })
+						# nm dbnm paren_exprlist: a table, or a table-valued function's call
+						dot_tk = maybe :DOT
+						schema_tk, object_tk = dot_tk ? [first_tk, name] : [nil, first_tk]
 
-							if (arguments_lp = maybe :LP)
-								arguments = maybe_some(trailing_sep: :COMMA) { expression }
-								arguments_rp = require :RP
-
-								right = FunctionReference.concrete(
-									full_source: @lexer.sql,
-									schema_tk: Token::Identifier(ref),
-									function_tk: Token::Identifier(name),
-									arguments_lp: Token::Punctuation(arguments_lp),
-									arguments: FunctionArguments.concrete(
-										full_source: @lexer.sql,
-										expressions: arguments
-									),
-									arguments_rp: Token::Punctuation(arguments_rp),
-								)
-							else
-								right = TableName.concrete(
-									full_source: @lexer.sql,
-									schema_tk: Token::Identifier(ref),
-									table_tk: Token::Identifier(name),
-								)
-							end
-						elsif (arguments_lp = maybe :LP)
+						if (arguments_lp = maybe :LP)
 							arguments = maybe_some(trailing_sep: :COMMA) { expression }
 							arguments_rp = require :RP
 
 							right = FunctionReference.concrete(
 								full_source: @lexer.sql,
-								function_tk: Token::Identifier(ref),
+								schema_tk: Token::Identifier(schema_tk),
+								dot_tk: Token::Punctuation(dot_tk),
+								function_tk: Token::Identifier(object_tk),
 								arguments_lp: Token::Punctuation(arguments_lp),
 								arguments: FunctionArguments.concrete(
 									full_source: @lexer.sql,
@@ -1582,15 +1564,15 @@ module Plume
 								arguments_rp: Token::Punctuation(arguments_rp),
 							)
 						else
-							table = ref
-
 							right = TableName.concrete(
 								full_source: @lexer.sql,
-								table_tk: Token::Identifier(table),
+								schema_tk: Token::Identifier(schema_tk),
+								dot_tk: Token::Punctuation(dot_tk),
+								table_tk: Token::Identifier(object_tk),
 							)
 						end
 					else
-						expected!(:LP, :ID)
+						expected!(:LP, :STRING, "idj")
 					end
 
 					left = BinaryExpression.concrete(
